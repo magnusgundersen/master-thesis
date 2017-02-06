@@ -31,8 +31,8 @@ class Project:
 
 
         n_bit_data = self.open_temporal_data("temp_n_bit/5_bit_15_dist_32")
-        rcca_problem = rcca.RCCAProblem(n_bit_data)
-        rcca_config = rcca.RCCAConfig()
+        rcca_problem = rcca.ReCAProblem(n_bit_data)
+        rcca_config = rcca.ReCAConfig()
         #rcca_config.set_single_reservoir_config(ca_rule=110, R=8, C=5, I=4, classifier="linear-svm",
         #                                                encoding="random_mapping",
         #                                                time_transition="random_permutation")

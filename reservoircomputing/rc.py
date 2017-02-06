@@ -321,6 +321,9 @@ class RCHelper:
 
 
 class RCOutput:
+    """
+    Class that is outputted to the
+    """
 
     def __init__(self):
         self.list_of_states = []

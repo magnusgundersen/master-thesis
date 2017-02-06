@@ -255,6 +255,9 @@ class ReCAConfig(rc_if.ExternalRCConfig):
     """
     Condiguration of the reCA-system
 
+    Various possible configurations:
+    1.
+
     """
     def __init__(self):
         self.reservoir = None

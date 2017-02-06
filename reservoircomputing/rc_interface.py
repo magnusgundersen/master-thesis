@@ -1,7 +1,7 @@
 """
 Module that shows how the classifiers and reservoirs must be implemented
 
-As this is not Java, they are strictly not needed, but they work as architectural help.
+They are strictly not needed, but they work as architectural help.
 """
 __author__ = 'magnus'
 
