@@ -152,7 +152,7 @@ class ReCASystem:
     def get_example_run(self):
         return self.example_data
 
-class RCCAOutput:
+class ReCAOutput:
     def __init__(self):
         self.all_RCOutputs = []  # Includes full iterations, transitioned and input
         self.all_predictions = []
@@ -169,9 +169,9 @@ class RCCAOutput:
 
 
 
-class RCCAProblem:
+class ReCAProblem:
     """
-    This class is used to precisely describe problems that may be feeded to the rcca-system
+    This class is used to precisely describe problems that may be feeded to the reca-system
     """
     def __init__(self, example_runs):
         """
@@ -251,7 +251,11 @@ class RCCAProblem:
     def get_input_size(self):
         return len(self.training_data[0][0][0])
 
-class RCCAConfig(rc_if.ExternalRCConfig):
+class ReCAConfig(rc_if.ExternalRCConfig):
+    """
+    Condiguration of the reCA-system
+
+    """
     def __init__(self):
         self.reservoir = None
         self.I = 0
