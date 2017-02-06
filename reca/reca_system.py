@@ -66,7 +66,8 @@ class ReCASystem:
         self.rc_framework = rc.ReservoirComputingFramework()
         self.rc_framework.set_helper(rc_helper)
 
-
+    def tackle_ReCA_problem(self, validation_set_size=0.5):
+        pass
 
 
     def fit_to_problem(self, validation_set_size=0.5):
@@ -116,7 +117,7 @@ class ReCASystem:
                 """
         if self.rcca_problem is None:
             raise ValueError("No RCCAProblem set!")
-        rcca_output = RCCAOutput()
+        rcca_output = ReCAOutput()
         rcca_output.rcca_config = self.rcca_config
 
 

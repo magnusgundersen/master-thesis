@@ -254,13 +254,16 @@ class ReservoirComputingFramework:
 
 
 class RCHelper:
+    """
+    Helper class to manage the execution of the RC-cycle.
+    """
     def __init__(self, external_config):
-        self.config = external_config
-        self.encoder = self.config.encoder
-        self.time_transition = self.config.time_transition
+        self.config = external_config  # Config (i.e. reca-config)
+        self.encoder = self.config.encoder  # Encoder that processes the input
+        self.time_transition = self.config.time_transition  # How the previous inputs are echoed through the reservoir
         self.reservoir = self.config.reservoir
-        self.I = self.config.I
-        self.parallelizer = self.config.parallelizer
+        self.I = self.config.I # Number of iterations (CA)
+        self.parallelizer = self.config.parallelizer # CA parallelizer
 
 
     def reset(self):
@@ -270,6 +273,8 @@ class RCHelper:
 
     def run_input(self, _input):
         # Run input that is deptandant on previous inputs
+
+
         # 1. step is to consider if the reservoir landscape is parallelized
         # TODO: currently not implemented
         #print("INPUT: " + str(_input))
@@ -322,7 +327,9 @@ class RCHelper:
 
 class RCOutput:
     """
-    Class that is outputted to the
+    Class that contains the whole reservoir-computing process. May be used by the classifier for investigating.
+
+    TODO: Facilitate that the RCOutput may be "sparse" (Bio-inspired)
     """
 
     def __init__(self):
