@@ -8,15 +8,10 @@ from classifier import tfl_ann as tflann
 from reservoir import ca as ca
 from reservoircomputing import rc as rc
 from reservoircomputing import rc_interface as rc_if
-from encoder import rnd_mapping as rnd_map
-from encoder import parallel as prl
-from time_transition_encoder import normalized_addition as norm_add
-from time_transition_encoder import random_permutation as rnd_perm
-from time_transition_encoder import xor as xor
+from reca import encoder as enc
+from reca import time_transition_function as time_trans
 import random
 
-global t
-t=16 # FOR TRAINING SET SPLITTING! REMOVE
 
 class ReCASystem:
     """
@@ -44,11 +39,6 @@ class ReCASystem:
         self.reservoir = ca.ElemCAReservoir()
         self.reservoir.set_rule(rule_number)
         self.rc_framework.reservoir = self.reservoir
-
-    def use_random_mapping(self, r):
-        self.encoder = rnd_map.RandomMappingEncoder()
-        self.encoder.R = r
-        self.rc_framework.encoder = self.encoder
 
     def use_uniform_iterations(self, I):
         self.iterations = I
@@ -173,6 +163,9 @@ class ReCAOutput:
 class ReCAProblem:
     """
     This class is used to precisely describe problems that may be feeded to the reca-system
+
+
+
     """
     def __init__(self, example_runs):
         """
@@ -199,7 +192,7 @@ class ReCAProblem:
 
         :param example_runs:
         """
-
+        self.data_interpreter = None
         self.number_of_time_steps = 1
         self.is_temporal = False
         self.training_data = []
@@ -230,15 +223,13 @@ class ReCAProblem:
 
 
     def initialize_training_data(self, example_data):
-        self.check_data_validity(example_data)
+        #self.check_data_validity(example_data)
 
-        self.number_of_time_steps = len(example_data[0])
+        #self.number_of_time_steps = len(example_data[0])
 
         self.training_data = example_data
         random.shuffle(self.training_data)
 
-        if self.number_of_time_steps > 1:
-            self.is_temporal = True
 
 
     def get_timeseries_data(self):
@@ -275,7 +266,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         ca_rule = [ca_rule]  # Parallel?
         self.reservoir.set_rules(ca_rule)
 
-        self.parallelizer = prl.ParallelNonUniformEncoder(self.reservoir.rules, "unbounded")
+        self.parallelizer = enc.ParallelNonUniformEncoder(self.reservoir.rules, "unbounded")
 
         # clf
         if classifier=="linear-svm":
@@ -286,17 +277,17 @@ class ReCAConfig(rc_if.ExternalRCConfig):
 
         # Encoder
         if encoding == "random_mapping":
-            self.encoder = rnd_map.RandomMappingEncoder(self.parallelizer)
+            self.encoder = enc.RandomMappingEncoder(self.parallelizer)
             self.encoder.R = R
             self.encoder.C = C
 
         self.I = I
         if time_transition=="normalized_addition":
-            self.time_transition = norm_add.RandomAdditionTimeTransition()
+            self.time_transition = time_trans.RandomAdditionTimeTransition()
         elif time_transition == "random_permutation":
-            self.time_transition = rnd_perm.RandomPermutationTransition()
+            self.time_transition = time_trans.RandomPermutationTransition()
         elif time_transition == "xor":
-            self.time_transition = xor.XORTimeTransition()
+            self.time_transition = time_trans.XORTimeTransition()
 
     def set_parallel_reservoir_config(self, ca_rules=(105,110), parallel_size_policy="unbounded", R=4, C=3, I=12,
                                       classifier="linear-svm", encoding="random_mapping",
@@ -307,7 +298,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         self.reservoir.set_rules(ca_rules)
 
         #if parallel_size_policy
-        self.parallelizer = prl.ParallelNonUniformEncoder(self.reservoir.rules, parallel_size_policy)
+        self.parallelizer = enc.ParallelNonUniformEncoder(self.reservoir.rules, parallel_size_policy)
 
 
         # clf
@@ -318,16 +309,18 @@ class ReCAConfig(rc_if.ExternalRCConfig):
 
         # Encoder
         if encoding == "random_mapping":
-            self.encoder = rnd_map.RandomMappingEncoder(self.parallelizer)
+            self.encoder = enc.RandomMappingEncoder(self.parallelizer)
             self.encoder.R = R
             self.encoder.C = C
 
         self.I = I
         if time_transition=="normalized_addition":
-            self.time_transition = norm_add.RandomAdditionTimeTransition()
+            self.time_transition = enc.RandomAdditionTimeTransition()
         elif time_transition == "random_permutation":
-            self.time_transition = rnd_perm.RandomPermutationTransition()
+            self.time_transition = enc.RandomPermutationTransition()
 
+    def set_ca_rule_scheme(self, rule_scheme):
+        pass
 
 
 
