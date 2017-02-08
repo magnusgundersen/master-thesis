@@ -26,6 +26,59 @@ class Project:
     def __init__(self):
         pass
 
+    def img_clf_task(self):
+        img_data = self.open_temporal_data("cifar.data")
+        rcca_problem = rcca.ReCAProblem(img_data)
+        rcca_config = rcca.ReCAConfig()
+        rcca_config.set_single_reservoir_config(ca_rule=90, R=1, C=4, I=16, classifier="linear-svm",
+                                                encoding="random_mapping",
+                                                time_transition="random_permutation")
+        rcca_system = rcca.ReCASystem()
+
+        rcca_system.set_problem(rcca_problem)
+        rcca_system.set_config(rcca_config)
+        rcca_system.initialize_rc()
+        rcca_system.fit_to_problem(5/10)
+
+        # rcca_config.encoder.create_mappings(4)
+
+        rcca_out = rcca_system.test_on_problem(5/10)
+        print(str(rcca_out.total_correct) + " of " + str(len(rcca_out.all_test_examples)))
+        print("--example--")
+        example_run = rcca_out.all_predictions[0]
+        example_test = rcca_out.all_test_examples[0]
+        for i in range(len(example_run)):
+            time_step = example_run[i]
+            prediction = time_step[0]
+            correct = example_test[i][1]
+            _input = "".join([str(x) for x in example_test[i][0]])
+            print("Input: " + _input + "  Correct: " + str(correct) + "  Predicted:" + str(prediction))
+
+        # Visualize:
+        """
+        outputs = rcca_out.all_RCOutputs
+        whole_output = []
+        lists_of_states = [output.list_of_states for output in outputs]
+        for output in lists_of_states:
+            width = len(output[0])
+            whole_output.extend(output)
+            whole_output.extend([[-1 for _ in range(width)]])
+        self.visualise_example(whole_output)
+        """
+
+        # Visualize:
+        outputs = rcca_system.get_example_run()
+        whole_output = []
+        lists_of_states = [output.list_of_states for output in outputs]
+        for output in lists_of_states:
+            width = len(output[0])
+            new_output = []
+            for line in output:
+                new_output.append([(-1 if i == 0 else 1) for i in line])
+
+            whole_output.extend(new_output)
+            whole_output.extend([[0 for _ in range(width)]])
+        self.visualise_example(whole_output)
 
     def n_bit_task(self, n=5):
 

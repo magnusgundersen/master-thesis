@@ -57,6 +57,23 @@ class ReCASystem:
         self.rc_framework.set_helper(rc_helper)
 
     def tackle_ReCA_problem(self, validation_set_size=0.5):
+        # 1. Sequential or not??
+        # 2. Seq to seq? Or sequential classification?
+        # All problems at this stage must be binary!
+        if self.rcca_problem is None:
+            raise ValueError("No ReCAProblem set!")
+
+        # Simple, classification task (Like cifar):
+
+        # fixed to fixed sequence task (Like 20-bit)
+
+        # sequence to sequence (variable size of input and unkown size of output (Like translation))
+
+
+        pass
+
+    def tackle_cont_ReCA_problem(self):
+        #Proposed function to tackle continuous CA problems.
         pass
 
 
@@ -80,24 +97,6 @@ class ReCASystem:
                 self.example_data = output
 
         self.rc_framework.train_classifier()
-        #print("done with training")
-        number_of_correct = 0
-        """
-        for test_ex in test_data:
-            #  We now have a timeseries of data, on which the rc-framework must be fitted
-            outputs = self.rc_framework.predict(test_ex)
-            pointer = 0
-            all_correct = True
-            for _, output in test_ex:
-                if output != outputs[pointer]:
-                    #print("WRONG: " + str(output) + str( "  ") + str(outputs[pointer]))
-                    all_correct = False
-                pointer += 1
-            if all_correct:
-                number_of_correct += 1
-
-        #print("Number of correct: " + str(number_of_correct) +" of " + str(len(test_data)))
-        """
         return 0, 0
 
     def test_on_problem(self, test_set_size=0.5):

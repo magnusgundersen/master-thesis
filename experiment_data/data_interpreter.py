@@ -1,5 +1,8 @@
 # Creates a ReCAProblem from the dataset.
+import pickle
+import numpy as np
 
+from PIL import Image
 class TranslationBuilder:
     def __init__(self):
         """
@@ -98,6 +101,47 @@ class TranslationBuilder:
         print(data_file)
 
 
+class CIFARBuilder:
+    def get_cifar_data(self):
+        batch1 = {}
+        with open("cifar10/data_batch_1",'rb') as f:
+            batch1 = pickle.load(f, encoding='bytes')
+        print(batch1)
+        #data = batch1.get(b'data')[5].reshape(3,32,32).transpose(1,2,0)
+        data = batch1.get(b'data')
+        labels = batch1.get(b'labels')
+        #img = Image.fromarray(data, 'RGB')
+        #img.save('my.png')
+        #img.show()
+
+        data_lenght = len(data)
+        data_lenght = 100
+        data_string = ""
+
+        for i in range(data_lenght):
+            data_string += self.create_bin_data(data[i], labels[i], None)
+            data_string += "\n\n"
+
+        with open("cifar.data", "w+") as f:
+            f.write(data_string)
+
+    def create_bin_data(self, img_array, img_class, weight_matrix):
+        # C-style flattening
+        bin_string = ""
+        for chn in img_array:
+            if chn > 120:  # THRESHOLD
+                bin_string += "1"
+            else:
+                bin_string += "0"
+
+        bin_string += " "
+        for j in range(10):
+            if j == img_class:
+                bin_string += "1"
+            else:
+                bin_string += "0"
+
+        return bin_string
 
 
 
@@ -105,5 +149,9 @@ class TranslationBuilder:
 
 
 
-translator = TranslationBuilder()
-translator.open_all_translation()
+#translator = TranslationBuilder()
+#translator.open_all_translation()
+
+
+cifarB = CIFARBuilder()
+cifarB.get_cifar_data()
