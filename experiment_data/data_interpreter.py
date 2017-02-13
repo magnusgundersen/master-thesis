@@ -1,6 +1,7 @@
 # Creates a ReCAProblem from the dataset.
 import pickle
-import numpy as np
+import numpy as np3
+import os
 
 from PIL import Image
 class TranslationBuilder:
@@ -8,11 +9,67 @@ class TranslationBuilder:
         """
         utf-8
         """
-        pass
+        self.prod_end_signal = ""
+
+        self.english_alphabet = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r",
+                            "s", "t", "u", "v", "w", "x", "y", "z"]
+
+        self.german_alphabet = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r",
+                           "s", "t", "u", "v", "w", "x", "y", "z", "ä", "ö", "ü"]
+
+        self.french_alphabet = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r",
+                           "s", "t", "u", "v", "w", "x", "y", "z"]
+
+        self.common_signs = [" ", ".", ",", ":", ";", "-", "!", "?", "'", "(", ")", "%", "/", '"', "'", "+"]
+        self.arabic_numbers = [str(i) for i in range(10)]
+
+        self.english_allowed = self.english_alphabet + self.common_signs + self.arabic_numbers
+        self.german_allowed = self.german_alphabet + self.common_signs + self.arabic_numbers
+
+        self.language = "german"  #ONLY ONE IMPLEMENTED
+
+    def get_training_data(self):
+        file_location = os.path.dirname(os.path.realpath(__file__))
+        if self.language == "german":
+            dataset = []
+            with open(file_location+"/en-de.data", "r") as f:
+                content = f.readlines()
+                training_set = []
+                for line in content:
+                    if line == "\n":
+                        dataset.append(training_set)
+                        training_set = []
+                    else:
+                        _input, _output = line.split(" ")
+                        training_set.append(([int(number) for number in _input],_output[0:-1]))
+            return dataset
+        else:
+            raise ValueError("Language not implemented: " + str(self.language))
+
+    def get_testing_data(self):
+        return []
+
+    def get_pred_end_signal(self):
+        if self.language == "german":
+            return "000000000000000000000000000000000000000000000000000000001"  # TODO: make dynamic
+
+    def convert_from_bit_sequence_to_string(self, bit_sequence, language):
+        sentence = ""
+
+        if language == "german":
+            for bit_string in bit_sequence:
+                alphabet_index = 0
+                for _index in bit_string:
+                    if _index == 1:
+                        try:
+                            sentence += self.german_allowed[alphabet_index]
+                    else:
+                        alphabet_index += 1
 
     def read_translation_files(self, language):
         from_lines = []
-        with open("translation/" + "europarl-v7."+language+"-en."+language, "r", encoding='utf8') as f:
+        file_location = os.path.dirname(os.path.realpath(__file__))
+        with open(file_location+"/translation/" + "europarl-v7."+language+"-en."+language, "r", encoding='utf8') as f:
             content = f.readlines()
             for line in content:
                 if line == "\n":
@@ -20,7 +77,7 @@ class TranslationBuilder:
                 from_lines.append(line)
 
         to_lines = []
-        with open("translation/" + "europarl-v7." + language + "-en." + "en", "r", encoding='utf8') as f:
+        with open(file_location+"/translation/" + "europarl-v7." + language + "-en." + "en", "r", encoding='utf8') as f:
             content = f.readlines()
             for line in content:
                 if line == "\n":
@@ -29,22 +86,8 @@ class TranslationBuilder:
         return (from_lines, to_lines)
 
 
-    def open_all_translation(self):
-        print("Translation")
-        english_alphabet = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r",
-                            "s", "t", "u", "v", "w", "x", "y", "z"]
+    def generate_translation_data(self):
 
-        german_alphabet = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r",
-                           "s", "t", "u", "v", "w", "x", "y", "z", "ä", "ö", "ü"]
-
-        french_alphabet = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r",
-                           "s", "t", "u", "v", "w", "x", "y", "z"]
-
-        common_signs = [" ", ".", ",", ":", ";", "-", "!", "?", "'", "(", ")", "%", "/", '"', "'", "+"]
-        arabic_numbers = [str(i) for i in range(10)]
-
-        english_allowed = english_alphabet + common_signs + arabic_numbers
-        german_allowed = german_alphabet + common_signs + arabic_numbers
         eng_lines = []
         ger_lines = []
 
@@ -52,16 +95,19 @@ class TranslationBuilder:
         ger_lines = german_to_english[0]
         eng_lines = german_to_english[1]
 
-        print("number of german sentences: " + str(len(ger_lines)))
-        print("number of english sentences: " + str(len(eng_lines)))
+        examples = 10
+        txt_bin_data = ""
+        for i in range(examples):
+            txt_bin_data += (self.create_bin_data(eng_lines[i], self.english_allowed, ger_lines[i], self.german_allowed))
+            txt_bin_data += "\n"
+        with open("en-de.data", "w+") as f:
+            f.write(txt_bin_data)
 
-        print("size of english allowed alphabet: " + str(len(english_allowed)))
-        self.create_bin_data(eng_lines[0], english_allowed, ger_lines[0], german_allowed, 1)
 
-    def create_bin_data(self, source_sentence, source_alphabet, target_sentence, target_alphabet, computational_period):
+    def create_bin_data(self, source_sentence, source_alphabet, target_sentence, target_alphabet):
         data_file = ""
-        print("Source sentence: " + str(source_sentence), end="")
-        print("target sentence: " + str(target_sentence), end="")
+        #print("Source sentence: " + str(source_sentence), end="")
+        #print("target sentence: " + str(target_sentence), end="")
         for character in source_sentence:
             for i in range(len(source_alphabet)):
                 if source_alphabet[i] == character.lower():
@@ -73,16 +119,14 @@ class TranslationBuilder:
 
             for i in range(len(target_alphabet)):
                 data_file += "0"
-            data_file += "1"
-
+            data_file += "1"  # Wait signal
+            data_file += "0"  # End of sentence signal
             data_file += "\n"
 
-        for period in range(computational_period):
-            data_file += "0"*len(source_alphabet) + " " + "0"*len(target_alphabet)+ "1"+"\n"
 
         for character in target_sentence:
             for i in range(len(source_alphabet)):
-                data_file += "0"
+                data_file += "0"  # End of source sentence
 
             data_file += " "
             for i in range(len(target_alphabet)):
@@ -91,14 +135,14 @@ class TranslationBuilder:
                     continue
                 data_file += "0"
             data_file += "0"
-
-
-
-
+            data_file += "0"
             data_file += "\n"
 
+        self.prod_end_signal = "0"*len(target_alphabet)+ "0"+"1"+"\n"  # End of sentence
+        data_file += "0"*len(source_alphabet) + " " + self.prod_end_signal
 
-        print(data_file)
+
+        return data_file
 
 
 class CIFARBuilder:
@@ -129,7 +173,7 @@ class CIFARBuilder:
         # C-style flattening
         bin_string = ""
         for chn in img_array:
-            if chn > 120:  # THRESHOLD
+            if chn > 100:  # THRESHOLD
                 bin_string += "1"
             else:
                 bin_string += "0"
@@ -150,8 +194,8 @@ class CIFARBuilder:
 
 
 #translator = TranslationBuilder()
-#translator.open_all_translation()
+#translator.generate_translation_data()
 
 
-cifarB = CIFARBuilder()
-cifarB.get_cifar_data()
+#cifarB = CIFARBuilder()
+#cifarB.get_cifar_data()

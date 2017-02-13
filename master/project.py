@@ -3,7 +3,7 @@ Functionality and experiments.
 
 """
 __author__ = 'magnus'
-from reca import reca_system as rcca
+from reca import reca_system as reCA
 from gui import ca_basic_visualizer as bviz
 import random
 import pprint
@@ -12,6 +12,7 @@ import csv
 import os
 import pickle as pickle
 import time
+import experiment_data.data_interpreter as data_int
 
 from multiprocessing import Pool
 
@@ -28,25 +29,25 @@ class Project:
 
     def img_clf_task(self):
         img_data = self.open_temporal_data("cifar.data")
-        rcca_problem = rcca.ReCAProblem(img_data)
-        rcca_config = rcca.ReCAConfig()
-        rcca_config.set_single_reservoir_config(ca_rule=90, R=1, C=4, I=16, classifier="linear-svm",
+        reCA_problem = reCA.ReCAProblem(img_data)
+        reCA_config = reCA.ReCAConfig()
+        reCA_config.set_single_reservoir_config(ca_rule=90, R=4, C=2, I=20, classifier="linear-svm",
                                                 encoding="random_mapping",
                                                 time_transition="random_permutation")
-        rcca_system = rcca.ReCASystem()
+        reCA_system = reCA.ReCASystem()
 
-        rcca_system.set_problem(rcca_problem)
-        rcca_system.set_config(rcca_config)
-        rcca_system.initialize_rc()
-        rcca_system.fit_to_problem(5/10)
+        reCA_system.set_problem(reCA_problem)
+        reCA_system.set_config(reCA_config)
+        reCA_system.initialize_rc()
+        #reCA_system.fit_to_problem(9/10)
+        reCA_system.tackle_ReCA_problem()
+        # reCA_config.encoder.create_mappings(4)
 
-        # rcca_config.encoder.create_mappings(4)
-
-        rcca_out = rcca_system.test_on_problem(5/10)
-        print(str(rcca_out.total_correct) + " of " + str(len(rcca_out.all_test_examples)))
+        reCA_out = reCA_system.test_on_problem(9/10)
+        print(str(reCA_out.total_correct) + " of " + str(len(reCA_out.all_test_examples)))
         print("--example--")
-        example_run = rcca_out.all_predictions[0]
-        example_test = rcca_out.all_test_examples[0]
+        example_run = reCA_out.all_predictions[0]
+        example_test = reCA_out.all_test_examples[0]
         for i in range(len(example_run)):
             time_step = example_run[i]
             prediction = time_step[0]
@@ -56,7 +57,7 @@ class Project:
 
         # Visualize:
         """
-        outputs = rcca_out.all_RCOutputs
+        outputs = reCA_out.all_RCOutputs
         whole_output = []
         lists_of_states = [output.list_of_states for output in outputs]
         for output in lists_of_states:
@@ -67,7 +68,56 @@ class Project:
         """
 
         # Visualize:
-        outputs = rcca_system.get_example_run()
+        outputs = reCA_system.get_example_run()
+        whole_output = []
+        lists_of_states = [output.list_of_states for output in outputs]
+        for output in lists_of_states:
+            width = len(output[0])
+            new_output = []
+            for line in output:
+                new_output.append([(-1 if i == 0 else 1) for i in line])
+
+            whole_output.extend(new_output)
+            whole_output.extend([[0 for _ in range(width)]])
+        self.visualise_example(whole_output)
+
+    def europarl_translation_task(self):
+
+        # Currently only german is implemented
+        #translation_data = self.open_temporal_data("en-de.data")
+        data_interpreter = self.open_data_interpreter("europarl")
+
+        # reca_prob
+        reCA_problem = reCA.ReCAProblem(data_interpreter)
+        reCA_config = reCA.ReCAConfig()
+        reCA_config.set_single_reservoir_config(ca_rule=90, R=2, C=3, I=16, classifier="linear-svm",
+                                                encoding="random_mapping",
+                                                time_transition="random_permutation")
+        reCA_system = reCA.ReCASystem()
+
+        reCA_system.set_problem(reCA_problem)
+        reCA_system.set_config(reCA_config)
+        reCA_system.initialize_rc()
+        reCA_system.tackle_ReCA_problem()
+
+        reCA_out = reCA_system.test_on_dynamic_sequence_data()  # tested on the test-set
+
+
+        print(str(reCA_out.total_correct) + " of " + str(len(reCA_out.all_test_examples)))
+        print("--example--")
+        example_run = reCA_out.all_predictions[0]
+        example_test = reCA_out.all_test_examples[0]
+        print("ex run:"+str(example_run))
+        for i in range(len(example_run)):
+            time_step = example_run[i]
+            prediction = time_step[0]
+            correct = example_test[i][1]
+            _input = "".join([str(x) for x in example_test[i][0]])
+            print("Input: " + _input + "  Correct: " + str(correct) + "  Predicted:" + str(prediction))
+
+
+        # Visualize:
+        outputs = reCA_system.get_example_run()
         whole_output = []
         lists_of_states = [output.list_of_states for output in outputs]
         for output in lists_of_states:
@@ -84,32 +134,32 @@ class Project:
 
 
         n_bit_data = self.open_temporal_data("temp_n_bit/5_bit_15_dist_32")
-        rcca_problem = rcca.ReCAProblem(n_bit_data)
-        rcca_config = rcca.ReCAConfig()
-        rcca_config.set_single_reservoir_config(ca_rule=110, R=8, C=5, I=4, classifier="linear-svm",
+        reCA_problem = reCA.ReCAProblem(n_bit_data)
+        reCA_config = reCA.ReCAConfig()
+        reCA_config.set_single_reservoir_config(ca_rule=110, R=8, C=5, I=4, classifier="linear-svm",
                                                         encoding="random_mapping",
                                                         time_transition="random_permutation")
-        #rcca_config.set_parallel_reservoir_config(ca_rules=[90,105], parallel_size_policy="bounded", R=8, C=5, I=4,
+        #reCA_config.set_parallel_reservoir_config(ca_rules=[90,105], parallel_size_policy="bounded", R=8, C=5, I=4,
         #                              classifier="linear-svm", encoding="random_mapping",
         #                              time_transition="random_permutation")
 
-        rcca_system = rcca.ReCASystem()
+        reCA_system = reCA.ReCASystem()
 
 
 
 
-        rcca_system.set_problem(rcca_problem)
-        rcca_system.set_config(rcca_config)
-        rcca_system.initialize_rc()
-        rcca_system.fit_to_problem(1)
+        reCA_system.set_problem(reCA_problem)
+        reCA_system.set_config(reCA_config)
+        reCA_system.initialize_rc()
+        reCA_system.fit_to_problem(1)
 
-        #rcca_config.encoder.create_mappings(4)
+        #reCA_config.encoder.create_mappings(4)
 
-        rcca_out = rcca_system.test_on_problem(0)
-        print(str(rcca_out.total_correct) + " of " + str(len(rcca_out.all_test_examples)))
+        reCA_out = reCA_system.test_on_problem(0)
+        print(str(reCA_out.total_correct) + " of " + str(len(reCA_out.all_test_examples)))
         print("--example--")
-        example_run = rcca_out.all_predictions[0]
-        example_test = rcca_out.all_test_examples[0]
+        example_run = reCA_out.all_predictions[0]
+        example_test = reCA_out.all_test_examples[0]
         for i in range(len(example_run)):
             time_step = example_run[i]
             prediction = time_step[0]
@@ -119,7 +169,7 @@ class Project:
 
         # Visualize:
         """
-        outputs = rcca_out.all_RCOutputs
+        outputs = reCA_out.all_RCOutputs
         whole_output = []
         lists_of_states = [output.list_of_states for output in outputs]
         for output in lists_of_states:
@@ -130,7 +180,7 @@ class Project:
         """
 
         # Visualize:
-        outputs = rcca_system.get_example_run()
+        outputs = reCA_system.get_example_run()
         whole_output = []
         lists_of_states = [output.list_of_states for output in outputs]
         for output in lists_of_states:
@@ -149,20 +199,21 @@ class Project:
         majority_data = self.open_temporal_data("majority/8_bit_mix_1000")
 
 
-        rcca_problem = rcca.RCCAProblem(majority_data)
-        rcca_config = rcca.RCCAConfig()
-        rcca_config.set_single_reservoir_config(ca_rule=90, R=16, C=3, I=9, classifier="linear-svm",
+        reCA_problem = reCA.ReCAProblem(majority_data)
+        reCA_config = reCA.ReCAConfig()
+        reCA_config.set_single_reservoir_config(ca_rule=90, R=16, C=3, I=9, classifier="linear-svm",
                                                 encoding="random_mapping", time_transition="random_permutation")
 
-        rcca_config.set_parallel_reservoir_config()
+        reCA_config.set_parallel_reservoir_config()
 
-        rcca_system = rcca.RCCASystem()
+        reCA_system = reCA.ReCASystem()
 
-        rcca_system.set_problem(rcca_problem)
-        rcca_system.set_config(rcca_config)
-        rcca_system.initialize_rc()
+        reCA_system.set_problem(reCA_problem)
+        reCA_system.set_config(reCA_config)
+        reCA_system.initialize_rc()
 
-        rcca_system.fit_to_problem(validation_set_size=0.1)
+
+        reCA_system.fit_to_problem(validation_set_size=0.1)
 
 
     def visualise_example(self, training_array):
@@ -209,6 +260,11 @@ class Project:
                     _input, _output = line.split(" ")
                     training_set.append(([int(number) for number in _input],_output[0:-1]))
         return dataset
+
+    def open_data_interpreter(self, type_of_interpreter):
+        if type_of_interpreter == "europarl":
+            return data_int.TranslationBuilder()
+
 
 
 

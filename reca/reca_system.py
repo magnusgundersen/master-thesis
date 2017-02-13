@@ -27,32 +27,18 @@ class ReCASystem:
         self.encoder = None
         self.rc_framework = None
 
-        self.rcca_config = None
-
-    def use_svm(self):
-        self.classifier = svm.SVM()
-        self.rc_framework.classifier = self.classifier
-
-    def use_elem_ca(self, rule_number):
-        """
-        """
-        self.reservoir = ca.ElemCAReservoir()
-        self.reservoir.set_rule(rule_number)
-        self.rc_framework.reservoir = self.reservoir
-
-    def use_uniform_iterations(self, I):
-        self.iterations = I
+        self.reCA_config = None
 
     # Below is experimental code
-    def set_problem(self, rcca_problem):
-        self.rcca_problem = rcca_problem
+    def set_problem(self, reCA_problem):
+        self.reCA_problem = reCA_problem
 
-    def set_config(self, rcca_config):
-        self.rcca_config = rcca_config
+    def set_config(self, reCA_config):
+        self.reCA_config = reCA_config
 
     def initialize_rc(self):
-        self.rcca_config.encoder.create_mappings(self.rcca_problem.get_input_size())
-        rc_helper = rc.RCHelper(self.rcca_config)
+        self.reCA_config.encoder.create_mappings(self.reCA_problem.get_input_size())
+        rc_helper = rc.RCHelper(self.reCA_config)
         self.rc_framework = rc.ReservoirComputingFramework()
         self.rc_framework.set_helper(rc_helper)
 
@@ -60,21 +46,51 @@ class ReCASystem:
         # 1. Sequential or not??
         # 2. Seq to seq? Or sequential classification?
         # All problems at this stage must be binary!
-        if self.rcca_problem is None:
+        if self.reCA_problem is None:
             raise ValueError("No ReCAProblem set!")
 
-        # Simple, classification task (Like cifar):
+        self.example_data = None
+        # Feed-Forward task (Like plain CIFAR):
+        if self.reCA_problem.is_feed_forward:
+            training_data = self.reCA_problem.training_data
 
-        # fixed to fixed sequence task (Like 20-bit)
+            # For each input.
+            for training_example in training_data:
+                output = self.rc_framework.fit_to_data(training_example)  # Only one timestep
+                if self.example_data is None:
+                    self.example_data = output
 
-        # sequence to sequence (variable size of input and unkown size of output (Like translation))
+            self.rc_framework.train_classifier()
+
+
+        # Fixed to Fixed sequence task (Like 20-bit)
+        elif self.reCA_problem.is_fixed_sequence:
+            training_data = self.reCA_problem.training_data
+
+            # For each input.
+            for training_example in training_data:
+                output = self.rc_framework.fit_to_data(training_example)  # Only one timestep
+                if self.example_data is None:
+                    self.example_data = output
+
+            self.rc_framework.train_classifier()
+
+
+        # Sequence to sequence (variable size of input and unknown size of output (Like translation))
+        elif self.reCA_problem.is_dynamic_sequence:
+            training_data = self.reCA_problem.training_data
+
+            # For each input.
+            for training_example in training_data:
+                output = self.rc_framework.fit_to_data(training_example)  # Only one timestep
+                if self.example_data is None:
+                    self.example_data = output
+
+            self.rc_framework.train_classifier()
 
 
         pass
 
-    def tackle_cont_ReCA_problem(self):
-        #Proposed function to tackle continuous CA problems.
-        pass
 
 
     def fit_to_problem(self, validation_set_size=0.5):
@@ -82,10 +98,10 @@ class ReCASystem:
 
         :return:
         """
-        if self.rcca_problem is None:
-            raise ValueError("No RCCAProblem set!")
+        if self.reCA_problem is None:
+            raise ValueError("No reCAProblem set!")
 
-        training_data = self.rcca_problem.training_data[:int(len(self.rcca_problem.training_data)*validation_set_size)]
+        training_data = self.reCA_problem.training_data[:int(len(self.reCA_problem.training_data)*validation_set_size)]
 
 
         self.example_data = None
@@ -99,27 +115,37 @@ class ReCASystem:
         self.rc_framework.train_classifier()
         return 0, 0
 
-    def test_on_problem(self, test_set_size=0.5):
+
+    def test_on_dynamic_sequence_data(self):
         """
 
-                :return:
-                """
-        if self.rcca_problem is None:
-            raise ValueError("No RCCAProblem set!")
-        rcca_output = ReCAOutput()
-        rcca_output.rcca_config = self.rcca_config
 
+                :return:
+
+                """
+        if self.reCA_problem is None:
+            raise ValueError("No reCAProblem set!")
+
+        reCA_output = ReCAOutput()
+        reCA_output.reCA_config = self.reCA_config
 
         # divide training_data:
-        test_data = self.rcca_problem.training_data[int(len(self.rcca_problem.training_data)*test_set_size):]
-        rcca_output.all_test_examples=test_data
+        test_data = self.reCA_problem.testing_data
+        pred_stop_signal = "000000000000000000000000000000000000000000000000000000001"
+        reCA_output.all_test_examples = test_data
 
         number_of_correct = 0
 
         for test_ex in test_data:
             #  We now have a timeseries of data, on which the rc-framework must be fitted
-            outputs = self.rc_framework.predict(test_ex)
-            rcca_output.all_RCOutputs.append(outputs)
+            outputs = self.rc_framework.predict_dynamic_sequence(test_ex, pred_stop_signal)
+            reCA_output.all_RCOutputs.append(outputs)
+            print(reCA_output.all_predictions)
+            print("RBEAKING")
+            print("Size of predictions: " + str(len(outputs)))
+            print("size of correctssss: " + str(len(test_ex)))
+
+
             pointer = 0
             all_correct = True
             predictions = []
@@ -129,15 +155,56 @@ class ReCASystem:
                     # print("WRONG: " + str(output) + str( "  ") + str(outputs[pointer]))
                     all_correct = False
                 pointer += 1
-            rcca_output.all_predictions.append(predictions)
+            reCA_output.all_predictions.append(predictions)
 
             if all_correct:
                 number_of_correct += 1
 
         # print("Number of correct: " + str(number_of_correct) +" of " + str(len(test_data)))
 
-        rcca_output.total_correct = number_of_correct
-        return rcca_output
+        reCA_output.total_correct = number_of_correct
+        return reCA_output
+    def test_on_problem(self, test_set_size=0.5):
+        """
+
+
+        :return:
+
+        """
+        if self.reCA_problem is None:
+            raise ValueError("No reCAProblem set!")
+        reCA_output = ReCAOutput()
+        reCA_output.reCA_config = self.reCA_config
+
+
+        # divide training_data:
+        test_data = self.reCA_problem.testing_data
+        reCA_output.all_test_examples=test_data
+
+        number_of_correct = 0
+
+        for test_ex in test_data:
+            #  We now have a timeseries of data, on which the rc-framework must be fitted
+            outputs = self.rc_framework.predict(test_ex)
+            reCA_output.all_RCOutputs.append(outputs)
+            pointer = 0
+            all_correct = True
+            predictions = []
+            for _, output in test_ex:
+                predictions.append(outputs[pointer])
+                if output != outputs[pointer]:
+                    # print("WRONG: " + str(output) + str( "  ") + str(outputs[pointer]))
+                    all_correct = False
+                pointer += 1
+            reCA_output.all_predictions.append(predictions)
+
+            if all_correct:
+                number_of_correct += 1
+
+        # print("Number of correct: " + str(number_of_correct) +" of " + str(len(test_data)))
+
+        reCA_output.total_correct = number_of_correct
+        return reCA_output
 
     def get_example_run(self):
         return self.example_data
@@ -148,7 +215,7 @@ class ReCAOutput:
         self.all_predictions = []
         self.correct_predictions = []
         self.all_test_examples = []
-        self.rcca_config = None
+        self.reCA_config = None
         self.total_correct = 0
 
     def was_successful(self):
@@ -166,7 +233,7 @@ class ReCAProblem:
 
 
     """
-    def __init__(self, example_runs):
+    def __init__(self, data_interpreter):
         """
         The example runs parameter is used to input some example data to the system. Must be on the form:
 
@@ -191,11 +258,16 @@ class ReCAProblem:
 
         :param example_runs:
         """
+        # Declare variables
         self.data_interpreter = None
-        self.number_of_time_steps = 1
-        self.is_temporal = False
+        self.is_feed_forward = False
+        self.is_fixed_sequence = False
+        self.is_dynamic_sequence = False
         self.training_data = []
-        self.initialize_training_data(example_runs)
+        self.testing_data = []
+
+
+        self.initialize_data(data_interpreter)
     @staticmethod
     def check_data_validity(ex_data):
 
@@ -208,36 +280,46 @@ class ReCAProblem:
         try:
             number_of_time_steps = len(ex_data[0])
         except Exception as e:
-            raise ValueError("Data in each training-example was bad " + str(e))
+            raise ValueError("Data in a training-example was bad " + str(e))
 
 
-        for data in ex_data:
-            if len(data) != number_of_time_steps:
-                raise ValueError("Every training set data must have same size! ")
-
-            number_of_input_values = len(data[0][0])
-            for time_step in data:
-                if len(time_step[0]) != number_of_input_values:
-                    raise ValueError("Every training example must have same size! ")
 
 
-    def initialize_training_data(self, example_data):
-        #self.check_data_validity(example_data)
+    def initialize_data(self, data_interpreter, testing_portion=0.0):
+        # Determine if it is a feed-forward classification task
+        example_data = data_interpreter.get_training_data()
+        for data in example_data:
+            if len(data) == 1:
+                self.is_feed_forward = True
 
-        #self.number_of_time_steps = len(example_data[0])
+            else:
+                self.is_feed_forward = False
 
-        self.training_data = example_data
+        first_example_sequence_length = len(example_data[0])
+        for data in example_data:
+            if len(data) == first_example_sequence_length:
+                self.is_fixed_sequence = True
+
+            else:
+                self.is_dynamic_sequence = True
+                self.is_fixed_sequence = False
+                self.prod_end_signal = data_interpreter.get_pred_end_signal()
+                break  # we know at least some training-examples are of different lengths
+
+        self.testing_data = data_interpreter.get_testing_data()
+
+        if len(self.testing_data) == 0:
+            testing_portion = 0.1
+            self.testing_data = example_data[int((1-testing_portion)*len(example_data)):]
+
+        self.training_data = example_data[:int((1-testing_portion)*len(example_data))]
+
         random.shuffle(self.training_data)
+        random.shuffle(self.testing_data)
 
 
 
-    def get_timeseries_data(self):
-        """
-        Returns a list of the timeseries data
-        :return:
-        """
-        if self.is_temporal:
-            return self.training_data
+
 
     def get_input_size(self):
         return len(self.training_data[0][0][0])

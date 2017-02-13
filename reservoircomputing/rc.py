@@ -112,12 +112,33 @@ class ReservoirComputingFramework:
         _outputs = []
         classifier_input_set = []
         self.rc_helper.reset()
-        for _input, _output in test_data:  # input and output at each timestep
+        for _input, _ in test_data:  # input and output at each timestep
             rc_output = self.rc_helper.run_input(_input)
             classifier_input = rc_output.flattened_states
             classifier_prediction = self.classifier.predict(classifier_input)
             _outputs.append(classifier_prediction)
 
+        return _outputs
+
+    def predict_dynamic_sequence(self, input_data, pred_stop_signal):
+        _outputs = []
+        classifier_input_set = []
+        self.rc_helper.reset()
+        current_input = 0
+        input_size = len(input_data[0][0])
+        print(input_data[0][0])
+        while True:  # input and output at each timestep
+            try:
+                rc_output = self.rc_helper.run_input(input_data[current_input][0])
+            except:
+                rc_output = self.rc_helper.run_input([0]*input_size)
+            classifier_input = rc_output.flattened_states
+            classifier_prediction = self.classifier.predict(classifier_input)
+            _outputs.append(classifier_prediction)
+            if classifier_prediction == "000000000000000000000000000000000000000000000000000000001" or current_input > 1000: # Avoid inf. loop
+                break
+
+            current_input += 1
         return _outputs
 
 
