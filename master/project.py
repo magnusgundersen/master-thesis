@@ -107,14 +107,17 @@ class Project:
         print("--example--")
         example_run = reCA_out.all_predictions[0]
         example_test = reCA_out.all_test_examples[0]
-        print("ex run:"+str(example_run))
+        #print("ex run:"+str(example_run))
+        raw_predictions = []
         for i in range(len(example_run)):
             time_step = example_run[i]
             prediction = time_step[0]
+            raw_predictions.append(prediction)
             correct = example_test[i][1]
             _input = "".join([str(x) for x in example_test[i][0]])
             print("Input: " + _input + "  Correct: " + str(correct) + "  Predicted:" + str(prediction))
 
+        print("Predicted sentence:" + data_interpreter.convert_from_bit_sequence_to_string(raw_predictions, "german"))
 
         # Visualize:
         outputs = reCA_system.get_example_run()

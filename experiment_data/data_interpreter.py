@@ -41,7 +41,7 @@ class TranslationBuilder:
                         training_set = []
                     else:
                         _input, _output = line.split(" ")
-                        training_set.append(([int(number) for number in _input],_output[0:-1]))
+                        training_set.append(([int(number) for number in _input],_output[0:-1]))  # class is text
             return dataset
         else:
             raise ValueError("Language not implemented: " + str(self.language))
@@ -60,11 +60,15 @@ class TranslationBuilder:
             for bit_string in bit_sequence:
                 alphabet_index = 0
                 for _index in bit_string:
-                    if _index == 1:
+                    if _index == '1':  # Correct char
                         try:
                             sentence += self.german_allowed[alphabet_index]
+                        except:
+                            pass  # Wait or finish signal given
+                        break  # Found correct character
                     else:
                         alphabet_index += 1
+        return sentence
 
     def read_translation_files(self, language):
         from_lines = []
@@ -95,7 +99,7 @@ class TranslationBuilder:
         ger_lines = german_to_english[0]
         eng_lines = german_to_english[1]
 
-        examples = 10
+        examples = 1000
         txt_bin_data = ""
         for i in range(examples):
             txt_bin_data += (self.create_bin_data(eng_lines[i], self.english_allowed, ger_lines[i], self.german_allowed))
@@ -192,9 +196,9 @@ class CIFARBuilder:
 
 
 
-
-#translator = TranslationBuilder()
-#translator.generate_translation_data()
+if __name__ == "__main__":
+    translator = TranslationBuilder()
+    translator.generate_translation_data()
 
 
 #cifarB = CIFARBuilder()

@@ -133,7 +133,7 @@ class ReservoirComputingFramework:
             except:
                 rc_output = self.rc_helper.run_input([0]*input_size)
             classifier_input = rc_output.flattened_states
-            classifier_prediction = self.classifier.predict(classifier_input)
+            classifier_prediction = self.classifier.predict(np.array(classifier_input).reshape(1,-1))
             _outputs.append(classifier_prediction)
             if classifier_prediction == "000000000000000000000000000000000000000000000000000000001" or current_input > 1000: # Avoid inf. loop
                 break

@@ -20,8 +20,6 @@ class ReCASystem:
     etc...
     """
     def __init__(self):
-
-
         self.reservoir = None
         self.classifier = None
         self.encoder = None
@@ -118,8 +116,6 @@ class ReCASystem:
 
     def test_on_dynamic_sequence_data(self):
         """
-
-
                 :return:
 
                 """
@@ -131,13 +127,13 @@ class ReCASystem:
 
         # divide training_data:
         test_data = self.reCA_problem.testing_data
-        pred_stop_signal = "000000000000000000000000000000000000000000000000000000001"
+        pred_stop_signal = self.reCA_problem.pred_end_signal
         reCA_output.all_test_examples = test_data
 
         number_of_correct = 0
 
         for test_ex in test_data:
-            #  We now have a timeseries of data, on which the rc-framework must be fitted
+            #  We now have a timeseries of data, on which the rc-framework must be tested
             outputs = self.rc_framework.predict_dynamic_sequence(test_ex, pred_stop_signal)
             reCA_output.all_RCOutputs.append(outputs)
             print(reCA_output.all_predictions)
@@ -303,7 +299,7 @@ class ReCAProblem:
             else:
                 self.is_dynamic_sequence = True
                 self.is_fixed_sequence = False
-                self.prod_end_signal = data_interpreter.get_pred_end_signal()
+                self.pred_end_signal = data_interpreter.get_pred_end_signal()
                 break  # we know at least some training-examples are of different lengths
 
         self.testing_data = data_interpreter.get_testing_data()
