@@ -1,16 +1,43 @@
 import random
 import itertools
 from itertools import combinations
-def generate_20_bit_file(distractor_period, number_of_training_sets):
+def generate_20_bit_file(distractor_period, training_set_size, testing_set_size):
 
     content = ""
 
     input_signals = ["a_1", "a_2", "a_3", "a_4", "a_5"]
+    patterns = set()
+
+
+    while len(patterns) < (training_set_size + testing_set_size):
+        pattern = []
+        for j in range(10):
+            pattern.append(random.choice(input_signals))
+        patterns.add(tuple(pattern))
+
+    patterns = list(patterns)
+    training_set = patterns[:training_set_size]
+    testing_set = patterns[training_set_size:]
+
+    for train_ex in training_set:
+        text_content_ex = ""
+        for signal in train_ex:
+            if signal == "a_1":
+                text_content_ex += "10000"
+            elif signal == "a_2":
+                text_content_ex += "01000"
+            elif signal == "a_3":
+                text_content_ex += "00100"
+            elif signal == "a_4":
+                text_content_ex += "00010"
+            elif signal == "a_5":
+                text_content_ex += "00001"
 
 
 
 
-    for i in range(number_of_training_sets):
+    """
+    for i in range(training_set_size + testing_set_size):
         training_set = ""
         a1_value = 1
         signal = []
@@ -41,15 +68,18 @@ def generate_20_bit_file(distractor_period, number_of_training_sets):
 
 
         content += training_set + "\n"
-
-    with open(str(n)+ "_bit_" + str(distractor_period) + "_dist_" + str(number_of_training_sets),'w+') as f:
-        f.write(content)
+    """
+    #with open(str(n)+ "_bit_" + str(distractor_period) + "_dist_" + str(number_of_training_sets),'w+') as f:
+    #    f.write(content)
 
 def get_input_by_a1_value(a1_value):
     if a1_value == 1:
         return "1000", "100"
     else:
         return "0100", "010"
-generate_n_bit_file(5, 200, 32)
+
+
+if __name__ == "__main__":
+    generate_20_bit_file(100, 20000, 1000)
 
 

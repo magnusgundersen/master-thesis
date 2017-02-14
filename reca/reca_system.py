@@ -357,6 +357,16 @@ class ReCAConfig(rc_if.ExternalRCConfig):
             self.encoder = enc.RandomMappingEncoder(self.parallelizer)
             self.encoder.R = R
             self.encoder.C = C
+        elif encoding == "r_is":
+            # TODO: R_i-style mapping from Margem (2016)
+            pass
+
+        # Padding
+        if True:
+            # TODO: Padding at each side of the "input".
+            # the values at padding is directly copied from time-step to time-step.
+            pass
+
 
         self.I = I
         if time_transition=="normalized_addition":
@@ -395,6 +405,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
             self.time_transition = enc.RandomAdditionTimeTransition()
         elif time_transition == "random_permutation":
             self.time_transition = enc.RandomPermutationTransition()
+
 
     def set_ca_rule_scheme(self, rule_scheme):
         pass
