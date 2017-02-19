@@ -89,7 +89,6 @@ class TranslationBuilder:
                 to_lines.append(line)
         return (from_lines, to_lines)
 
-
     def generate_translation_data(self):
 
         eng_lines = []
@@ -106,7 +105,6 @@ class TranslationBuilder:
             txt_bin_data += "\n"
         with open("en-de.data", "w+") as f:
             f.write(txt_bin_data)
-
 
     def create_bin_data(self, source_sentence, source_alphabet, target_sentence, target_alphabet):
         data_file = ""
@@ -192,7 +190,43 @@ class CIFARBuilder:
         return bin_string
 
 
+class FiveBitBuilder:
+    def __init__(self):
+        self.dist_period = 10
+        self.no_training_ex = 32  # Count from the start
+        self.no_testing_ex = 32  # Count from the end
 
+    def get_training_data(self):
+        file_location = os.path.dirname(os.path.realpath(__file__))
+
+        dataset = []
+        with open(file_location+"/5bit/5_bit_" + str(self.dist_period) + "_dist_32", "r") as f:
+            content = f.readlines()
+            training_set = []
+            for line in content:
+                if line == "\n":
+                    dataset.append(training_set)
+                    training_set = []
+                else:
+                    _input, _output = line.split(" ")
+                    training_set.append(([int(number) for number in _input],_output[0:-1]))  # class is text
+        return dataset
+
+    def get_testing_data(self):
+        file_location = os.path.dirname(os.path.realpath(__file__))
+
+        dataset = []
+        with open(file_location+"/5bit/5_bit_" + str(self.dist_period) + "_dist_32", "r") as f:
+            content = f.readlines()
+            training_set = []
+            for line in content:
+                if line == "\n":
+                    dataset.append(training_set)
+                    training_set = []
+                else:
+                    _input, _output = line.split(" ")
+                    training_set.append(([int(number) for number in _input],_output[0:-1]))  # class is text
+        return dataset
 
 
 

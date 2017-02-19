@@ -133,19 +133,16 @@ class Project:
             whole_output.extend([[0 for _ in range(width)]])
         self.visualise_example(whole_output)
 
-    def n_bit_task(self, n=5):
+    def five_bit_task(self):
 
 
-        n_bit_data = self.open_temporal_data("temp_n_bit/5_bit_15_dist_32")
-        reCA_problem = reCA.ReCAProblem(n_bit_data)
+        #n_bit_data = self.open_temporal_data("5bit/5_bit_10_dist_32")
+        data_interpreter = self.open_data_interpreter("5bit")
+        reCA_problem = reCA.ReCAProblem(data_interpreter)
+        reCA_rule_scheme = reCA.ReCAruleConfig()
         reCA_config = reCA.ReCAConfig()
-        reCA_config.set_single_reservoir_config(ca_rule=110, R=8, C=5, I=4, classifier="linear-svm",
-                                                        encoding="random_mapping",
-                                                        time_transition="random_permutation")
-        #reCA_config.set_parallel_reservoir_config(ca_rules=[90,105], parallel_size_policy="bounded", R=8, C=5, I=4,
-        #                              classifier="linear-svm", encoding="random_mapping",
-        #                              time_transition="random_permutation")
 
+        reCA_config.set_non_uniform_config(reCA_rule_scheme)
         reCA_system = reCA.ReCASystem()
 
 
@@ -154,7 +151,7 @@ class Project:
         reCA_system.set_problem(reCA_problem)
         reCA_system.set_config(reCA_config)
         reCA_system.initialize_rc()
-        reCA_system.fit_to_problem(1)
+        reCA_system.tackle_ReCA_problem()
 
         #reCA_config.encoder.create_mappings(4)
 
@@ -267,6 +264,9 @@ class Project:
     def open_data_interpreter(self, type_of_interpreter):
         if type_of_interpreter == "europarl":
             return data_int.TranslationBuilder()
+
+        if type_of_interpreter == "5bit":
+            return data_int.FiveBitBuilder()
 
 
 

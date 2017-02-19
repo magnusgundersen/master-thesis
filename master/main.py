@@ -33,8 +33,8 @@ def main(argv):
 
 
     #print(p.majority_task())
-    #print(p.n_bit_task())
-    print(p.europarl_translation_task())
+    print(p.five_bit_task())
+    #print(p.europarl_translation_task())
     #print(p.run_bye_experiements())
     #print(p.run_yil_experiment_IR())
     #print(p.run_yil_experiment_RNN_distractor())
