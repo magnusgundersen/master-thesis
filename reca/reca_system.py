@@ -406,9 +406,61 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         elif time_transition == "random_permutation":
             self.time_transition = enc.RandomPermutationTransition()
 
+    def set_non_uniform_config(self, rule_scheme, R=4, C=3, I=12, classifier="linear-svm", encoding="random_mapping",
+                               time_transition="random_permutation"):
+        """
 
-    def set_ca_rule_scheme(self, rule_scheme):
+        :param rule_scheme: Must be a way to design a non-uniform ca reservoir of the given size (R*C*N etc)
+        :param R:
+        :param C:
+        :param I:
+        :param classifier:
+        :param encoding:
+        :param time_transition:
+        :return:
+        """
+        # sets up elementary CA:
+        self.reservoir = ca.ElemCAReservoir()
+        self.reservoir.set_rule_scheme(rule_scheme)
+
+        #if parallel_size_policy
+        #self.parallelizer = enc.ParallelNonUniformEncoder(self.reservoir.rules, parallel_size_policy)
+
+
+        # clf
+        if classifier=="linear-svm":
+            self.classifier = svm.SVM()
+        elif classifier =="tlf_ann":
+            self.classifier = tflann.ANN()
+
+        # Encoder
+        if encoding == "random_mapping":
+            self.encoder = enc.RandomMappingEncoder()
+            self.encoder.R = R
+            self.encoder.C = C
+
+        self.I = I
+        if time_transition=="normalized_addition":
+            self.time_transition = time_trans.RandomAdditionTimeTransition()
+        elif time_transition == "random_permutation":
+            self.time_transition = time_trans.RandomPermutationTransition()
+        elif time_transition == "xor":
+            self.time_transition = time_trans.XORTimeTransition()
+
+class ReCAruleConfig:
+    def __init__(self):
         pass
+
+    def get_scheme(self, ca_size):
+        rule_dict = {}
+        keys = [(i, i+1) for i in range(ca_size)]
+
+        for key in keys:
+            rule_dict[key] = ca.Rule(random.randint(1, 256))
+        return rule_dict  # Dummy return
+
+
+
 
 
 
