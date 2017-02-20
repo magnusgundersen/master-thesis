@@ -187,7 +187,7 @@ class RCHelper:
           # ajour
 
         # 5. step is to propagate in CA reservoir
-        all_propagated_data = self.reservoir.run_simulation(transitioned_data, self.I,  rule_dict)
+        all_propagated_data = self.reservoir.run_simulation(transitioned_data, self.I)
         previous_data = self.last_step_data[:]
         self.last_step_data = all_propagated_data[-1]
 

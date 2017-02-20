@@ -168,18 +168,6 @@ class Project:
             print("Input: " + _input +"  Correct: " + str(correct) +"  Predicted:" + str(prediction))
 
         # Visualize:
-        """
-        outputs = reCA_out.all_RCOutputs
-        whole_output = []
-        lists_of_states = [output.list_of_states for output in outputs]
-        for output in lists_of_states:
-            width = len(output[0])
-            whole_output.extend(output)
-            whole_output.extend([[-1 for _ in range(width)]])
-        self.visualise_example(whole_output)
-        """
-
-        # Visualize:
         outputs = reCA_system.get_example_run()
         whole_output = []
         lists_of_states = [output.list_of_states for output in outputs]

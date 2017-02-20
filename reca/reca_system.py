@@ -410,7 +410,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
                                time_transition="random_permutation"):
         """
 
-        :param rule_scheme: Must be a way to design a non-uniform ca reservoir of the given size (R*C*N etc)
+        :param rule_scheme: Must be a way to design a non-uniform ca reservoir of the exact same size (R*C*N etc)
         :param R:
         :param C:
         :param I:
@@ -421,10 +421,9 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         """
         # sets up elementary CA:
         self.reservoir = ca.ElemCAReservoir()
-        self.reservoir.set_rule_scheme(rule_scheme)
+        #self.reservoir.set_rules(rule_scheme)
+        self.reservoir.set_uniform_rule("90")
 
-        #if parallel_size_policy
-        #self.parallelizer = enc.ParallelNonUniformEncoder(self.reservoir.rules, parallel_size_policy)
 
 
         # clf

@@ -2,49 +2,62 @@ __author__ = 'magnus'
 import pprint
 
 class ElemCAReservoir:
+    """
+    Elem. CA reservoir.
+    Elem. meaning that the cell can only have values 0 or 1, and has 3 neighbors.
+
+    The reservoir has elementary rules governing all the cells, given by a list of number 0-255, one for each cell.
+
+    """
     def __init__(self):
-        self.rules = []
+        self.non_uniform = False
+        self.rules = []  # List of the same width as the CA. Non-uniform CA.
 
 
-    def set_rule(self, rule_number):
-        self.rules = Rule(rule_number)
+    def set_uniform_rule(self, rule_number):
+        """
+        Short function to init. a uniform CA.
+        :param rule_number:
+        :return:
+        """
+        self.non_uniform = False
+        rule = Rule(rule_number)
+        self.rules.append(rule)
 
     def set_rules(self, rule_list):
-        self.parallel_reservoirs=True
+        """
+
+        :param rule_list:
+        :return:
+        """
+        self.non_uniform = True
         for rule in rule_list:
             self.rules.append(Rule(rule))
 
-    def set_rule_dict(self, rule_dict):
-        """
-
-        :param intervals:
-        :return:
-        """
 
 
-        self.rule_dict = rule_dict
-
-
-
-    def run_simulation_step(self, prev_generation, rules):
-        length = len(prev_generation)
-        next_generation = []
+    @staticmethod
+    def run_simulation_step(ca_vector, rules):
+        length = len(ca_vector)
+        next_ca_vector = []
+        if length != len(rules):
+            raise ValueError("[CA simulation] Not correct number of rules: "
+                             "Should be "+str(length)+" but was " + str(len(rules)))
         #Wrap around
         for i in range(length):
             left_index = (i-1) % length
             mid_index = i
             right_index = (i+1) % length
-            for start_index, end_index in rules.keys():
-                if start_index <= i <= end_index:  # Get the rule at the current interval
-                    rule = rules[(start_index, end_index)]
-                    next_generation.append(rule.getOutput([prev_generation[left_index],
-                                                  prev_generation[mid_index], prev_generation[right_index]]))
-        return next_generation
+            rule_at_i = rules[i]
+            next_ca_vector.append(rule_at_i.getOutput([ca_vector[left_index],
+                                  ca_vector[mid_index], ca_vector[right_index]]))
+        return next_ca_vector
 
 
-    def run_simulation(self, initial_inputs, iterations, rule_dict):
+    def run_simulation(self, initial_inputs, iterations):
         """
         Runs a simulation of the initial input, for a given iterations
+
 
         Returns the whole list of generations
         :param initial_inputs:
@@ -53,24 +66,17 @@ class ElemCAReservoir:
         """
         all_generations = [initial_inputs]
         current_generation = all_generations[0]
-        #rule_dict = {(0, len(initial_inputs)//2-1):self.current_rule,
-        #             (len(initial_inputs)//2, len(initial_inputs)): Rule(90)}
 
-        for i in range(iterations):
-            # TODO: Parlallizaation scheme
+        if not self.non_uniform and (len(self.rules) == 1):  # generation of same rule on the fly
+            for _ in range(len(initial_inputs) - 1):
+                self.rules.append(self.rules[0])
 
-            current_generation = self.run_simulation_step(current_generation, rule_dict)
+        for i in range(iterations): # Run for I iterations
+            current_generation = self.run_simulation_step(current_generation, self.rules)
             all_generations.append(current_generation)
         return all_generations
 
-class CAGeneration:
-    # TODO:
-    def __init__(self):
-        pass
 
-class CACell:
-    def __init__(self):
-        pass
 
 class Rule:
     def __init__(self, number=0):
