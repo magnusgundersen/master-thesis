@@ -35,7 +35,6 @@ class RandomPermutationTransition:
 
         mappings = encoder.mappings
         R = encoder.R
-        P = encoder.P
 
         adjusted_mappings = []
         for i in range(len(mappings)):

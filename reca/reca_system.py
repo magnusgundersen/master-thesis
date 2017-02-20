@@ -160,7 +160,7 @@ class ReCASystem:
 
         reCA_output.total_correct = number_of_correct
         return reCA_output
-    def test_on_problem(self, test_set_size=0.5):
+    def test_on_problem(self, test_set_size=0):
         """
 
 
@@ -421,8 +421,8 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         """
         # sets up elementary CA:
         self.reservoir = ca.ElemCAReservoir()
-        #self.reservoir.set_rules(rule_scheme)
-        self.reservoir.set_uniform_rule("90")
+        #self.reservoir.set_rules(rule_scheme.get_scheme())
+        self.reservoir.set_uniform_rule(90)
 
 
 
@@ -447,16 +447,17 @@ class ReCAConfig(rc_if.ExternalRCConfig):
             self.time_transition = time_trans.XORTimeTransition()
 
 class ReCAruleConfig:
-    def __init__(self):
-        pass
+    def __init__(self, ca_size):
+        self.ca_size = ca_size
 
-    def get_scheme(self, ca_size):
-        rule_dict = {}
-        keys = [(i, i+1) for i in range(ca_size)]
 
-        for key in keys:
-            rule_dict[key] = ca.Rule(random.randint(1, 256))
-        return rule_dict  # Dummy return
+    def get_scheme(self):
+        rule_list = []
+        #keys = [(i, i+1) for i in range(self.ca_size)]   OLD STYLE
+
+        for _ in range(self.ca_size):
+            rule_list.append(random.randint(1, 256))
+        return rule_list  # Dummy return
 
 
 

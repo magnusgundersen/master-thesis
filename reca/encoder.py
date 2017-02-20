@@ -3,40 +3,34 @@ import random
 
 
 class RandomMappingEncoder(rcif.RCEncoder):
-    def __init__(self, parallelizer):
+    def __init__(self):
         super().__init__()
         self.R = 1
         self.C = 1
-        self.P = parallelizer.P
-        self.parallel_size_policy = parallelizer.parallel_size_policy
-        self.encoding_scheme = "separate"
+        self.encoding_scheme = "separate"  # Whether to keep the reservoirs separate or not
+
+        self.unencoded_input_length = 0
 
     def create_mappings(self, input_length):
         """
         Facilitates having a fixed mapping
+
+        If the parameter C is larger than 1, the mapping vector will be smaller than the size of the input-vector.
+
         :param input_length:
         :return:
         """
-        #print("Creating mappings!")
         list_of_mappings = []
-        self.input_length = input_length
-        num_list = [x for x in range(input_length*self.C)]
-        num_list2 = num_list[:]
+        self.unencoded_input_length = input_length
+        num_list = [x for x in range(self.unencoded_input_length*self.C)]  # list of number to be shuffled
+        num_list2 = num_list[:]  # copy list to have a ref to the original
 
         for _ in range(self.R):
-            random.shuffle(num_list2)
-            list_of_mappings.append(num_list2[:self.input_length])
+            random.shuffle(num_list2)  # New random mapping for each R.
+            list_of_mappings.append(
+                num_list2[:self.unencoded_input_length])  # Only to the size of the input, and let there be C padding
 
-        # EXPERIMENTAL: PADDING
-        """
-        for i in range(len(list_of_mappings)):
-            new_list = []
-            for j in range(len(list_of_mappings[i])):
-                new_list.extend([list_of_mappings[i][j],0])
-            list_of_mappings[i] = new_list
-            if i ==0:
-                print(new_list)
-        """
+
         self.mappings = list_of_mappings
 
 
@@ -47,7 +41,7 @@ class RandomMappingEncoder(rcif.RCEncoder):
         :return:
         """
         encoded_input = []
-        if len(_input) != self.input_length:
+        if len(_input) != self.unencoded_input_length:
             raise ValueError("Wrong input-length to encoder!")
 
         for i in range(self.R):
@@ -58,9 +52,9 @@ class RandomMappingEncoder(rcif.RCEncoder):
             encoded_input.append(temp_enc_list)
         #print(self.P)
 
-        if self.parallel_size_policy == "unbounded":
-            for _ in range(self.P-1):
-                encoded_input += encoded_input
+        #if self.parallel_size_policy == "unbounded":
+        #    for _ in range(self.P-1):
+        #        encoded_input += encoded_input
         return encoded_input
 
 

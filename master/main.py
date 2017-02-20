@@ -33,12 +33,10 @@ def main(argv):
 
 
     #print(p.majority_task())
-    print(p.five_bit_task())
+    #print(p.five_bit_task())
     #print(p.europarl_translation_task())
-    #print(p.run_bye_experiements())
-    #print(p.run_yil_experiment_IR())
-    #print(p.run_yil_experiment_RNN_distractor())
-    #print(p.run_mg_experiments())
+    print(p.twenty_bit_task())
+
 
 
 if __name__ == "__main__":

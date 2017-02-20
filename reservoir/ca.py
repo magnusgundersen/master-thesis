@@ -43,6 +43,8 @@ class ElemCAReservoir:
         if length != len(rules):
             raise ValueError("[CA simulation] Not correct number of rules: "
                              "Should be "+str(length)+" but was " + str(len(rules)))
+
+
         #Wrap around
         for i in range(length):
             left_index = (i-1) % length
@@ -70,6 +72,7 @@ class ElemCAReservoir:
         if not self.non_uniform and (len(self.rules) == 1):  # generation of same rule on the fly
             for _ in range(len(initial_inputs) - 1):
                 self.rules.append(self.rules[0])
+
 
         for i in range(iterations): # Run for I iterations
             current_generation = self.run_simulation_step(current_generation, self.rules)

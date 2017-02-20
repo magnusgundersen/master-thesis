@@ -46,8 +46,6 @@ class ReservoirComputingFramework:
         #encoded_output = self.encoder.encode_output(unencoded_output)
         return unencoded_output
 
-
-
     def fit_to_data(self, training_data):
         """
         Fit the RC-system to the RC-problem using the RC-helper
@@ -81,9 +79,6 @@ class ReservoirComputingFramework:
 
         return rc_outputs
 
-
-
-
     def train_classifier(self):
         self.classifier.fit(self.classifier_input_set, self.classifier_output_set)
 
@@ -115,7 +110,7 @@ class ReservoirComputingFramework:
         for _input, _ in test_data:  # input and output at each timestep
             rc_output = self.rc_helper.run_input(_input)
             classifier_input = rc_output.flattened_states
-            classifier_prediction = self.classifier.predict(classifier_input)
+            classifier_prediction = self.classifier.predict(np.array(classifier_input).reshape(1,-1))
             _outputs.append(classifier_prediction)
 
         return _outputs
@@ -176,7 +171,7 @@ class RCHelper:
         # TODO: Remove this if you want to be able to have separate reservoirs!
         encoded_input = [val for sublist in encoded_inputs for val in sublist]
         pre_enc = encoded_input[:]
-        encoded_input, rule_dict = self.parallelizer.encode(encoded_input)
+        #encoded_input, rule_dict = self.parallelizer.encode(encoded_input)
 
         # 4. step is to use transition to take previous steps into account
         if self.time_step > 0:  # No transition at first time step

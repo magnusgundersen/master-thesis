@@ -139,7 +139,7 @@ class Project:
         #n_bit_data = self.open_temporal_data("5bit/5_bit_10_dist_32")
         data_interpreter = self.open_data_interpreter("5bit")
         reCA_problem = reCA.ReCAProblem(data_interpreter)
-        reCA_rule_scheme = reCA.ReCAruleConfig()
+        reCA_rule_scheme = reCA.ReCAruleConfig(4*4*3)
         reCA_config = reCA.ReCAConfig()
 
         reCA_config.set_non_uniform_config(reCA_rule_scheme)
@@ -153,9 +153,8 @@ class Project:
         reCA_system.initialize_rc()
         reCA_system.tackle_ReCA_problem()
 
-        #reCA_config.encoder.create_mappings(4)
 
-        reCA_out = reCA_system.test_on_problem(0)
+        reCA_out = reCA_system.test_on_problem()
         print(str(reCA_out.total_correct) + " of " + str(len(reCA_out.all_test_examples)))
         print("--example--")
         example_run = reCA_out.all_predictions[0]
@@ -181,28 +180,50 @@ class Project:
             whole_output.extend([[0 for _ in range(width)]])
         self.visualise_example(whole_output)
 
-
-    def majority_task(self):
-
-        majority_data = self.open_temporal_data("majority/8_bit_mix_1000")
-
-
-        reCA_problem = reCA.ReCAProblem(majority_data)
+    def twenty_bit_task(self):
+        data_interpreter = self.open_data_interpreter("20bit")
+        reCA_problem = reCA.ReCAProblem(data_interpreter)
+        reCA_rule_scheme = reCA.ReCAruleConfig(7*4*3)
         reCA_config = reCA.ReCAConfig()
-        reCA_config.set_single_reservoir_config(ca_rule=90, R=16, C=3, I=9, classifier="linear-svm",
-                                                encoding="random_mapping", time_transition="random_permutation")
 
-        reCA_config.set_parallel_reservoir_config()
+        reCA_config.set_non_uniform_config(reCA_rule_scheme)
 
         reCA_system = reCA.ReCASystem()
+
+
+
 
         reCA_system.set_problem(reCA_problem)
         reCA_system.set_config(reCA_config)
         reCA_system.initialize_rc()
+        reCA_system.tackle_ReCA_problem()
 
 
-        reCA_system.fit_to_problem(validation_set_size=0.1)
+        reCA_out = reCA_system.test_on_problem()
+        print(str(reCA_out.total_correct) + " of " + str(len(reCA_out.all_test_examples)))
+        print("--example--")
+        example_run = reCA_out.all_predictions[0]
+        example_test = reCA_out.all_test_examples[0]
+        for i in range(len(example_run)):
+            time_step = example_run[i]
+            prediction = time_step[0]
+            correct = example_test[i][1]
+            _input = "".join([str(x) for x in example_test[i][0]])
+            print("Input: " + _input +"  Correct: " + str(correct) +"  Predicted:" + str(prediction))
 
+        # Visualize:
+        outputs = reCA_system.get_example_run()
+        whole_output = []
+        lists_of_states = [output.list_of_states for output in outputs]
+        for output in lists_of_states:
+            width = len(output[0])
+            new_output = []
+            for line in output:
+                new_output.append([(-1 if i == 0 else 1) for i in line])
+
+            whole_output.extend(new_output)
+            whole_output.extend([[0 for _ in range(width)]])
+        self.visualise_example(whole_output)
 
     def visualise_example(self, training_array):
         visualizer = bviz.CAVisualizer()
@@ -253,9 +274,11 @@ class Project:
         if type_of_interpreter == "europarl":
             return data_int.TranslationBuilder()
 
-        if type_of_interpreter == "5bit":
+        elif type_of_interpreter == "5bit":
             return data_int.FiveBitBuilder()
 
+        elif type_of_interpreter == "20bit":
+            return data_int.TwentyBitBuilder()
 
 
 

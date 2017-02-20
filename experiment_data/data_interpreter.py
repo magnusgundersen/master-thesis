@@ -193,8 +193,8 @@ class CIFARBuilder:
 class FiveBitBuilder:
     def __init__(self):
         self.dist_period = 10
-        self.no_training_ex = 32  # Count from the start
-        self.no_testing_ex = 32  # Count from the end
+        self.no_training_ex = 32
+        self.no_testing_ex = 32
 
     def get_training_data(self):
         file_location = os.path.dirname(os.path.realpath(__file__))
@@ -229,6 +229,44 @@ class FiveBitBuilder:
         return dataset
 
 
+
+class TwentyBitBuilder:
+    def __init__(self):
+        self.dist_period = 10
+        self.no_training_ex = 500
+        self.no_testing_ex = 100
+
+    def get_training_data(self):
+        file_location = os.path.dirname(os.path.realpath(__file__))
+
+        dataset = []
+        with open(file_location+"/20bit/20_bit_train_" + str(self.dist_period) + "_dist_" + str(self.no_training_ex), "r") as f:
+            content = f.readlines()
+            training_set = []
+            for line in content:
+                if line == "\n":
+                    dataset.append(training_set)
+                    training_set = []
+                else:
+                    _input, _output = line.split(" ")
+                    training_set.append(([int(number) for number in _input],_output[0:-1]))  # class is text
+        return dataset
+
+    def get_testing_data(self):
+        file_location = os.path.dirname(os.path.realpath(__file__))
+
+        dataset = []
+        with open(file_location+"/20bit/20_bit_test_" + str(self.dist_period) + "_dist_"+str(self.no_testing_ex), "r") as f:
+            content = f.readlines()
+            training_set = []
+            for line in content:
+                if line == "\n":
+                    dataset.append(training_set)
+                    training_set = []
+                else:
+                    _input, _output = line.split(" ")
+                    training_set.append(([int(number) for number in _input],_output[0:-1]))  # class is text
+        return dataset
 
 if __name__ == "__main__":
     translator = TranslationBuilder()
