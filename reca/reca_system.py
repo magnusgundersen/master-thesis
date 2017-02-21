@@ -406,7 +406,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         elif time_transition == "random_permutation":
             self.time_transition = enc.RandomPermutationTransition()
 
-    def set_non_uniform_config(self, rule_scheme, R=4, C=3, I=12, classifier="linear-svm", encoding="random_mapping",
+    def set_non_uniform_config(self, rule_scheme, R=2, C=3, I=2, classifier="linear-svm", encoding="random_mapping",
                                time_transition="random_permutation"):
         """
 
@@ -421,8 +421,8 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         """
         # sets up elementary CA:
         self.reservoir = ca.ElemCAReservoir()
-        #self.reservoir.set_rules(rule_scheme.get_scheme())
-        self.reservoir.set_uniform_rule(90)
+        self.reservoir.set_rules(rule_scheme.get_scheme())
+        #self.reservoir.set_uniform_rule(90)
 
 
 
@@ -446,6 +446,42 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         elif time_transition == "xor":
             self.time_transition = time_trans.XORTimeTransition()
 
+    def set_uniform_margem_config(self, rule=90, R_i=4, R=100, I=2, classifier="linear-svm", time_transition="xor"):
+        """
+
+        :param rule:
+        :param R_i:
+        :param R: Padding on each side of the input (buffers)
+        :param I:
+        :param classifier:
+        :param time_transition:
+        :return:
+        """
+        # sets up elementary CA:
+        self.reservoir = ca.ElemCAReservoir()
+        self.reservoir.set_uniform_rule(rule)
+
+
+
+        # clf
+        if classifier=="linear-svm":
+            self.classifier = svm.SVM()
+        elif classifier =="tlf_ann":
+            self.classifier = tflann.ANN()
+
+        # Encoder
+
+        self.encoder = enc.RotationEncoder()
+        self.encoder.R = R
+        self.encoder.R_i = R_i
+        self.I = I
+
+        if time_transition=="normalized_addition":
+            self.time_transition = time_trans.RandomAdditionTimeTransition()
+        elif time_transition == "random_permutation":
+            self.time_transition = time_trans.RandomPermutationTransition()
+        elif time_transition == "xor":
+            self.time_transition = time_trans.XORTimeTransition()
 class ReCAruleConfig:
     def __init__(self, ca_size):
         self.ca_size = ca_size
@@ -456,7 +492,7 @@ class ReCAruleConfig:
         #keys = [(i, i+1) for i in range(self.ca_size)]   OLD STYLE
 
         for _ in range(self.ca_size):
-            rule_list.append(random.randint(1, 256))
+            rule_list.append(random.choice([90,150,110,60]))
         return rule_list  # Dummy return
 
 

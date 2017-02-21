@@ -183,11 +183,11 @@ class Project:
     def twenty_bit_task(self):
         data_interpreter = self.open_data_interpreter("20bit")
         reCA_problem = reCA.ReCAProblem(data_interpreter)
-        reCA_rule_scheme = reCA.ReCAruleConfig(7*4*3)
+        reCA_rule_scheme = reCA.ReCAruleConfig(7*2*3)
         reCA_config = reCA.ReCAConfig()
 
-        reCA_config.set_non_uniform_config(reCA_rule_scheme)
-
+        #reCA_config.set_non_uniform_config(reCA_rule_scheme)
+        reCA_config.set_uniform_margem_config()
         reCA_system = reCA.ReCASystem()
 
 
@@ -209,7 +209,7 @@ class Project:
             prediction = time_step[0]
             correct = example_test[i][1]
             _input = "".join([str(x) for x in example_test[i][0]])
-            print("Input: " + _input +"  Correct: " + str(correct) +"  Predicted:" + str(prediction))
+            print("Input: " + _input +"  Correct: " + str(correct) + "  Predicted:" + str(prediction))
 
         # Visualize:
         outputs = reCA_system.get_example_run()
