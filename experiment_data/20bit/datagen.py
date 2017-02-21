@@ -75,6 +75,6 @@ def get_input_by_a_value(a):
 
 
 if __name__ == "__main__":
-    generate_20_bit_file(10, 500, 100)
+    generate_20_bit_file(10, 10, 2)
 
 

@@ -1,6 +1,6 @@
 __author__ = 'magnus'
 import pprint
-
+import numpy as np
 class ElemCAReservoir:
     """
     Elem. CA reservoir.
@@ -39,7 +39,7 @@ class ElemCAReservoir:
     @staticmethod
     def run_simulation_step(ca_vector, rules):
         length = len(ca_vector)
-        next_ca_vector = []
+        next_ca_vector = np.zeros(length, dtype="uint8")
         if length != len(rules):
             raise ValueError("[CA simulation] Not correct number of rules: "
                              "Should be "+str(length)+" but was " + str(len(rules)))
@@ -51,7 +51,7 @@ class ElemCAReservoir:
             mid_index = i
             right_index = (i+1) % length
             rule_at_i = rules[i]
-            next_ca_vector.append(rule_at_i.getOutput([ca_vector[left_index],
+            next_ca_vector[i]=(rule_at_i.getOutput([ca_vector[left_index],
                                   ca_vector[mid_index], ca_vector[right_index]]))
         return next_ca_vector
 

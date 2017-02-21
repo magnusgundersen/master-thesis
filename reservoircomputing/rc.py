@@ -49,65 +49,65 @@ class ReservoirComputingFramework:
     def fit_to_data(self, training_data):
         """
         Fit the RC-system to the RC-problem using the RC-helper
-        The input consists of data:
+        The training_data must look like this:
+        training_data = (X, Y)
 
-        temporal_data =
+        X =
         [
-        (input, output),
-        (input, output)
+        x_1,
+        x_2
         ]
 
-        or:
-
-        non_temporal_data =
+        Y =
         [
-        (input, output)
+        y_1,
+        y_2
         ]
+
+
 
         :param training_data:
         :return:
         """
+        input_X = training_data[0]
+        output_Y = training_data[1]
 
         self.rc_helper.reset()
         rc_outputs = []  # One output for each time step
-        for _input, _output in training_data: # input and output at each timestep
+
+        for _input in input_X:
             rc_output = self.rc_helper.run_input(_input)
             rc_outputs.append(rc_output)
             # make training-set for the classifier:
             self.classifier_input_set.append(rc_output.classifier_output())
-            self.classifier_output_set.append(_output)
 
+        self.classifier_output_set.extend(output_Y)
         return rc_outputs
 
     def train_classifier(self):
         self.classifier.fit(self.classifier_input_set, self.classifier_output_set)
 
-    def predict(self, test_data):
+    def predict(self, input_X):
         """
 
-                The input consists of data:
+        The input consists of data:
 
-                temporal_data =
-                [
-                (input, output),
-                (input, output)
-                ]
+        X =
+        [
+        x_1,
+        x_2
+        ]
 
-                or:
 
-                non_temporal_data =
-                [
-                (input, output)
-                ]
 
-                :param training_data:
-                :return:
+        :param test_data:
+        :return:
         """
 
         _outputs = []
         classifier_input_set = []
         self.rc_helper.reset()
-        for _input, _ in test_data:  # input and output at each timestep
+        for _input in input_X:  # input and output at each timestep
             rc_output = self.rc_helper.run_input(_input)
             classifier_input = rc_output.flattened_states
             classifier_prediction = self.classifier.predict(np.array(classifier_input).reshape(1,-1))
@@ -167,11 +167,9 @@ class RCHelper:
         #print("INPUT: " + str(_input))
         # 2. Step is to encode the input
         encoded_inputs = self.encoder.encode_input(_input)  # List of lists
+
         # 3. Step is to concat or keep the inputs by themselves
-        # TODO: Remove this if you want to be able to have separate reservoirs!
-        encoded_input = [val for sublist in encoded_inputs for val in sublist]
-        pre_enc = encoded_input[:]
-        #encoded_input, rule_dict = self.parallelizer.encode(encoded_input)
+        encoded_input = np.concatenate(encoded_inputs).ravel()
 
         # 4. step is to use transition to take previous steps into account
         if self.time_step > 0:  # No transition at first time step
@@ -179,11 +177,10 @@ class RCHelper:
         else:
             transitioned_data = encoded_input
 
-          # ajour
 
         # 5. step is to propagate in CA reservoir
         all_propagated_data = self.reservoir.run_simulation(transitioned_data, self.I)
-        previous_data = self.last_step_data[:]
+        previous_data = np.copy(self.last_step_data)
         self.last_step_data = all_propagated_data[-1]
 
         # 6. step is to create an output-object
@@ -193,10 +190,6 @@ class RCHelper:
         self.time_step += 1
 
         return output
-
-    def training_finished(self):
-        pass
-
 
 
 
@@ -227,7 +220,7 @@ class RCOutput:
     def set_states(self, all_states, transitioned_state):
         self.list_of_states = all_states
         self.transitioned_state = transitioned_state
-        self.flattened_states = [state_val for sublist in all_states for state_val in sublist]
+        self.flattened_states = np.concatenate(all_states).ravel()
 
 
     def classifier_output(self):

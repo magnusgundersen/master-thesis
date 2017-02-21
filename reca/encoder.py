@@ -82,7 +82,7 @@ class RotationEncoder(rcif.RCEncoder):
         :return:
         """
         encoded_input = []
-        buffer = [0]*self.R
+        buffer = np.zeros(self.R, dtype="uint8")
 
         # First pad
         encoded_input.append(buffer)

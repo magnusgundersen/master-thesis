@@ -1,6 +1,6 @@
 # Creates a ReCAProblem from the dataset.
 import pickle
-import numpy as np3
+import numpy as np
 import os
 
 from PIL import Image
@@ -210,6 +210,7 @@ class FiveBitBuilder:
                 else:
                     _input, _output = line.split(" ")
                     training_set.append(([int(number) for number in _input],_output[0:-1]))  # class is text
+        dataset = np.array(dataset, dtype="uint8")
         return dataset
 
     def get_testing_data(self):
@@ -226,6 +227,7 @@ class FiveBitBuilder:
                 else:
                     _input, _output = line.split(" ")
                     training_set.append(([int(number) for number in _input],_output[0:-1]))  # class is text
+        dataset = np.array(dataset, dtype="uint8")
         return dataset
 
 
@@ -233,23 +235,26 @@ class FiveBitBuilder:
 class TwentyBitBuilder:
     def __init__(self):
         self.dist_period = 10
-        self.no_training_ex = 500
-        self.no_testing_ex = 100
+        self.no_training_ex = 10
+        self.no_testing_ex = 2
 
     def get_training_data(self):
         file_location = os.path.dirname(os.path.realpath(__file__))
-
         dataset = []
+
         with open(file_location+"/20bit/20_bit_train_" + str(self.dist_period) + "_dist_" + str(self.no_training_ex), "r") as f:
             content = f.readlines()
-            training_set = []
+            training_inputs = []
+            training_ouputs = []
             for line in content:
                 if line == "\n":
-                    dataset.append(training_set)
-                    training_set = []
+                    dataset.append((np.array(training_inputs, dtype="uint8"), np.array(training_ouputs)))
+                    training_inputs = []
+                    training_ouputs = []
                 else:
                     _input, _output = line.split(" ")
-                    training_set.append(([int(number) for number in _input],_output[0:-1]))  # class is text
+                    training_inputs.append([int(number) for number in _input])
+                    training_ouputs.append(_output[0:-1])  # class is text
         return dataset
 
     def get_testing_data(self):
@@ -258,14 +263,17 @@ class TwentyBitBuilder:
         dataset = []
         with open(file_location+"/20bit/20_bit_test_" + str(self.dist_period) + "_dist_"+str(self.no_testing_ex), "r") as f:
             content = f.readlines()
-            training_set = []
+            training_inputs = []
+            training_ouputs = []
             for line in content:
                 if line == "\n":
-                    dataset.append(training_set)
-                    training_set = []
+                    dataset.append((np.array(training_inputs, dtype="uint8"), np.array(training_ouputs)))
+                    training_inputs = []
+                    training_ouputs = []
                 else:
                     _input, _output = line.split(" ")
-                    training_set.append(([int(number) for number in _input],_output[0:-1]))  # class is text
+                    training_inputs.append([int(number) for number in _input])
+                    training_ouputs.append(_output[0:-1])  # class is text
         return dataset
 
 if __name__ == "__main__":

@@ -49,45 +49,16 @@ class ReCASystem:
 
         self.example_data = None
         # Feed-Forward task (Like plain CIFAR):
-        if self.reCA_problem.is_feed_forward:
-            training_data = self.reCA_problem.training_data
 
-            # For each input.
-            for training_example in training_data:
-                output = self.rc_framework.fit_to_data(training_example)  # Only one timestep
-                if self.example_data is None:
-                    self.example_data = output
+        training_data = self.reCA_problem.training_data
 
-            self.rc_framework.train_classifier()
+        # For each input.
+        for training_example in training_data:
+            output = self.rc_framework.fit_to_data(training_example)  # Only one timestep
+            if self.example_data is None:
+                self.example_data = output
 
-
-        # Fixed to Fixed sequence task (Like 20-bit)
-        elif self.reCA_problem.is_fixed_sequence:
-            training_data = self.reCA_problem.training_data
-
-            # For each input.
-            for training_example in training_data:
-                output = self.rc_framework.fit_to_data(training_example)  # Only one timestep
-                if self.example_data is None:
-                    self.example_data = output
-
-            self.rc_framework.train_classifier()
-
-
-        # Sequence to sequence (variable size of input and unknown size of output (Like translation))
-        elif self.reCA_problem.is_dynamic_sequence:
-            training_data = self.reCA_problem.training_data
-
-            # For each input.
-            for training_example in training_data:
-                output = self.rc_framework.fit_to_data(training_example)  # Only one timestep
-                if self.example_data is None:
-                    self.example_data = output
-
-            self.rc_framework.train_classifier()
-
-
-        pass
+        self.rc_framework.train_classifier()
 
 
 
@@ -181,15 +152,17 @@ class ReCASystem:
 
         for test_ex in test_data:
             #  We now have a timeseries of data, on which the rc-framework must be fitted
-            outputs = self.rc_framework.predict(test_ex)
+            input_X = test_ex[0]
+            output_Y = test_ex[1]
+            outputs = self.rc_framework.predict(input_X)
             reCA_output.all_RCOutputs.append(outputs)
             pointer = 0
             all_correct = True
             predictions = []
-            for _, output in test_ex:
+            for output in output_Y:
                 predictions.append(outputs[pointer])
                 if output != outputs[pointer]:
-                    # print("WRONG: " + str(output) + str( "  ") + str(outputs[pointer]))
+                    #print("WRONG: " + str(output) + str( "  ") + str(outputs[pointer]))
                     all_correct = False
                 pointer += 1
             reCA_output.all_predictions.append(predictions)
@@ -446,7 +419,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         elif time_transition == "xor":
             self.time_transition = time_trans.XORTimeTransition()
 
-    def set_uniform_margem_config(self, rule=90, R_i=4, R=100, I=2, classifier="linear-svm", time_transition="xor"):
+    def set_uniform_margem_config(self, rule=90, R_i=2, R=240, I=6, classifier="linear-svm", time_transition="xor"):
         """
 
         :param rule:
@@ -457,9 +430,11 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         :param time_transition:
         :return:
         """
+        print("Running rotation with values: rule: " + str(rule) + ", R_i: " + str(R_i) + ", R:" + str(R), "I: " +str(I))
         # sets up elementary CA:
         self.reservoir = ca.ElemCAReservoir()
         self.reservoir.set_uniform_rule(rule)
+
 
 
 
