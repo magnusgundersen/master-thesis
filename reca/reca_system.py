@@ -11,6 +11,7 @@ from reservoircomputing import rc_interface as rc_if
 from reca import encoder as enc
 from reca import time_transition_function as time_trans
 import random
+import time
 
 
 class ReCASystem:
@@ -40,7 +41,7 @@ class ReCASystem:
         self.rc_framework = rc.ReservoirComputingFramework()
         self.rc_framework.set_helper(rc_helper)
 
-    def tackle_ReCA_problem(self, validation_set_size=0.5):
+    def tackle_ReCA_problem(self):
         # 1. Sequential or not??
         # 2. Seq to seq? Or sequential classification?
         # All problems at this stage must be binary!
@@ -48,7 +49,6 @@ class ReCASystem:
             raise ValueError("No ReCAProblem set!")
 
         self.example_data = None
-        # Feed-Forward task (Like plain CIFAR):
 
         training_data = self.reCA_problem.training_data
 
@@ -61,28 +61,6 @@ class ReCASystem:
         self.rc_framework.train_classifier()
 
 
-
-    def fit_to_problem(self, validation_set_size=0.5):
-        """
-
-        :return:
-        """
-        if self.reCA_problem is None:
-            raise ValueError("No reCAProblem set!")
-
-        training_data = self.reCA_problem.training_data[:int(len(self.reCA_problem.training_data)*validation_set_size)]
-
-
-        self.example_data = None
-        # Run each training-example through the rc-framework
-        for training_example in training_data:
-            #  We now have a timeseries of data, on which the rc-framework must be fitted
-            output = self.rc_framework.fit_to_data(training_example)
-            if self.example_data is None:
-                self.example_data = output
-
-        self.rc_framework.train_classifier()
-        return 0, 0
 
 
     def test_on_dynamic_sequence_data(self):
@@ -419,7 +397,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         elif time_transition == "xor":
             self.time_transition = time_trans.XORTimeTransition()
 
-    def set_uniform_margem_config(self, rule=90, R_i=2, R=240, I=6, classifier="linear-svm", time_transition="xor"):
+    def set_uniform_margem_config(self, rule=90, R_i=2, R=3000, I=10, classifier="linear-svm", time_transition="xor"):
         """
 
         :param rule:
@@ -432,6 +410,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         """
         print("Running rotation with values: rule: " + str(rule) + ", R_i: " + str(R_i) + ", R:" + str(R), "I: " +str(I))
         # sets up elementary CA:
+        before_time = time.time()
         self.reservoir = ca.ElemCAReservoir()
         self.reservoir.set_uniform_rule(rule)
 

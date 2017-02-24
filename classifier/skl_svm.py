@@ -2,6 +2,9 @@ __author__ = 'magnus'
 from sklearn import svm as svm
 from sklearn.linear_model import ridge as ridge
 from sklearn import neighbors as neig
+from sklearn import neural_network
+from sklearn import linear_model
+import time
 
 from reservoircomputing import rc_interface as interfaces
 
@@ -9,15 +12,21 @@ from reservoircomputing import rc_interface as interfaces
 class SVM(interfaces.RCClassifier):
     def __init__(self):
         super(SVM, self).__init__()
-        self.svm = svm.LinearSVC()
+        self.svm = svm.SVC(kernel="linear")
         #self.svm = ridge.Ridge()
         #self.svm = neig.KNeighborsClassifier()
+        #self.svm = neural_network.MLPClassifier(hidden_layer_sizes=())
+        #self.svm = linear_model.LinearRegression()
+        self.svm = linear_model.SGDClassifier(loss="log", shuffle=True, penalty="l2")
 
     def fit(self, training_input, correct_predictions):
         #print(str(len(training_input)))
         #self.prev_seen = training_input
-
-        return self.svm.fit(training_input, correct_predictions)
+        before = time.time()
+        fitted = self.svm.fit(training_input, correct_predictions)
+        after = time.time()
+        print("Time used for fitting classifier: " + str(after-before))
+        return fitted
 
     def predict(self, reservoir_outputs):
 
@@ -25,6 +34,7 @@ class SVM(interfaces.RCClassifier):
         #print("PREdicting:")
         #print(reservoir_outputs)
         predictions = self.svm.predict(reservoir_outputs)
+
         #print(predictions)
         #print("")
 

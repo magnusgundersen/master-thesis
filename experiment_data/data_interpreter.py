@@ -2,6 +2,8 @@
 import pickle
 import numpy as np
 import os
+import xml.etree.ElementTree as ET
+#from speech import Speech, SpeakerStatistics, SpeakerStatisticsCollection
 
 from PIL import Image
 class TranslationBuilder:
@@ -146,6 +148,24 @@ class TranslationBuilder:
 
         return data_file
 
+    def create_efficient_data_to_file(self):
+        #data = self.read_translation_files("de")
+        #print(len(data[0]))
+        #print(len(data[1]))
+        # The data arrays are very sparse
+
+        with open("translation/europarlCorpus.tei", "r", encoding="utf-8") as f:
+            string = f.read()
+            #parser = ET.XMLParser(encoding="utf-8")
+            #tree = ET.parse(f, parser=parser)
+            #tree = ET.fromstring(f.read(), parser=parser)
+
+            ##root = tree.getroot()
+            print("help")
+            #self.set_root(root)
+
+
+
 
 class CIFARBuilder:
     def get_cifar_data(self):
@@ -202,16 +222,19 @@ class FiveBitBuilder:
         dataset = []
         with open(file_location+"/5bit/5_bit_" + str(self.dist_period) + "_dist_32", "r") as f:
             content = f.readlines()
-            training_set = []
+            training_inputs = []
+            training_ouputs = []
             for line in content:
                 if line == "\n":
-                    dataset.append(training_set)
-                    training_set = []
+                    dataset.append((np.array(training_inputs, dtype="uint8"), np.array(training_ouputs)))
+                    training_inputs = []
+                    training_ouputs = []
                 else:
                     _input, _output = line.split(" ")
-                    training_set.append(([int(number) for number in _input],_output[0:-1]))  # class is text
-        dataset = np.array(dataset, dtype="uint8")
+                    training_inputs.append([int(number) for number in _input])
+                    training_ouputs.append(_output[0:-1])  # class is text
         return dataset
+
 
     def get_testing_data(self):
         file_location = os.path.dirname(os.path.realpath(__file__))
@@ -219,24 +242,26 @@ class FiveBitBuilder:
         dataset = []
         with open(file_location+"/5bit/5_bit_" + str(self.dist_period) + "_dist_32", "r") as f:
             content = f.readlines()
-            training_set = []
+            training_inputs = []
+            training_ouputs = []
             for line in content:
                 if line == "\n":
-                    dataset.append(training_set)
-                    training_set = []
+                    dataset.append((np.array(training_inputs, dtype="uint8"), np.array(training_ouputs)))
+                    training_inputs = []
+                    training_ouputs = []
                 else:
                     _input, _output = line.split(" ")
-                    training_set.append(([int(number) for number in _input],_output[0:-1]))  # class is text
-        dataset = np.array(dataset, dtype="uint8")
+                    training_inputs.append([int(number) for number in _input])
+                    training_ouputs.append(_output[0:-1])  # class is text
         return dataset
 
 
 
 class TwentyBitBuilder:
     def __init__(self):
-        self.dist_period = 10
-        self.no_training_ex = 10
-        self.no_testing_ex = 2
+        self.dist_period = 280
+        self.no_training_ex = 120
+        self.no_testing_ex = 100
 
     def get_training_data(self):
         file_location = os.path.dirname(os.path.realpath(__file__))
@@ -278,7 +303,7 @@ class TwentyBitBuilder:
 
 if __name__ == "__main__":
     translator = TranslationBuilder()
-    translator.generate_translation_data()
+    translator.create_efficient_data_to_file()
 
 
 #cifarB = CIFARBuilder()
