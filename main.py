@@ -34,8 +34,8 @@ def main(argv):
 
     #print(p.majority_task())
     #print(p.five_bit_task())
-    #print(p.europarl_translation_task())
-    print(p.twenty_bit_task())
+    print(p.europarl_translation_task())
+    #print(p.twenty_bit_task())
 
 
 

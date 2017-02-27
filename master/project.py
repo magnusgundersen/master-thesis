@@ -90,9 +90,10 @@ class Project:
         # reca_prob
         reCA_problem = reCA.ReCAProblem(data_interpreter)
         reCA_config = reCA.ReCAConfig()
-        reCA_config.set_single_reservoir_config(ca_rule=90, R=2, C=3, I=16, classifier="linear-svm",
-                                                encoding="random_mapping",
-                                                time_transition="random_permutation")
+        #reCA_config.set_single_reservoir_config(ca_rule=90, R=2, C=3, I=16, classifier="linear-svm",
+        #                                        encoding="random_mapping",
+        #                                        time_transition="random_permutation")
+        reCA_config.set_uniform_margem_config()
         reCA_system = reCA.ReCASystem()
 
         reCA_system.set_problem(reCA_problem)
