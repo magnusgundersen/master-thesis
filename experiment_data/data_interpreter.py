@@ -2,7 +2,10 @@
 import pickle
 import numpy as np
 import os
+import pprint
 import xml.etree.ElementTree as ET
+import scipy.sparse as sprs
+import scipy.io as sci_io
 #from speech import Speech, SpeakerStatistics, SpeakerStatisticsCollection
 
 from PIL import Image
@@ -33,7 +36,20 @@ class TranslationBuilder:
     def get_training_data(self):
         file_location = os.path.dirname(os.path.realpath(__file__))
         if self.language == "german":
-            dataset = []
+            dataset = []  #
+            batches_location = file_location + "/translation/en-de/"
+            lang_locations = batches_location + "/de"
+            eng_locations = batches_location + "/en"
+            lang_files = os.listdir(lang_locations)
+            eng_files = os.listdir(eng_locations)
+
+            print(lang_files)
+            number_of_examples = len(lang_files)
+            for i in range(number_of_examples):
+
+                pass
+
+
             with open(file_location+"/en-de.data", "r") as f:
                 content = f.readlines()
                 training_set = []
@@ -73,97 +89,100 @@ class TranslationBuilder:
         return sentence
 
     def read_translation_files(self, language):
-        from_lines = []
         file_location = os.path.dirname(os.path.realpath(__file__))
-        with open(file_location+"/translation/" + "europarl-v7."+language+"-en."+language, "r", encoding='utf8') as f:
-            content = f.readlines()
-            for line in content:
-                if line == "\n":
-                    continue
-                from_lines.append(line)
+        usable_eng_lines = []
+        usable_lang_lines = []
 
-        to_lines = []
-        with open(file_location+"/translation/" + "europarl-v7." + language + "-en." + "en", "r", encoding='utf8') as f:
-            content = f.readlines()
-            for line in content:
-                if line == "\n":
+        with open(file_location+"/translation/txt/" + "europarl-v7."+language+"-en."+language, "r", encoding='utf8') as lang,\
+                open(file_location+"/translation/txt/" + "europarl-v7." + language + "-en." + "en", "r", encoding='utf8') as eng:
+            lang = lang.readlines()
+            eng = eng.readlines()
+
+            if len(lang) != len(eng):
+                raise ValueError("Both languages must have the same number of lines!")
+
+            breakoff = True
+            for i in range(len(lang)):
+
+                eng_line = eng[i]
+                lang_line = lang[i]
+                if (eng_line == "\n" or lang_line == "\n") or (eng_line[0] == "." or lang_line[0] == "."):
                     continue
-                to_lines.append(line)
-        return (from_lines, to_lines)
+                usable_eng_lines.append(eng_line)
+                usable_lang_lines.append(lang_line)
+
+                if breakoff and i == 10000:
+                    break
+
+
+
+
+        return (usable_eng_lines, usable_lang_lines)
 
     def generate_translation_data(self):
+        ger_lines, eng_lines = (self.read_translation_files("de"))
+        print(len(ger_lines))
+        print(len(eng_lines))
 
-        eng_lines = []
-        ger_lines = []
 
-        german_to_english = (self.read_translation_files("de"))
-        ger_lines = german_to_english[0]
-        eng_lines = german_to_english[1]
 
-        examples = 1000
-        txt_bin_data = ""
-        for i in range(examples):
-            txt_bin_data += (self.create_bin_data(eng_lines[i], self.english_allowed, ger_lines[i], self.german_allowed))
-            txt_bin_data += "\n"
-        with open("en-de.data", "w+") as f:
-            f.write(txt_bin_data)
+        translation_data = []
+        for i in range(len(ger_lines)):
+            eng, ger = (self.create_bin_data(eng_lines[i], self.english_allowed, ger_lines[i], self.german_allowed))
+            #translation_data.append(example)
+            eng = sprs.csr_matrix(eng, dtype="int8")
+            ger = sprs.csr_matrix(ger, dtype="int8")
+            #np.save("translation/en-de/en/" + str(i) + ".en", eng)
+            #np.save("translation/en-de/de/" + str(i) + ".de", ger)
+            sci_io.mmwrite("translation/en-de/en/" + str(i) + ".en", eng)
+            sci_io.mmwrite("translation/en-de/de/" + str(i) + ".de", ger)
+
+
+
+        #print(translation_data)
+        #translation_data = np.array(translation_data)
+        #print(translation_data.shape)
+        #pickle.dump(translation_data, open('save.p', 'wb'))
+
+
+
+
 
     def create_bin_data(self, source_sentence, source_alphabet, target_sentence, target_alphabet):
-        data_file = ""
-        #print("Source sentence: " + str(source_sentence), end="")
-        #print("target sentence: " + str(target_sentence), end="")
-        for character in source_sentence:
-            for i in range(len(source_alphabet)):
-                if source_alphabet[i] == character.lower():
-                    data_file += "1"
-                    continue
-                data_file += "0"
+        sequence_length = len(source_sentence) + len(target_sentence) + 1  # : +1: prediction end signal
+        source_array = np.zeros((sequence_length, len(source_alphabet)+1), dtype="uint8")  # + 1: end of source sentence
+        target_array = np.zeros((sequence_length, len(target_alphabet)+1+1), dtype="uint8")  # + 1 +1 : wait and end of sentence
 
-            data_file += " "
-
-            for i in range(len(target_alphabet)):
-                data_file += "0"
-            data_file += "1"  # Wait signal
-            data_file += "0"  # End of sentence signal
-            data_file += "\n"
+        # Create source and target array inputs/outputs for source sentence
+        for i in range(len(source_sentence)):
+            for j in range(len(source_alphabet)):
+                character = source_alphabet[j]
+                if source_alphabet[j] == character.lower():
+                    source_array[i][j] = 1
+                    break
+            target_array[i][-2] = 1  # wait signal
 
 
-        for character in target_sentence:
-            for i in range(len(source_alphabet)):
-                data_file += "0"  # End of source sentence
-
-            data_file += " "
-            for i in range(len(target_alphabet)):
-                if target_alphabet[i] == character.lower():
-                    data_file += "1"
-                    continue
-                data_file += "0"
-            data_file += "0"
-            data_file += "0"
-            data_file += "\n"
-
-        self.prod_end_signal = "0"*len(target_alphabet)+ "0"+"1"+"\n"  # End of sentence
-        data_file += "0"*len(source_alphabet) + " " + self.prod_end_signal
+        for i in range(len(source_sentence), len(source_sentence) + len(target_sentence)):
+            source_array[i][-1] = 1  # source sentence ended, produce translated sentence signal
+            for j in range(len(target_alphabet)):
+                character = target_alphabet[j]
+                if target_alphabet[j] == character.lower():
+                    target_array[i][j] = 1
+                    break
 
 
-        return data_file
+        ## prediction end signal:
+        source_array[-1][-1] = 1
+        target_array[-1][-1] = 1
+        signal = np.zeros(len(target_array[-1]))
+        signal[-1] = 1
+        self.prediction_end_signal = signal # End of sentence
 
-    def create_efficient_data_to_file(self):
-        #data = self.read_translation_files("de")
-        #print(len(data[0]))
-        #print(len(data[1]))
-        # The data arrays are very sparse
+        #print(source_array.shape)
+        #print(target_array.shape)
 
-        with open("translation/europarlCorpus.tei", "r", encoding="utf-8") as f:
-            string = f.read()
-            #parser = ET.XMLParser(encoding="utf-8")
-            #tree = ET.parse(f, parser=parser)
-            #tree = ET.fromstring(f.read(), parser=parser)
-
-            ##root = tree.getroot()
-            print("help")
-            #self.set_root(root)
-
+        return source_array, target_array
 
 
 
@@ -265,7 +284,7 @@ class TwentyBitBuilder:
 
     def get_training_data(self):
         file_location = os.path.dirname(os.path.realpath(__file__))
-        dataset = []
+        dataset = []  # list of numpy-arrays
 
         with open(file_location+"/20bit/20_bit_train_" + str(self.dist_period) + "_dist_" + str(self.no_training_ex), "r") as f:
             content = f.readlines()
@@ -303,8 +322,8 @@ class TwentyBitBuilder:
 
 if __name__ == "__main__":
     translator = TranslationBuilder()
-    translator.create_efficient_data_to_file()
-
+    #translator.create_efficient_data_to_file()
+    translator.generate_translation_data()
 
 #cifarB = CIFARBuilder()
 #cifarB.get_cifar_data()
