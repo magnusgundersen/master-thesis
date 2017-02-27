@@ -69,8 +69,11 @@ class ReservoirComputingFramework:
         :param training_data:
         :return:
         """
+
         input_X = training_data[0]
+
         output_Y = training_data[1]
+
 
         self.rc_helper.reset()
         rc_outputs = []  # One output for each time step
@@ -85,6 +88,8 @@ class ReservoirComputingFramework:
         return rc_outputs
 
     def train_classifier(self):
+
+
         self.classifier.fit(self.classifier_input_set, self.classifier_output_set)
 
     def predict(self, input_X):
@@ -121,7 +126,7 @@ class ReservoirComputingFramework:
         self.rc_helper.reset()
         current_input = 0
         input_size = len(input_data[0][0])
-        print(input_data[0][0])
+        #print(input_data[0][0])
         while True:  # input and output at each timestep
             try:
                 rc_output = self.rc_helper.run_input(input_data[current_input][0])

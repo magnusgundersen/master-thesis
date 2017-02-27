@@ -7,8 +7,8 @@ import xml.etree.ElementTree as ET
 import scipy.sparse as sprs
 import scipy.io as sci_io
 #from speech import Speech, SpeakerStatistics, SpeakerStatisticsCollection
-
 from PIL import Image
+#import Image
 class TranslationBuilder:
     def __init__(self):
         """
@@ -43,29 +43,68 @@ class TranslationBuilder:
             lang_files = os.listdir(lang_locations)
             eng_files = os.listdir(eng_locations)
 
-            print(lang_files)
+            #print(lang_files)
             number_of_examples = len(lang_files)
+            number_of_examples = 100
+
             for i in range(number_of_examples):
 
-                pass
+                _inputs = sci_io.mmread(lang_locations + "/" + lang_files[i]).toarray()
+
+                _outputs = sci_io.mmread(eng_locations + "/" + eng_files[i]).toarray()
+                string_outputs = []
+                for _output in _outputs:
+                    string_result = ""
+                    for char in _output:
+                        string_result+= str(char)
+                    string_outputs.append(string_result)
+                dataset.append((_inputs, np.array(string_outputs)))
 
 
-            with open(file_location+"/en-de.data", "r") as f:
-                content = f.readlines()
-                training_set = []
-                for line in content:
-                    if line == "\n":
-                        dataset.append(training_set)
-                        training_set = []
-                    else:
-                        _input, _output = line.split(" ")
-                        training_set.append(([int(number) for number in _input],_output[0:-1]))  # class is text
+            print("Finished retreiving training data")
             return dataset
         else:
             raise ValueError("Language not implemented: " + str(self.language))
 
     def get_testing_data(self):
-        return []
+        print("getting testing data")
+        file_location = os.path.dirname(os.path.realpath(__file__))
+        if self.language == "german":
+            dataset = []  #
+            batches_location = file_location + "/translation/en-de/"
+            lang_locations = batches_location + "/de"
+            eng_locations = batches_location + "/en"
+            lang_files = os.listdir(lang_locations)
+            eng_files = os.listdir(eng_locations)
+
+            number_of_examples = len(lang_files)
+            number_of_examples = 2
+
+            for i in range(number_of_examples):
+
+                _inputs = sci_io.mmread(lang_locations + "/" + lang_files[i]).toarray()
+
+
+                _outputs = sci_io.mmread(eng_locations + "/" + eng_files[i]).toarray()
+
+
+                string_outputs = []
+                for _output in _outputs:
+                    string_result = ""
+                    for char in _output:
+                        string_result+= str(char)
+                    string_outputs.append(string_result)
+
+                dataset.append((_inputs, np.array(string_outputs)))
+
+
+
+
+
+            print("Finished retreiving testing data")
+            return dataset
+        else:
+            raise ValueError("Language not implemented: " + str(self.language))
 
     def get_pred_end_signal(self):
         if self.language == "german":
@@ -252,6 +291,7 @@ class FiveBitBuilder:
                     _input, _output = line.split(" ")
                     training_inputs.append([int(number) for number in _input])
                     training_ouputs.append(_output[0:-1])  # class is text
+        #print(dataset)
         return dataset
 
 
@@ -299,6 +339,7 @@ class TwentyBitBuilder:
                     _input, _output = line.split(" ")
                     training_inputs.append([int(number) for number in _input])
                     training_ouputs.append(_output[0:-1])  # class is text
+
         return dataset
 
     def get_testing_data(self):

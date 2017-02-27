@@ -76,28 +76,24 @@ class ReCASystem:
 
         # divide training_data:
         test_data = self.reCA_problem.testing_data
-        pred_stop_signal = self.reCA_problem.pred_end_signal
+        pred_stop_signal = "000000000000000000000000000000000000000000000000000000001"
         reCA_output.all_test_examples = test_data
 
         number_of_correct = 0
 
         for test_ex in test_data:
-            #  We now have a timeseries of data, on which the rc-framework must be tested
-            outputs = self.rc_framework.predict_dynamic_sequence(test_ex, pred_stop_signal)
+            #  We now have a timeseries of data, on which the rc-framework must be fitted
+            input_X = test_ex[0]
+            output_Y = test_ex[1]
+            outputs = self.rc_framework.predict(input_X)
             reCA_output.all_RCOutputs.append(outputs)
-            print(reCA_output.all_predictions)
-            print("RBEAKING")
-            print("Size of predictions: " + str(len(outputs)))
-            print("size of correctssss: " + str(len(test_ex)))
-
-
             pointer = 0
             all_correct = True
             predictions = []
-            for _, output in test_ex:
+            for output in output_Y:
                 predictions.append(outputs[pointer])
                 if output != outputs[pointer]:
-                    # print("WRONG: " + str(output) + str( "  ") + str(outputs[pointer]))
+                    #print("WRONG: " + str(output) + str( "  ") + str(outputs[pointer]))
                     all_correct = False
                 pointer += 1
             reCA_output.all_predictions.append(predictions)
@@ -397,7 +393,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         elif time_transition == "xor":
             self.time_transition = time_trans.XORTimeTransition()
 
-    def set_uniform_margem_config(self, rule=90, R_i=2, R=3000, I=10, classifier="linear-svm", time_transition="xor"):
+    def set_uniform_margem_config(self, rule=90, R_i=1, R=2, I=2, classifier="linear-svm", time_transition="xor"):
         """
 
         :param rule:
