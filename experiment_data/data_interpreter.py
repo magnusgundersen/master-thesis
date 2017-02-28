@@ -45,7 +45,7 @@ class TranslationBuilder:
 
             #print(lang_files)
             number_of_examples = len(lang_files)
-            number_of_examples = 100
+            number_of_examples = 1500
 
             for i in range(number_of_examples):
 
@@ -78,21 +78,21 @@ class TranslationBuilder:
             eng_files = os.listdir(eng_locations)
 
             number_of_examples = len(lang_files)
-            number_of_examples = 2
+            number_of_examples = 10
 
             for i in range(number_of_examples):
 
-                _inputs = sci_io.mmread(lang_locations + "/" + lang_files[i]).toarray()
+                _inputs = sci_io.mmread(lang_locations + "/" + lang_files[19000-i]).toarray()
 
 
-                _outputs = sci_io.mmread(eng_locations + "/" + eng_files[i]).toarray()
+                _outputs = sci_io.mmread(eng_locations + "/" + eng_files[19000-i]).toarray()
 
 
                 string_outputs = []
                 for _output in _outputs:
                     string_result = ""
                     for char in _output:
-                        string_result+= str(char)
+                        string_result += str(char)
                     string_outputs.append(string_result)
 
                 dataset.append((_inputs, np.array(string_outputs)))
@@ -150,7 +150,7 @@ class TranslationBuilder:
                 usable_eng_lines.append(eng_line)
                 usable_lang_lines.append(lang_line)
 
-                if breakoff and i == 10000:
+                if breakoff and i == 20000:
                     break
 
 
@@ -270,9 +270,9 @@ class CIFARBuilder:
 
 class FiveBitBuilder:
     def __init__(self):
-        self.dist_period = 10
-        self.no_training_ex = 32
-        self.no_testing_ex = 32
+        self.dist_period = 1000
+        self.no_training_ex = 25
+        self.no_testing_ex = 7
 
     def get_training_data(self):
         file_location = os.path.dirname(os.path.realpath(__file__))
@@ -291,7 +291,7 @@ class FiveBitBuilder:
                     _input, _output = line.split(" ")
                     training_inputs.append([int(number) for number in _input])
                     training_ouputs.append(_output[0:-1])  # class is text
-        #print(dataset)
+        dataset = dataset[:self.no_training_ex]
         return dataset
 
 
@@ -312,6 +312,8 @@ class FiveBitBuilder:
                     _input, _output = line.split(" ")
                     training_inputs.append([int(number) for number in _input])
                     training_ouputs.append(_output[0:-1])  # class is text
+
+        dataset = dataset[(32-self.no_testing_ex):]
         return dataset
 
 

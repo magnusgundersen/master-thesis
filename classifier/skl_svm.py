@@ -17,7 +17,9 @@ class SVM(interfaces.RCClassifier):
         #self.svm = neig.KNeighborsClassifier()
         #self.svm = neural_network.MLPClassifier(hidden_layer_sizes=())
         #self.svm = linear_model.LinearRegression()
-        self.svm = linear_model.SGDClassifier(loss="log", shuffle=True, penalty="l2")
+        self.svm = linear_model.SGDClassifier(loss="perceptron", eta0=1, learning_rate="constant", penalty=None)
+        # SGDClassifier(loss="log", shuffle=True, penalty="l2")
+        # SGDClassifier(loss=”perceptron”, eta0=1, learning_rate=”constant”, penalty=None).
 
     def fit(self, training_input, correct_predictions):
         #print(str(len(training_input)))

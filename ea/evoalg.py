@@ -12,42 +12,47 @@ class EA:
         self.population_size = 0
 
 
-    def run_ea_alg(self, init_pop):
-        """
-        Runs an ea with the given init_pop
-        :param init_pop:
-        :return:
-        """
-        current_generation = init_pop
-        print("Next gen: " + str(self.run_ea_step("full", "fitness proportionate")))
-
     def set_init_pop(self, initial_pop):
         self.new_generation = initial_pop
         self.population_size = len(initial_pop)
 
-    def run_ea_step(self, adult_selection_type, parent_selection_type):
-        old_generation = self.current_generation.copy()
-        self.current_generation = self.new_generation  # self.elitism(5,self.current_generation, self.new_generation)
-        # Developing the current generation
-        for individual in self.current_generation:
+    def solve(self, problem):
+        initial_population = problem.get_initial_population()
+
+        for individual in initial_population:
             individual.develop()
-        print("done with develop")
 
-        # Testing the fitness of the current generation
-        for individual in self.current_generation:
-            individual.test_fitness()
+        generation_number = 0
+        current_generation = initial_population
 
-        # Adult selector
-        adult_selector = self.AdultSelector(adult_selection_type)
+        parent_selector = self.ParentSelector("fitness proportionate")
+        adult_selector = self.AdultSelector("full")
 
-        # Parent selector
-        parent_selector = self.ParentSelector(parent_selection_type)
 
-        new_adult_pool = adult_selector.run_adult_selection(old_generation, self.current_generation, parent_selector)
 
-        self.new_generation = parent_selector.run_parent_selection(new_adult_pool, self.population_size)
+        while not problem.fitness_threshold(current_generation) \
+                and problem.max_number_of_generations >= generation_number:
+            new_gen = self.run_ea_step(initial_population, parent_selector, adult_selector, problem)
+            print(new_gen)
+            generation_number += 1
 
-        return self.new_generation
+
+        pass
+
+    def run_ea_step(self, current_generation, parent_selector, adult_selector, ea_problem):
+
+        children = parent_selector.run_parent_selection(current_generation)
+        print(children)
+
+
+        for child in children:
+            child.develop()
+            ea_problem.test_fitness(child)
+
+        new_generation = adult_selector.run_adult_selection(current_generation, children)
+
+
+        return new_generation
 
     def get_best_individual(self):
         best_individual = self.current_generation[0]
@@ -120,8 +125,8 @@ class EA:
             # assert isinstance(parent_one,Individual)
             # assert isinstance(parent_two,Individual)
             # """@:type : Individual """
-            child = parent_one.reproduce(parent_one.getGenotype(),
-                                         parent_two.getGenotype())
+            child = parent_one.reproduce(parent_one.genotype,
+                                         parent_two.genotype)
 
             return child
 
@@ -129,13 +134,15 @@ class EA:
             # Get the total fitness
             total_fitness = 0
             for individual in pool:
-                total_fitness += individual.getFitness()
+                total_fitness += individual.fitness
             return total_fitness
 
         # making a dict with all the individuals with the proportion of the roulette wheel that they deserve
 
-        def run_parent_selection(self, adult_pool, number_of_children):
+        def run_parent_selection(self, adult_pool, number_of_children=0):
             self.adult_pool = adult_pool
+            if number_of_children == 0:
+                number_of_children = len(adult_pool)
             roulette_wheel = {}
 
             if not adult_pool:
@@ -148,7 +155,7 @@ class EA:
                 current_point_on_roulette = 0
                 total_fitness = self.get_total_fitness(self.adult_pool)
                 for individual in self.adult_pool:
-                    fitness_part = individual.getFitness()/(total_fitness)  # TODO: FITNESS
+                    fitness_part = individual.fitness/(total_fitness)  # TODO: FITNESS
                     roulette_wheel[(current_point_on_roulette, current_point_on_roulette+fitness_part)] = individual
                     current_point_on_roulette += fitness_part
                 # TODO: what if 1?
@@ -205,7 +212,7 @@ class EA:
             return new_pop
 
 
-        def run_adult_selection(self, old_generation, new_adult_candidates, parent_selector):
+        def run_adult_selection(self, old_generation, new_adult_candidates):
             """
             Choose who will join the adult pool.
             Can be: overprod
@@ -218,12 +225,12 @@ class EA:
             if(self.selection_type=="full"):
                 new_adult_pool.extend(new_adult_candidates)
 
-            elif (self.selection_type == "overprod"):
-
-                extra_children_size = int(adult_pool_size*0.2)
-                extra_children = parent_selector.run_parent_selection(old_generation, extra_children_size)
-                new_adult_candidates.extend(extra_children)
-                new_adult_pool.extend(self.adult_selector(adult_pool_size, new_adult_candidates))
+            #elif (self.selection_type == "overprod"):
+            #
+             #   extra_children_size = int(adult_pool_size*0.2)
+              #  extra_children = parent_selector.run_parent_selection(old_generation, extra_children_size)
+               # new_adult_candidates.extend(extra_children)
+                #new_adult_pool.extend(self.adult_selector(adult_pool_size, new_adult_candidates))
 
 
 
@@ -242,15 +249,17 @@ class EA:
 
 
 
+class EAProblem:
+    def __init__(self):
+        self.max_number_of_generations = 10
 
-# testing
-class BinVectorInd(Individual):
+    def fitness_threshold(self, *args):
+        return False
 
-    def test_fitness(self, *args):
-        pass
+    def get_initial_population(self):
+        raise NotImplementedError("[EAProblem] Please implement function: get_initial_population()")
 
-"""
-init_pop = [BinVectorInd(), BinVectorInd(), BinVectorInd(), BinVectorInd()]
-ea = EA()
-ea.run_ea_alg(init_pop)
-"""
+
+
+    def test_fitness(self, population):
+        raise NotImplementedError()

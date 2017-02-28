@@ -3,37 +3,20 @@ import random
 
 class Individual:
     def __init__(self, parent_genotype_one=None, parent_genotype_two=None):
-        # self.genotype = Genotype(parent_genotype_one, parent_genotype_two)
-        # self.phenotype = Phenotype(self.genotype)
-
         self.name = "Individual" + " " + str(random.randint(0,100000))
-        self.fitness = 0
+        self.fitness = 1
 
     def develop(self):
         """
         Developing the Phenotype from the given Genotype
         """
-        self.phenotype.develop_from_genotype()
-
-    def test_fitness(self):
-        raise NotImplementedError("[Individual] Please Implement this method: test_fitness")  # This is different e time
-
-
-    def getFitness(self):
-        return self.fitness
+        raise NotImplementedError()
 
     def __str__(self):
         return self.name + " (" + str(self.fitness) + ")"
 
     def __repr__(self):
         return self.__str__()
-
-    def getGenotype(self):
-        return self.genotype
-
-    def getPhenotype(self):
-        return self.phenotype
-
 
 
 
