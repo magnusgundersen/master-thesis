@@ -15,6 +15,7 @@ import sys
 #import classifier.skl_svm as svmclf
 #import random
 import master.project as project
+import time
 
 #import logger.logger as log
 
@@ -31,11 +32,11 @@ def main(argv):
     p = project.Project()  # Project with all implemented experiments
 
 
-
-    #print(p.majority_task())
+    before = time.time()
     print(p.five_bit_task())
     #print(p.europarl_translation_task())
     #print(p.twenty_bit_task())
+    print("time: " + str(time.time()-before))
 
 
 

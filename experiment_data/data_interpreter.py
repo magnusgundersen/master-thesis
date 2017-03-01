@@ -45,7 +45,7 @@ class TranslationBuilder:
 
             #print(lang_files)
             number_of_examples = len(lang_files)
-            number_of_examples = 1500
+            number_of_examples = 5000
 
             for i in range(number_of_examples):
 
@@ -270,9 +270,9 @@ class CIFARBuilder:
 
 class FiveBitBuilder:
     def __init__(self):
-        self.dist_period = 1000
-        self.no_training_ex = 25
-        self.no_testing_ex = 7
+        self.dist_period = 10
+        self.no_training_ex = 32
+        self.no_testing_ex = 32
 
     def get_training_data(self):
         file_location = os.path.dirname(os.path.realpath(__file__))

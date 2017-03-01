@@ -393,7 +393,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         elif time_transition == "xor":
             self.time_transition = time_trans.XORTimeTransition()
 
-    def set_uniform_margem_config(self, rule=90, R_i=2, R=100, I=4, classifier="linear-svm", time_transition="xor"):
+    def set_uniform_margem_config(self, rule=90, R_i=4, R=20, I=4, classifier="linear-svm", time_transition="xor"):
         """
 
         :param rule:
@@ -433,17 +433,12 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         elif time_transition == "xor":
             self.time_transition = time_trans.XORTimeTransition()
 class ReCAruleConfig:
-    def __init__(self, ca_size):
-        self.ca_size = ca_size
+    def __init__(self, rule_list):
+        self.rule_list = rule_list
 
 
     def get_scheme(self):
-        rule_list = []
-        #keys = [(i, i+1) for i in range(self.ca_size)]   OLD STYLE
-
-        for _ in range(self.ca_size):
-            rule_list.append(random.choice([90,150,110,60]))
-        return rule_list  # Dummy return
+        return self.rule_list
 
 
 

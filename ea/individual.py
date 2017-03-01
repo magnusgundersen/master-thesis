@@ -13,7 +13,7 @@ class Individual:
         raise NotImplementedError()
 
     def __str__(self):
-        return self.name + " (" + str(self.fitness) + ")"
+        return self.name + " (f: " + str(self.fitness) + ")"
 
     def __repr__(self):
         return self.__str__()
@@ -39,20 +39,16 @@ class Genotype:
         """
         raise NotImplementedError("[Genotype] Please implement this method: init_first_genotype")
 
-    def reproduce(self, parent1, parent2, crossover_rate=0.4, mutation_rate=0.01):
+    def reproduce(self, other_parent, crossover_rate=0.4, mutation_rate=0.01):
         """
         this is the reproduction function. Shall deal with the crossover, and mutation and the joining of two genotypes
-        :param parent1:
-        :param parent2:
+        :param other_parent:
         :param crossover_rate:
         :param mutation_rate:
         :return:
         """
         raise NotImplementedError("[Genotype] Please implement this method: reproduce")
 
-
-
-    pass
 
 
 class Phenotype:

@@ -1,6 +1,15 @@
 __author__ = 'magnus'
 import pprint
 import numpy as np
+import multiprocessing
+
+def ca_step(i, length, rules, ca_vector):
+    left_index = (i - 1) % length
+    mid_index = i
+    right_index = (i + 1) % length
+    rule_at_i = rules[i]
+    return rule_at_i.getOutput([ca_vector[left_index], ca_vector[mid_index], ca_vector[right_index]])
+
 class ElemCAReservoir:
     """
     Elem. CA reservoir.
@@ -44,15 +53,21 @@ class ElemCAReservoir:
             raise ValueError("[CA simulation] Not correct number of rules: "
                              "Should be "+str(length)+" but was " + str(len(rules)))
 
+        parallel = False
+        if parallel:
+            with multiprocessing.Pool(7) as p:
+                list_next_ca_vector = p.starmap(ca_step, [(i, length, rules, ca_vector) for i in range(length)])
+            next_ca_vector = np.array(list_next_ca_vector, dtype="uint8")
 
-        #Wrap around
-        for i in range(length):
-            left_index = (i-1) % length
-            mid_index = i
-            right_index = (i+1) % length
-            rule_at_i = rules[i]
-            next_ca_vector[i]=(rule_at_i.getOutput([ca_vector[left_index],
-                                  ca_vector[mid_index], ca_vector[right_index]]))
+        else:
+            #Wrap around
+            for i in range(length):
+                left_index = (i-1) % length
+                mid_index = i
+                right_index = (i+1) % length
+                rule_at_i = rules[i]
+                next_ca_vector[i]=(rule_at_i.getOutput([ca_vector[left_index],
+                                      ca_vector[mid_index], ca_vector[right_index]]))
         return next_ca_vector
 
 

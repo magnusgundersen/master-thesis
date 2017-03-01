@@ -55,17 +55,6 @@ class Project:
             _input = "".join([str(x) for x in example_test[i][0]])
             print("Input: " + _input + "  Correct: " + str(correct) + "  Predicted:" + str(prediction))
 
-        # Visualize:
-        """
-        outputs = reCA_out.all_RCOutputs
-        whole_output = []
-        lists_of_states = [output.list_of_states for output in outputs]
-        for output in lists_of_states:
-            width = len(output[0])
-            whole_output.extend(output)
-            whole_output.extend([[-1 for _ in range(width)]])
-        self.visualise_example(whole_output)
-        """
 
         # Visualize:
         outputs = reCA_system.get_example_run()
@@ -235,46 +224,6 @@ class Project:
         visualizer = bviz.CAVisualizer()
         visualizer.visualize(training_array)
 
-    def convert_to_array(self, training_set):
-        new_training_set = []
-        for _input,_output in training_set:
-            new_training_set.append(([int(number) for number in _input],int(_output)))
-
-        return new_training_set
-
-    def open_data(self, filename):
-        """
-        Reads data from file
-
-        data must be on the form of
-
-        1010010101...100101 0
-
-        Where the first vector is binary, and the last integer is the class. Must also be binary.
-        :param filename:
-        :return:
-        """
-        dataset = []
-        with open("../experiment_data/"+filename, "r") as f:
-            content = f.readlines()
-            for line in content:
-                _input, _output = line.split(" ")
-                dataset.append((_input,_output[0]))
-        return dataset
-
-    def open_temporal_data(self, filename):
-        dataset = []
-        with open("../experiment_data/"+filename, "r") as f:
-            content = f.readlines()
-            training_set = []
-            for line in content:
-                if line == "\n":
-                    dataset.append(training_set)
-                    training_set = []
-                else:
-                    _input, _output = line.split(" ")
-                    training_set.append(([int(number) for number in _input],_output[0:-1]))
-        return dataset
 
     def open_data_interpreter(self, type_of_interpreter):
         if type_of_interpreter == "europarl":
@@ -285,7 +234,6 @@ class Project:
 
         elif type_of_interpreter == "20bit":
             return data_int.TwentyBitBuilder()
-
 
 
 

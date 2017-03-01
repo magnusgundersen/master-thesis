@@ -27,7 +27,6 @@ class SVM(interfaces.RCClassifier):
         before = time.time()
         fitted = self.svm.fit(training_input, correct_predictions)
         after = time.time()
-        print("Time used for fitting classifier: " + str(after-before))
         return fitted
 
     def predict(self, reservoir_outputs):
