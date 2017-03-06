@@ -97,7 +97,7 @@ class NonUniCAProblem(evoalg.EAProblem):
 
         reCA_rule_scheme = reCA.ReCAruleConfig(individual.phenotype.non_uniform_config)
 
-        reCA_config.set_non_uniform_config(reCA_rule_scheme, R=4, C=2, I=6)
+        reCA_config.set_non_uniform_config(reCA_rule_scheme, R=4, C=2, I=1)
         reCA_system = reCA.ReCASystem()
 
         reCA_system.set_problem(reCA_problem)
@@ -117,7 +117,7 @@ class NonUniCAProblem(evoalg.EAProblem):
 
 
     def get_initial_population(self):
-        initi_pop_size = 80
+        initi_pop_size = 6
         return [NonUniCAIndividual() for _ in range(initi_pop_size)]
 
     def open_data_interpreter(self, type_of_interpreter):
@@ -161,7 +161,7 @@ if __name__ == "__main__":
 
     reCA_rule_scheme = reCA.ReCAruleConfig(best_ind.phenotype.non_uniform_config)
 
-    reCA_config.set_non_uniform_config(reCA_rule_scheme, R=4, C=2, I=6)
+    reCA_config.set_non_uniform_config(reCA_rule_scheme, R=4, C=2, I=1)
     reCA_system = reCA.ReCASystem()
 
     reCA_system.set_problem(reCA_problem)
