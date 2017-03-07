@@ -6,6 +6,7 @@ class Individual:
         self.name = "Individual" + " " + str(random.randint(0,100000))
         self.fitness = 1
 
+
     def develop(self):
         """
         Developing the Phenotype from the given Genotype
@@ -39,7 +40,7 @@ class Genotype:
         """
         raise NotImplementedError("[Genotype] Please implement this method: init_first_genotype")
 
-    def reproduce(self, other_parent, crossover_rate=0.4, mutation_rate=0.01):
+    def reproduce(self,parent_genotype_one, parent_genotype_two, crossover_rate=0.4, mutation_rate=0.01):
         """
         this is the reproduction function. Shall deal with the crossover, and mutation and the joining of two genotypes
         :param other_parent:

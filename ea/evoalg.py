@@ -3,6 +3,7 @@ import random
 from ea.individual import Individual
 import ea.adult_selector as adlt_sel
 import ea.parent_selector as parn_sel
+import numpy as np
 
 import multiprocessing
 
@@ -37,7 +38,7 @@ class EA:
             # the number of processes appending each process to
             # the job list
 
-            with multiprocessing.Pool(3) as p:
+            with multiprocessing.Pool(7) as p:
                 initial_population = p.starmap(develop_and_test, [(initial_population[i], problem) for i in range(len(initial_population))])
 
         else:
@@ -47,13 +48,9 @@ class EA:
 
         generation_number = 0
         current_generation = initial_population
-        print()
-        print("Current gen:")
-        print(current_generation)
-        print()
 
         parent_selector = parn_sel.TournamentSelector()
-        adult_selector = adlt_sel.AdultSelector("mixing")
+        adult_selector = adlt_sel.AdultSelector("full_and_elitism")
 
 
 
@@ -66,7 +63,10 @@ class EA:
                 if ind.fitness>best_ind.fitness:
                     best_ind = ind
             print(best_ind)
-            print(new_gen)
+            fitness_values = np.array([ind.fitness for ind in new_gen])
+            print("Mean of fitnesses: " + str(np.mean(fitness_values)))
+            print("Std of fitnesses : " + str(np.std(fitness_values)))
+            print()
 
             generation_number += 1
 
@@ -87,7 +87,7 @@ class EA:
             # the number of processes appending each process to
             # the job list
 
-            with multiprocessing.Pool(3) as p:
+            with multiprocessing.Pool(7) as p:
                 children = p.starmap(develop_and_test, [(children[i], ea_problem) for i in range(len(children))])
 
         else:

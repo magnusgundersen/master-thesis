@@ -2,6 +2,7 @@ from ea import evoalg as evoalg
 from ea import individual as ind
 from reca import reca_system as reCA
 
+import numpy as np
 from gui import ca_basic_visualizer as bviz
 import random
 import pprint
@@ -11,29 +12,43 @@ import os
 import pickle as pickle
 import time
 import experiment_data.data_interpreter as data_int
-
+import reservoir.ca as ca
 
 import random
 # testing
 class NonUniCAGenotype(ind.Genotype):
     def __init__(self, parent_genotype_one, parent_genotype_two):
+        self.rule_scheme = []
         super().__init__(parent_genotype_one, parent_genotype_two)
 
     def init_first_genotype(self):
-        #print("First genotype!")
-        number_of_rules = 8
-        self.rule_scheme = [random.choice([0,1]) for _ in range(8*8)]
+        number_of_rules = 64
+        self.rule_scheme = [random.choice([0,1]) for _ in range(number_of_rules*8)]
 
     def get_representation(self):
         pass
 
-    def reproduce(self, other_genotype, crossover_rate=0.4, mutation_rate=0.01):
-        self.rule_scheme = self.rule_scheme[:len(self.rule_scheme)*crossover_rate] + \
-                           other_genotype.rule_scheme[len(self.rule_scheme)*crossover_rate:]
+    def reproduce(self, parent_one_genotype, parent_two_genotype, crossover_rate=0.4, mutation_rate=0.05):
+        rule_bound_crossover = True
+
+        if rule_bound_crossover:
+            number_of_crossover_points = len(parent_one_genotype.rule_scheme) % 8
+            crossover_point = int(number_of_crossover_points*crossover_rate)
+            crossover_point *= 8
+
+        else:
+            crossover_point = len(parent_one_genotype.rule_scheme)*crossover_rate
+
+        self.rule_scheme = parent_one_genotype.rule_scheme[:crossover_point] + \
+                           parent_two_genotype.rule_scheme[crossover_point:]
         random_number = random.random()
-        if random_number<mutation_rate:
-            bitflip = random.randint(0,len(self.rule_scheme)-1)  # last number is included.
-            self.rule_scheme[bitflip] = 0 if self.rule_scheme[bitflip] == 1 else 1
+
+        if random_number < mutation_rate:
+            number_of_flips = random.choice([1,1,1,1,1,1,2,2,3])
+            for _ in range(number_of_flips):
+                bitflip = random.randint(0,len(self.rule_scheme)-1)  # last number is included.
+                self.rule_scheme[bitflip] = 0 if self.rule_scheme[bitflip] == 1 else 1
+
 
 class NonUniCAPhenotype(ind.Phenotype):
     def __init__(self, genotype, ca_size):
@@ -71,10 +86,10 @@ class NonUniCAIndividual(ind.Individual):
 
 
     def develop(self):
-        self.phenotype = NonUniCAPhenotype(self.genotype, 32)
+        self.phenotype = NonUniCAPhenotype(self.genotype, 64)
 
     def reproduce(self, other_parent_genotype):
-        child = NonUniCAIndividual(other_parent_genotype)
+        child = NonUniCAIndividual(parent_genotype_one=self.genotype, parent_genotype_two=other_parent_genotype)
         return child
 
     def __str__(self):
@@ -89,35 +104,49 @@ class NonUniCAProblem(evoalg.EAProblem):
         self.max_number_of_generations = 15
 
     def test_fitness(self, individual):
+        test_runs = 4
+        fitness = 0
+        for _ in range(test_runs):
+            data_interpreter = self.open_data_interpreter("5bit")
+            reCA_problem = reCA.ReCAProblem(data_interpreter)
+            reCA_config = reCA.ReCAConfig()
+
+            reCA_rule_scheme = reCA.ReCAruleConfig(individual.phenotype.non_uniform_config)
+
+            reCA_config.set_non_uniform_config(reCA_rule_scheme, R=4, C=4, I=4)
+            reCA_system = reCA.ReCASystem()
+
+            reCA_system.set_problem(reCA_problem)
+            reCA_system.set_config(reCA_config)
+            reCA_system.initialize_rc()
+            reCA_system.tackle_ReCA_problem()
+
+            reCA_out = reCA_system.test_on_problem()
+            #print(str(reCA_out.total_correct) + " of " + str(len(reCA_out.all_test_examples)))
+            fitness += int((reCA_out.total_correct/len(reCA_out.all_test_examples))*1000)
 
 
-        data_interpreter = self.open_data_interpreter("5bit")
-        reCA_problem = reCA.ReCAProblem(data_interpreter)
-        reCA_config = reCA.ReCAConfig()
 
-        reCA_rule_scheme = reCA.ReCAruleConfig(individual.phenotype.non_uniform_config)
-
-        reCA_config.set_non_uniform_config(reCA_rule_scheme, R=4, C=2, I=1)
-        reCA_system = reCA.ReCASystem()
-
-        reCA_system.set_problem(reCA_problem)
-        reCA_system.set_config(reCA_config)
-        reCA_system.initialize_rc()
-        reCA_system.tackle_ReCA_problem()
-
-        reCA_out = reCA_system.test_on_problem()
-        print(str(reCA_out.total_correct) + " of " + str(len(reCA_out.all_test_examples)))
-
-        fitness = int((reCA_out.total_correct/len(reCA_out.all_test_examples))*1000)
+        #pseudo_lambda = self.calculate_pseudo_lambda(individual.phenotype.non_uniform_config)
+        #fitness += pseudo_lambda
         fitness = 1 if fitness == 0 else fitness
         individual.fitness = fitness
         print("Tested individual: " + str(individual))
-
         return individual.fitness
+
+    def calculate_pseudo_lambda(self, rule_set):
+        ca_simulator = ca.ElemCAReservoir()
+        ca_simulator.set_rules(rule_set)
+        initial_input = np.zeros(len(rule_set))
+        initial_input[int(len(initial_input)/2)] = 1
+        simulation = ca_simulator.run_simulation(initial_input, 1)
+        second_row = simulation[1]
+        ones = list(second_row).count(1)
+        return int(1000/(ones+1))
 
 
     def get_initial_population(self):
-        initi_pop_size = 6
+        initi_pop_size = 4*7
         return [NonUniCAIndividual() for _ in range(initi_pop_size)]
 
     def open_data_interpreter(self, type_of_interpreter):
@@ -161,7 +190,7 @@ if __name__ == "__main__":
 
     reCA_rule_scheme = reCA.ReCAruleConfig(best_ind.phenotype.non_uniform_config)
 
-    reCA_config.set_non_uniform_config(reCA_rule_scheme, R=4, C=2, I=1)
+    reCA_config.set_non_uniform_config(reCA_rule_scheme, R=4, C=4, I=4)
     reCA_system = reCA.ReCASystem()
 
     reCA_system.set_problem(reCA_problem)

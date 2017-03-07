@@ -13,22 +13,51 @@ class ParentSelector:
         raise NotImplementedError
 
 class TournamentSelector(ParentSelector):
-    def __init__(self, tournament_size = 5):
+    def __init__(self, tournament_size=5):
         self.tournament_size = tournament_size
-        self.probability_distribution = [0.7, 0.20, 0.09, 0.01]
+        self.probability_distribution = [0.70, 0.20, 0.09, 0.01]  # Two point precision
 
     def produce_next_generation_children(self, adult_pool, number_of_children=0):
         # each parent pair is given two children.
         if number_of_children == 0:
             number_of_children = len(adult_pool)
         new_generation = []
-        for i in range(number_of_children):
+        for i in range(int(number_of_children/2)):
             tournament_one_members = np.random.choice(adult_pool, self.tournament_size)
-            print(tournament_one_members)
-            tournament_two_members = np.random.choice(adult_pool, self.tournament_size)
-            print(tournament_two_members)
 
-        return adult_pool
+            tournament_two_members = np.random.choice(adult_pool, self.tournament_size)
+
+            tournament_one_winner = self.pick_winner(tournament_one_members)
+            tournament_two_winner = self.pick_winner(tournament_two_members)
+
+            child_1 = tournament_one_winner.reproduce(tournament_two_winner.genotype)
+            child_2 = tournament_two_winner.reproduce(tournament_one_winner.genotype)
+            new_generation.append(child_1)
+            new_generation.append(child_2)
+
+
+
+
+        return new_generation
+
+    def pick_winner(self, tournament):
+        winner = random.random()
+
+        sorted_individuals = sorted(tournament, key=lambda x: x.fitness, reverse=True)
+
+        winner_distribution = {}
+        current_point = 0
+        for i in range(len(self.probability_distribution)):
+            low_point = round(current_point,2)
+            high_point = round(current_point+self.probability_distribution[i], 2)
+            #winner_distribution[low_point, high_point] = sorted_individuals[i]
+            if winner > low_point and winner <= high_point:
+                return sorted_individuals[i]
+            current_point += self.probability_distribution[i]
+
+
+
+
 
 
 
@@ -41,6 +70,7 @@ class RouletteSelector(ParentSelector):
 
         for i in range(int(number_of_children/2)):
             parent_1, parent_2 = self.pick_parents(parent_roulette)
+
             child_1 = parent_1.reproduce(parent_2.genotype)
             child_2 = parent_2.reproduce(parent_1.genotype)
             children.append(child_1)

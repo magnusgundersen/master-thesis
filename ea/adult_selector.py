@@ -2,6 +2,7 @@ import operator
 class AdultSelector:
     def __init__(self, selection_type,):
         self.selection_type = selection_type
+        self.elite_degree = 5
 
     def adult_selector(self, pop_size, population):
         # does selection based on fitness
@@ -39,6 +40,13 @@ class AdultSelector:
         elif (self.selection_type == "mixing"):
             new_adult_candidates.extend(old_generation)
             new_adult_pool.extend(self.adult_selector(adult_pool_size, new_adult_candidates))
+        elif (self.selection_type == "full_and_elitism"):
+            sorted_old_generation = sorted(old_generation, key=lambda x: x.fitness, reverse=True)
+            sorted_new_generation = sorted(new_adult_candidates, key=lambda x: x.fitness)
+            new_adult_pool = sorted_old_generation[:self.elite_degree] + sorted_new_generation[self.elite_degree:]
+            #new_adult_pool.extend(self.adult_selector(adult_pool_size, new_adult_candidates))
+
+
 
         else:
             print("Adult selection currently not implemented: " + self.selection_type)
