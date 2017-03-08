@@ -32,11 +32,11 @@ def main(argv):
     p = project.Project()  # Project with all implemented experiments
 
 
-    before = time.time()
+    #before = time.time()
     print(p.five_bit_task())
     #print(p.europarl_translation_task())
     #print(p.twenty_bit_task())
-    print("time: " + str(time.time()-before))
+    #print("time: " + str(time.time()-before))
 
 
 

@@ -353,7 +353,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         elif time_transition == "random_permutation":
             self.time_transition = enc.RandomPermutationTransition()
 
-    def set_non_uniform_config(self, rule_scheme, R=2, C=3, I=2, classifier="linear-svm", encoding="random_mapping",
+    def set_non_uniform_config(self, rule_scheme, R=6, C=4, I=4, classifier="linear-svm", encoding="random_mapping",
                                time_transition="random_permutation"):
         """
 
@@ -370,7 +370,6 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         self.reservoir = ca.ElemCAReservoir()
         self.reservoir.set_rules(rule_scheme.get_scheme())
         #self.reservoir.set_uniform_rule(90)
-
 
 
         # clf

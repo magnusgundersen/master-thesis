@@ -132,7 +132,8 @@ class Project:
         reCA_rule_scheme = reCA.ReCAruleConfig(1)
         reCA_config = reCA.ReCAConfig()
 
-        reCA_config.set_uniform_margem_config()
+        #reCA_config.set_uniform_margem_config()
+        reCA_config.set_non_uniform_config([90 for _ in range(64)])
         reCA_system = reCA.ReCASystem()
 
 
@@ -217,13 +218,9 @@ class Project:
             whole_output.extend([[0 for _ in range(width)]])
         self.visualise_example(whole_output)
 
-    def japanese_vowels(self):
-        pass
-
     def visualise_example(self, training_array):
         visualizer = bviz.CAVisualizer()
         visualizer.visualize(training_array)
-
 
     def open_data_interpreter(self, type_of_interpreter):
         if type_of_interpreter == "europarl":
@@ -234,6 +231,9 @@ class Project:
 
         elif type_of_interpreter == "20bit":
             return data_int.TwentyBitBuilder()
+
+    def evolve_non_uniform_ca(self):
+        pass
 
 
 
