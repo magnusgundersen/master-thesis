@@ -335,6 +335,10 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         # clf
         if classifier=="linear-svm":
             self.classifier = scikit_clfs.SVM()
+        elif classifier =="perceptron_sgd":
+            self.classifier = scikit_clfs.SGD()
+        elif classifier =="linear_regression":
+            self.classifier = scikit_clfs.LinReg()
         elif classifier =="tlf_ann":
             self.classifier = tflann.ANN()
 
@@ -394,7 +398,6 @@ class ReCAConfig(rc_if.ExternalRCConfig):
 class ReCAruleConfig:
     def __init__(self, rule_list):
         self.rule_list = rule_list
-
 
     def get_scheme(self):
         return self.rule_list

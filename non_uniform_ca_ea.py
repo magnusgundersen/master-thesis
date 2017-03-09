@@ -17,6 +17,9 @@ import sys
 import signal
 import pickle
 import matplotlib.pyplot as plt
+import json
+import datetime
+
 
 import random
 # testing
@@ -254,20 +257,78 @@ def make_fitnessgraph(ea_output, name):
     plt.plot([ind.fitness for ind in ea_output.best_individuals_per_gen])
     #plt.plot(ea_output.mean_fitness_per_gen)
     #plt.plot(ea_output.std_per_gen)
-    plt.ylabel('Fitnessplot: ' + name)
+    plt.xlabel('Fitnessplot: ' + name)
     plt.savefig("experiment_data/ea_runs/" + name)
     plt.close()
 
+def run_ea_0903_test():
+    C = 1
+    Rs = [1, 2]
+    I = 1
+    N = 4  # For 5-bit task. DO NOT CHANGE
 
+    file_location = os.path.dirname(os.path.realpath(__file__))
+    pop_size = 7
+    max_no_generations = 1
+    tests_per_individual = 1
+    number_of_rules_list = [1, 2, 3, 4]
+    print_est = True
+    before = time.time()
+    for number_of_rules in number_of_rules_list:
+        for R in Rs:
+            ca_size = C * R * N
+            nonUniCAprob = NonUniCAProblem(R=R, I=I, C=C, fitness_threshold=1000, init_pop_size=pop_size,
+                                           max_number_of_generations=max_no_generations,
+                                           allowed_number_of_rules=number_of_rules, ca_size=ca_size, test_per_ind=tests_per_individual)
+            ea = evoalg.EA()
+
+            ea_output = ea.solve(nonUniCAprob)
+
+            # pickle.dump(ea_output, open("ea.pkl", "wb"))
+            run_name = "earun_R" + str(R) + "C" + str(C) + "I" + str(I) + \
+                       "_rules" + str(number_of_rules) + "_popsize" + str(pop_size) + \
+                       "_gens" + str(max_no_generations)
+
+            pickle.dump(ea_output, open(file_location+"/experiment_data/ea_runs/" + run_name + ".pkl", "wb"))
+            best_individual = ea_output.best_individual
+            best_individ_scheme = best_individual.phenotype.non_uniform_config
+            non_uni_rule_serialize = {}
+            non_uni_rule_serialize["full_size_rule_list"] = best_individ_scheme
+            non_uni_rule_serialize["raw rule"] = best_individual.genotype.rule_scheme
+            ea_data = {"R": R, "C": C, "I": I, "N": N,
+                       "ca size": ca_size,
+                       "popsize":pop_size,
+                       "max_gens":max_no_generations,
+                       "test per ind": tests_per_individual,
+                       "allowed number of rules": number_of_rules,
+                       }
+
+            non_uni_rule_serialize["ea_data"] = ea_data
+
+            with open(file_location+"/experiment_data/ea_runs/" + run_name +"JSON.json", "w") as outfile:
+                json.dump(non_uni_rule_serialize, outfile)
+
+            make_fitnessgraph(ea_output, run_name)
+        if print_est:
+            ts = time.time()
+            print("Time now : " +str(datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')))
+            print("Time used: " + str(ts-before))
+            print("Total time est.: " + str((ts-before)*(len(number_of_rules_list))))
+            print("Time est. left : " + str((ts-before)*(len(number_of_rules_list)-1)))
+            print_est = False
+
+    print("Actual time usage: " + str(time.time()-before))
 
 if __name__ == "__main__":
-    C = 4
-    R = 4
-    I = 4
+    run_ea_0903_test()
+    """
+    C = 5
+    R = 2
+    I = 2
     N = 4  # For 5-bit task. DO NOT CHANGE
-    pop_size = 8*8
-    max_no_generations = 25
-    tests_per_individual = 10
+    pop_size = 8
+    max_no_generations = 2
+    tests_per_individual = 1
     ca_size = C*R*N
     number_of_rules = 3
 
@@ -286,13 +347,17 @@ if __name__ == "__main__":
                                 "_gens" + str(max_no_generations)
 
     pickle.dump(ea_output, open("experiment_data/ea_runs/"+run_name+".pkl", "wb"))
-    make_fitnessgraph(ea_output, run_name)
     best_individ_scheme = ea_output.best_individual.phenotype.non_uniform_config
+    with open("experiment_data/ea_runs/"+run_name+".txt", "w+") as f:
+        f.write(str(best_individ_scheme))
 
-    print(best_individ_scheme)
+    make_fitnessgraph(ea_output, run_name)
+
+    #print(best_individ_scheme)
 
 
-    viz(best_individ_scheme, R, C, I)
+    #viz(best_individ_scheme, R, C, I)
+    """
 
 
 

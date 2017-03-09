@@ -16,12 +16,31 @@ import experiment_data.data_interpreter as data_int
 import matplotlib.pyplot as plt
 import multiprocessing
 import numpy as np
+import json
 
-def run_five_bit(data_interpreter, rci_value, classifier):
+def run_five_bit(data_interpreter, rci_value, classifier, rule=90):
     reCA_problem = reCA.ReCAProblem(data_interpreter)
     reCA_config = reCA.ReCAConfig()
 
-    reCA_config.set_uniform_config(ca_rule=90, R=rci_value[0], C=rci_value[1], I=rci_value[2], classifier=classifier)
+    reCA_config.set_uniform_config(ca_rule=rule, R=rci_value[0], C=rci_value[1], I=rci_value[2], classifier=classifier)
+    reCA_system = reCA.ReCASystem()
+    reCA_system.set_problem(reCA_problem)
+    reCA_system.set_config(reCA_config)
+    reCA_system.initialize_rc()
+    reCA_system.tackle_ReCA_problem()
+
+    reCA_out = reCA_system.test_on_problem()
+
+
+    result =  int((reCA_out.total_correct/len(reCA_out.all_test_examples))*1000)
+    return result
+
+def run_non_uniform_five_bit(data_interpreter, rci_value, classifier, rule_scheme):
+    reCA_problem = reCA.ReCAProblem(data_interpreter)
+    reCA_config = reCA.ReCAConfig()
+    rule_config = reCA.ReCAruleConfig(rule_scheme)
+
+    reCA_config.set_non_uniform_config(rule_scheme=rule_config, R=rci_value[0], C=rci_value[1], I=rci_value[2], classifier=classifier)
     reCA_system = reCA.ReCASystem()
     reCA_system.set_problem(reCA_problem)
     reCA_system.set_config(reCA_config)
@@ -244,6 +263,84 @@ class Project:
         elif type_of_interpreter == "20bit":
             return data_int.TwentyBitBuilder()
 
+    def test_rules(self):
+        Rs= [2, 4, 6, 8]
+        C = 1
+        I = 1
+        RCI_values_r_change = [(x, C, I) for x in Rs]
+        uni_rules = [90, 105, 150, 165]
+        non_uni_rules = {"nuni=2":
+                        {2: [random.choice([90,110]) for _ in range(2*C*4)],
+                         4: [random.choice([90,110]) for _ in range(4*C*4)],
+                         6: [random.choice([90,110]) for _ in range(6*C*4)],
+                         8: [random.choice([90,110]) for _ in range(8*C*4)]},
+                         "nuni=3":
+                         {2: [random.choice([90,110, 150]) for _ in range(2 * C * 4)],
+                          4: [random.choice([90,110, 150]) for _ in range(4 * C * 4)],
+                          6: [random.choice([90,110, 150]) for _ in range(6 * C * 4)],
+                          8: [random.choice([90,110, 150]) for _ in range(8 * C * 4)]},
+
+                         }
+
+        RCI_values = RCI_values_r_change
+        #RCI_values = [(1,1,1)]
+        #distractor_periods = [10, 50, 100, 200]
+        #distractor_periods = [10, 25, 50]
+        threads = 7
+        number_of_tests = threads*1
+
+        file_location = os.path.dirname(os.path.realpath(__file__))
+
+        plotconfigs = {}
+        plotlabels = []
+        for rule in uni_rules:
+            r_dict = {}
+            r_list = []
+            for rci_value in RCI_values:
+
+                data_interpreter = self.open_data_interpreter("5bit", distractor_period=10)
+                with multiprocessing.Pool(threads) as p:
+                    results = p.starmap(run_five_bit,
+                                        [(data_interpreter, rci_value, "perceptron_sgd", rule) for _ in range(number_of_tests)])
+
+                r_dict["R=" + str(rci_value[0])] = results
+                r_list.append(int(np.mean(results)))
+            with open(file_location +"/../experiment_data/rule_testing/rule_" + str(rule) +"_allinfo_JSON.json", "w") as outfile:
+                json.dump(r_dict, outfile)
+
+            plotconfigs["Rule " + str(rule)] = r_list
+
+        for nuni_rule in non_uni_rules.keys():
+            nuni_rule_rs = non_uni_rules.get(nuni_rule)
+            r_dict = {}
+            r_list = []
+            for rci_value in RCI_values:
+                R = rci_value[0]
+                rule_scheme = nuni_rule_rs.get(R)
+                non_uni_size = len(set(rule_scheme))
+                data_interpreter = self.open_data_interpreter("5bit", distractor_period=10)
+                with multiprocessing.Pool(threads) as p:
+                    results = p.starmap(run_non_uniform_five_bit,
+                                        [(data_interpreter, rci_value, "perceptron_sgd", rule_scheme) for _ in
+                                         range(number_of_tests)])
+
+                r_dict["R=" + str(rci_value[0])] = results
+                r_list.append(int(np.mean(results)))
+            with open(file_location + "/../experiment_data/rule_testing/nuni_rule(" + str(non_uni_size) + ")_allinfo_JSON.json",
+                      "w") as outfile:
+                json.dump(r_dict, outfile)
+
+            plotconfigs["Non uniform(" + str(non_uni_size) + " rules)"] = r_list
+
+
+        print(plotconfigs)
+        with open(file_location + "/../experiment_data/rule_testing/full_plotconfig.json", "w") as outfile:
+            json.dump(plotconfigs, outfile)
+
+
+        self.create_graph_from_jsonconfig(file_location + "/../experiment_data/rule_testing/full_plotconfig.json", Rs)
+
+
     def evolve_non_uniform_ca(self):
         pass
 
@@ -314,7 +411,37 @@ class Project:
             file_location = os.path.dirname(os.path.realpath(__file__))
             fig.savefig(file_location+"/../experiment_data/clf_test/" + name)
 
+    def create_graph_from_jsonconfig(self, json_file_location, Rs = (2, 4, 6, 8)):
+        plot_data = None
+        with open(json_file_location) as data_file:
+            plot_data = json.load(data_file)
 
+        fig = plt.figure(figsize=(10, 8))
+
+        ax1 = fig.add_subplot(1,1,1)
+        ax1.set_ylim([-10, 1550])
+        ax1.set_xlim([1, 9])
+        ax1.set_title("Rule testing on 5-bit problem with T_d=10")
+        name = str("Full plot")
+        plot_colors = ["r", "g", "b", "y", "m", "k", "w", "c"]
+        i = 0
+        for rule in sorted(plot_data.keys(), key=len):  # For nice legend
+            plots = []
+
+            # Make an example plot with two subplots...
+            clf_plot1 = ax1.plot(Rs, plot_data.get(rule), plot_colors[i%len(plot_colors)] + 's', label=str(rule))
+            ax1.plot(Rs, plot_data.get(rule), plot_colors[i%len(plot_colors)] + '--')
+
+            plt.xlabel("R-values")
+            plt.ylabel("Permille(1/1000) correct")
+
+            legend = ax1.legend(loc='upper left', shadow=True, prop={'size': 12})
+            frame = legend.get_frame()
+            frame.set_facecolor('0.90')
+            # Save the full figure...
+            file_location = os.path.dirname(os.path.realpath(__file__))
+            fig.savefig(file_location + "/../experiment_data/rule_testing/" + name)
+            i+=1
 
 
 

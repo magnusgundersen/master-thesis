@@ -110,7 +110,7 @@ class EAOutput:
         self.std_per_gen = []
         self.best_individual = None
 
-        self.printing = True
+        self.printing = False
 
     def add_generation(self, generation):
         best_ind = generation[0]
