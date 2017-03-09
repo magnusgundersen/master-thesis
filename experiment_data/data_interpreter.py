@@ -269,8 +269,8 @@ class CIFARBuilder:
 
 
 class FiveBitBuilder:
-    def __init__(self):
-        self.dist_period = 10
+    def __init__(self, dist_period=200):
+        self.dist_period = dist_period
         self.no_training_ex = 32
         self.no_testing_ex = 32
 

@@ -33,11 +33,10 @@ def main(argv):
 
 
     #before = time.time()
-    print(p.five_bit_task())
+    #print(p.five_bit_task())
     #print(p.europarl_translation_task())
     #print(p.twenty_bit_task())
-    #print("time: " + str(time.time()-before))
-
+    print(p.classifier_testing())
 
 
 if __name__ == "__main__":

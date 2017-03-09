@@ -3,7 +3,7 @@ ReCA-system that is implemented.
 
 """
 __author__ = 'magnus'
-from classifier import skl_svm as svm
+from classifier import skl_clfs as scikit_clfs
 from classifier import tfl_ann as tflann
 from reservoir import ca as ca
 from reservoircomputing import rc as rc
@@ -283,37 +283,27 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         self.time_transition = None
         self.parallelizer = None
 
-    def set_single_reservoir_config(self, ca_rule=105, R=4, C=3, I=12, classifier="linear-svm",
-                                    encoding="random_mapping", time_transition="normalized_addition"):
+    def set_uniform_config(self, ca_rule=105, R=4, C=3, I=12, classifier="linear-svm",
+                                    encoding="random_mapping", time_transition="random_permutation"):
         # sets up elementary CA:
         self.reservoir = ca.ElemCAReservoir()
-        ca_rule = [ca_rule]  # Parallel?
-        self.reservoir.set_rules(ca_rule)
-
-        self.parallelizer = enc.ParallelNonUniformEncoder(self.reservoir.rules, "unbounded")
+        self.reservoir.set_uniform_rule(ca_rule)
 
         # clf
         if classifier=="linear-svm":
-            self.classifier = svm.SVM()
+            self.classifier = scikit_clfs.SVM()
+        elif classifier =="perceptron_sgd":
+            self.classifier = scikit_clfs.SGD()
+        elif classifier =="linear_regression":
+            self.classifier = scikit_clfs.LinReg()
         elif classifier =="tlf_ann":
             self.classifier = tflann.ANN()
 
-
         # Encoder
         if encoding == "random_mapping":
-            self.encoder = enc.RandomMappingEncoder(self.parallelizer)
+            self.encoder = enc.RandomMappingEncoder()
             self.encoder.R = R
             self.encoder.C = C
-        elif encoding == "r_is":
-            # TODO: R_i-style mapping from Margem (2016)
-            pass
-
-        # Padding
-        if True:
-            # TODO: Padding at each side of the "input".
-            # the values at padding is directly copied from time-step to time-step.
-            pass
-
 
         self.I = I
         if time_transition=="normalized_addition":
@@ -322,36 +312,6 @@ class ReCAConfig(rc_if.ExternalRCConfig):
             self.time_transition = time_trans.RandomPermutationTransition()
         elif time_transition == "xor":
             self.time_transition = time_trans.XORTimeTransition()
-
-    def set_parallel_reservoir_config(self, ca_rules=(105,110), parallel_size_policy="unbounded", R=4, C=3, I=12,
-                                      classifier="linear-svm", encoding="random_mapping",
-                                      time_transition="normalized_addition"):
-
-        # sets up elementary CA:
-        self.reservoir = ca.ElemCAReservoir()
-        self.reservoir.set_rules(ca_rules)
-
-        #if parallel_size_policy
-        self.parallelizer = enc.ParallelNonUniformEncoder(self.reservoir.rules, parallel_size_policy)
-
-
-        # clf
-        if classifier=="linear-svm":
-            self.classifier = svm.SVM()
-        elif classifier =="tlf_ann":
-            self.classifier = tflann.ANN()
-
-        # Encoder
-        if encoding == "random_mapping":
-            self.encoder = enc.RandomMappingEncoder(self.parallelizer)
-            self.encoder.R = R
-            self.encoder.C = C
-
-        self.I = I
-        if time_transition=="normalized_addition":
-            self.time_transition = enc.RandomAdditionTimeTransition()
-        elif time_transition == "random_permutation":
-            self.time_transition = enc.RandomPermutationTransition()
 
     def set_non_uniform_config(self, rule_scheme, R=6, C=4, I=4, classifier="linear-svm", encoding="random_mapping",
                                time_transition="random_permutation"):
@@ -374,7 +334,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
 
         # clf
         if classifier=="linear-svm":
-            self.classifier = svm.SVM()
+            self.classifier = scikit_clfs.SVM()
         elif classifier =="tlf_ann":
             self.classifier = tflann.ANN()
 
@@ -414,7 +374,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
 
         # clf
         if classifier=="linear-svm":
-            self.classifier = svm.SVM()
+            self.classifier = scikit_clfs.SVM()
         elif classifier =="tlf_ann":
             self.classifier = tflann.ANN()
 

@@ -13,8 +13,26 @@ import os
 import pickle as pickle
 import time
 import experiment_data.data_interpreter as data_int
+import matplotlib.pyplot as plt
+import multiprocessing
+import numpy as np
 
-from multiprocessing import Pool
+def run_five_bit(data_interpreter, rci_value, classifier):
+    reCA_problem = reCA.ReCAProblem(data_interpreter)
+    reCA_config = reCA.ReCAConfig()
+
+    reCA_config.set_uniform_config(ca_rule=90, R=rci_value[0], C=rci_value[1], I=rci_value[2], classifier=classifier)
+    reCA_system = reCA.ReCASystem()
+    reCA_system.set_problem(reCA_problem)
+    reCA_system.set_config(reCA_config)
+    reCA_system.initialize_rc()
+    reCA_system.tackle_ReCA_problem()
+
+    reCA_out = reCA_system.test_on_problem()
+
+
+    result =  int((reCA_out.total_correct/len(reCA_out.all_test_examples))*1000)
+    return result
 
 class Project:
     """
@@ -125,27 +143,21 @@ class Project:
 
     def five_bit_task(self):
 
-
-        #n_bit_data = self.open_temporal_data("5bit/5_bit_10_dist_32")
         data_interpreter = self.open_data_interpreter("5bit")
         reCA_problem = reCA.ReCAProblem(data_interpreter)
-        reCA_rule_scheme = reCA.ReCAruleConfig(1)
         reCA_config = reCA.ReCAConfig()
 
-        #reCA_config.set_uniform_margem_config()
-        reCA_config.set_non_uniform_config([90 for _ in range(64)])
+        reCA_config.set_uniform_config(ca_rule=90, R=4, C=4, I=4, classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
-
-
-
 
         reCA_system.set_problem(reCA_problem)
         reCA_system.set_config(reCA_config)
         reCA_system.initialize_rc()
         reCA_system.tackle_ReCA_problem()
 
-
         reCA_out = reCA_system.test_on_problem()
+
+        # PRINTOUT:
         print(str(reCA_out.total_correct) + " of " + str(len(reCA_out.all_test_examples)))
         print("--example--")
         example_run = reCA_out.all_predictions[0]
@@ -222,18 +234,88 @@ class Project:
         visualizer = bviz.CAVisualizer()
         visualizer.visualize(training_array)
 
-    def open_data_interpreter(self, type_of_interpreter):
+    def open_data_interpreter(self, type_of_interpreter, distractor_period=10):
         if type_of_interpreter == "europarl":
             return data_int.TranslationBuilder()
 
         elif type_of_interpreter == "5bit":
-            return data_int.FiveBitBuilder()
+            return data_int.FiveBitBuilder(distractor_period)
 
         elif type_of_interpreter == "20bit":
             return data_int.TwentyBitBuilder()
 
     def evolve_non_uniform_ca(self):
         pass
+
+    def classifier_testing(self):
+        classifiers = ["linear-svm", "perceptron_sgd"]
+        RCI_values_some = [(4,4,4),(4,10,2)]
+        RCI_values_r_change = [(x,5,2) for x in [2,4,6,8]]
+
+
+        RCI_values = RCI_values_r_change
+        #RCI_values = [(1,1,1)]
+        distractor_periods = [10, 50, 100, 200]
+        distractor_periods = [10, 25, 50]
+        threads = 3
+        number_of_tests = threads*10
+
+        plotconfigs = {}
+        plotlabels = []
+
+
+        for rci_value in RCI_values:
+            classifier_dict = {}
+            for classifier in classifiers:
+                plotlabels.append(classifier)
+                distactor_dict = {}
+                for distractor_period in distractor_periods:
+                    data_interpreter = self.open_data_interpreter("5bit", distractor_period)
+                    with multiprocessing.Pool(threads) as p:
+                        results = p.starmap(run_five_bit, [(data_interpreter, rci_value, classifier) for _ in range(number_of_tests)])
+
+                    distactor_dict[distractor_period] = int(np.mean(results))
+                classifier_dict[classifier] = distactor_dict
+            plotconfigs["R=" + str(rci_value[0])] = classifier_dict
+
+        print(plotconfigs)
+        self.create_graph_from_plotconfig(plotconfigs, plotlabels)
+
+    def create_graph_from_plotconfig(self, plotconfig, plotlabels):
+        for r_value in plotconfig.keys():
+            name = str(r_value)
+            plots = []
+            for classifier in plotconfig.get(r_value).keys():
+                distractor_periods = plotconfig.get(r_value).get(classifier).keys()
+                distractor_periods = sorted(distractor_periods, reverse=True)  # ascending
+                sucess_rates = []
+                for distractor_period in distractor_periods:
+                    sucess_rates.append(plotconfig.get(r_value).get(classifier).get(distractor_period))
+                plots.append((distractor_periods, sucess_rates))
+
+            # Make an example plot with two subplots...
+            fig = plt.figure()
+            ax1 = fig.add_subplot(1,1,1)
+            clf_plot1 = ax1.plot(plots[0][0], plots[0][1], 'rs', label=plotlabels[0])
+            ax1.plot(plots[0][0], plots[0][1], 'r--')
+            clf_plot2 = ax1.plot(plots[1][0], plots[1][1], 'bs', label=plotlabels[1])
+            ax1.plot(plots[1][0], plots[1][1], 'b--')
+            ax1.set_ylim([-10,1010])
+            ax1.set_xlim([0,53])
+
+            #ax2 = fig.add_subplot(2,1,2)
+            #ax2.plot(plots[0][0], plots[0][1], 'rs', plots[1][0], plots[1][1], 'bs')
+            plt.ylabel("classifiertest")
+
+            legend = ax1.legend(loc='upper center', shadow=True)
+            frame = legend.get_frame()
+            frame.set_facecolor('0.90')
+            # Save the full figure...
+            file_location = os.path.dirname(os.path.realpath(__file__))
+            fig.savefig(file_location+"/../experiment_data/clf_test/" + name)
+
+
+
 
 
 
