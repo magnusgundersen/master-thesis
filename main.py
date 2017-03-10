@@ -37,7 +37,7 @@ def main(argv):
     #print(p.europarl_translation_task())
     #print(p.twenty_bit_task())
     #print(p.classifier_testing())
-    p.test_rules()
+    #p.test_rules()
 
 
 if __name__ == "__main__":

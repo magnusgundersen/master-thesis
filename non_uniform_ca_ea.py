@@ -1,7 +1,7 @@
 from ea import evoalg as evoalg
 from ea import individual as ind
 from reca import reca_system as reCA
-
+from master import project as p
 import numpy as np
 from gui import ca_basic_visualizer as bviz
 import random
@@ -57,7 +57,6 @@ class NonUniCAGenotype(ind.Genotype):
                 bitflip = random.randint(0,len(self.rule_scheme)-1)  # last number is included.
                 self.rule_scheme[bitflip] = 0 if self.rule_scheme[bitflip] == 1 else 1
 
-
 class NonUniCAPhenotype(ind.Phenotype):
     def __init__(self, genotype, ca_size):
         super().__init__(genotype)
@@ -102,9 +101,6 @@ class NonUniCAPhenotype(ind.Phenotype):
             for i in range(self.ca_size):
                 self.non_uniform_config.append(list_of_rules[i%number_of_rules_in_rule_scheme])
 
-
-
-
 class NonUniCAIndividual(ind.Individual):
     def __init__(self, allowed_number_of_rules=4, ca_size=96, parent_genotype_one=None, parent_genotype_two=None, ):
         super().__init__(parent_genotype_one, parent_genotype_two)
@@ -121,7 +117,6 @@ class NonUniCAIndividual(ind.Individual):
         child = NonUniCAIndividual(self.allowed_number_of_rules, self.ca_size,
                                    parent_genotype_one=self.genotype, parent_genotype_two=other_parent_genotype)
         return child
-
 
 class NonUniCAProblem(evoalg.EAProblem):
     def __init__(self, init_pop_size=40, ca_size=40, allowed_number_of_rules=4, fitness_threshold=900, max_number_of_generations=2, R=6, C=4, I=4, test_per_ind=4):
@@ -193,7 +188,6 @@ class NonUniCAProblem(evoalg.EAProblem):
         else:
             return False
 
-
 def open_data_interpreter(type_of_interpreter):
     if type_of_interpreter == "europarl":
         return data_int.TranslationBuilder()
@@ -203,7 +197,6 @@ def open_data_interpreter(type_of_interpreter):
 
     elif type_of_interpreter == "20bit":
         return data_int.TwentyBitBuilder()
-
 
 def visualise_example(training_array):
     visualizer = bviz.CAVisualizer()
@@ -262,15 +255,15 @@ def make_fitnessgraph(ea_output, name):
     plt.close()
 
 def run_ea_0903_test():
-    C = 1
-    Rs = [1, 2]
-    I = 1
+    C = 5
+    Rs = [2, 4, 6 ,8]
+    I = 2
     N = 4  # For 5-bit task. DO NOT CHANGE
 
     file_location = os.path.dirname(os.path.realpath(__file__))
-    pop_size = 7
-    max_no_generations = 1
-    tests_per_individual = 1
+    pop_size = 7*3  # Adapt to number of cores
+    max_no_generations = 10
+    tests_per_individual = 4
     number_of_rules_list = [1, 2, 3, 4]
     print_est = True
     before = time.time()
@@ -317,10 +310,38 @@ def run_ea_0903_test():
             print("Time est. left : " + str((ts-before)*(len(number_of_rules_list)-1)))
             print_est = False
 
-    print("Actual time usage: " + str(time.time()-before))
+    print("Actual time usage (ea evolve): " + str(time.time()-before))
+
+def test_all_rules():
+    uni_rules = [90, 105, 150, 165]
+
+    json_rule_files = []
+    file_location = os.path.dirname(os.path.realpath(__file__))
+    all_files = os.listdir(file_location+"/experiment_data/ea_runs")
+    for file in all_files:
+        if str(file).lower().endswith(".json"):
+            json_rule_files.append(file)
+
+    json_data = []
+    for file in json_rule_files:
+        with open(file_location +"/experiment_data/ea_runs/"+file, "r") as outfile:
+            json_data.append(json.load(outfile))
+    nuni_rules = {}
+
+    for data in json_data:
+        #print(data)
+        ea_data = data.get('ea_data')
+        number_of_distinct_rules = ea_data.get('allowed number of rules')
+        if nuni_rules.get("nuni=" + str(number_of_distinct_rules)) is None:
+            nuni_rules["nuni=" + str(number_of_distinct_rules)] = {}
+        nuni_rules["nuni=" + str(number_of_distinct_rules)][ea_data.get("R")] = data.get("full_size_rule_list")
+
+    project = p.Project()
+    project.test_rules(uni_rules, nuni_rules)
 
 if __name__ == "__main__":
     run_ea_0903_test()
+    test_all_rules()
     """
     C = 5
     R = 2

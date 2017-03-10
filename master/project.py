@@ -263,31 +263,30 @@ class Project:
         elif type_of_interpreter == "20bit":
             return data_int.TwentyBitBuilder()
 
-    def test_rules(self):
+    def test_rules(self, uni_rules, non_uni_rules):
         Rs= [2, 4, 6, 8]
-        C = 1
-        I = 1
+        C = 5
+        I = 2
         RCI_values_r_change = [(x, C, I) for x in Rs]
-        uni_rules = [90, 105, 150, 165]
-        non_uni_rules = {"nuni=2":
-                        {2: [random.choice([90,110]) for _ in range(2*C*4)],
-                         4: [random.choice([90,110]) for _ in range(4*C*4)],
-                         6: [random.choice([90,110]) for _ in range(6*C*4)],
-                         8: [random.choice([90,110]) for _ in range(8*C*4)]},
-                         "nuni=3":
-                         {2: [random.choice([90,110, 150]) for _ in range(2 * C * 4)],
-                          4: [random.choice([90,110, 150]) for _ in range(4 * C * 4)],
-                          6: [random.choice([90,110, 150]) for _ in range(6 * C * 4)],
-                          8: [random.choice([90,110, 150]) for _ in range(8 * C * 4)]},
-
-                         }
+        #uni_rules = [90, 105, 150, 165]
+        #non_uni_rules = {"nuni=2":
+        #                {2: [random.choice([90,110]) for _ in range(2*C*4)],
+        #                 4: [random.choice([90,110]) for _ in range(4*C*4)],
+        #                 6: [random.choice([90,110]) for _ in range(6*C*4)],
+        #                 8: [random.choice([90,110]) for _ in range(8*C*4)]},
+        #                 "nuni=3":
+        #                 {2: [random.choice([90,110, 150]) for _ in range(2 * C * 4)],
+        #                  4: [random.choice([90,110, 150]) for _ in range(4 * C * 4)],
+        #                  6: [random.choice([90,110, 150]) for _ in range(6 * C * 4)],
+        #                  8: [random.choice([90,110, 150]) for _ in range(8 * C * 4)]},
+        #                 }
 
         RCI_values = RCI_values_r_change
         #RCI_values = [(1,1,1)]
         #distractor_periods = [10, 50, 100, 200]
         #distractor_periods = [10, 25, 50]
-        threads = 7
-        number_of_tests = threads*1
+        threads = 8
+        number_of_tests = threads*13
 
         file_location = os.path.dirname(os.path.realpath(__file__))
 
