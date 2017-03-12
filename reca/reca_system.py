@@ -371,7 +371,8 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         # sets up elementary CA:
         before_time = time.time()
         self.reservoir = ca.ElemCAReservoir()
-        self.reservoir.set_uniform_rule(rule)
+        self.reservoir.set_rules(rule)
+        #self.reservoir.set_uniform_rule(rule)
 
 
 
@@ -379,6 +380,10 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         # clf
         if classifier=="linear-svm":
             self.classifier = scikit_clfs.SVM()
+        elif classifier =="perceptron_sgd":
+            self.classifier = scikit_clfs.SGD()
+        elif classifier =="linear_regression":
+            self.classifier = scikit_clfs.LinReg()
         elif classifier =="tlf_ann":
             self.classifier = tflann.ANN()
 

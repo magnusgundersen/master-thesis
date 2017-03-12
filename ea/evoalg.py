@@ -4,13 +4,21 @@ from ea.individual import Individual
 import ea.adult_selector as adlt_sel
 import ea.parent_selector as parn_sel
 import numpy as np
-
+import sys
 import multiprocessing
+import os
+import pickle
 
-
-# Parallel
+# Parallel-config
 parallel = True
-threads_to_be_used = 8  # number of logical thread that the run concurrently
+if parallel:
+    cpu_count = multiprocessing.cpu_count()
+    if cpu_count < 20:
+        threads_to_be_used = cpu_count  # 4 not cloging the machine
+    else:
+        threads_to_be_used = 20
+
+
 def develop_and_test(individual, problem):
     """
     Method for running the develop_and_test with multiprocessing
@@ -24,46 +32,88 @@ def develop_and_test(individual, problem):
 
 
 class EA:
-    def __init__(self, crossover_rate=0.5, mutation_rate=0.1):
+    def __init__(self, crossover_rate=0.4, mutation_rate=0.15):
         self.crossover_rate = crossover_rate
         self.mutation_rate = mutation_rate
 
-    def solve(self, problem):
-        ea_output = EAOutput()
+    def solve(self, problem, saved_state=False):
+        print("Running EA for problem: " + str(problem))
 
-        initial_population = problem.get_initial_population()
-
-        if parallel:  # Global variable
-            with multiprocessing.Pool(threads_to_be_used) as p:
-                initial_population = p.starmap(develop_and_test, [(initial_population[i], problem) for i in range(len(initial_population))])
+        if not saved_state:
+            initial_population = problem.get_initial_population()
+            parent_selector = parn_sel.TournamentSelector()
+            adult_selector = adlt_sel.AdultSelector("full_and_elitism")
+            generation_number = 0
+            if parallel:  # Global variable
+                with multiprocessing.Pool(threads_to_be_used) as p:
+                    initial_population = p.starmap(develop_and_test, [(initial_population[i], problem) for i in range(len(initial_population))])
+            else:
+                for individual in initial_population:
+                    individual.develop()
+                    problem.test_fitness(individual)
+            ea_output = EAOutput()
+            ea_output.add_generation(initial_population)
         else:
-            for individual in initial_population:
-                individual.develop()
-                problem.test_fitness(individual)
+            saved_state = self.load_ea_state()
+            initial_population = saved_state["current_generation"]
+            parent_selector = saved_state["parent_selector"]
+            adult_selector = saved_state["adult_selector"]
+            generation_number = saved_state["generation_number"]
+            ea_output = saved_state["ea_output"]
 
-        generation_number = 0
+
+
         current_generation = initial_population
-
-        parent_selector = parn_sel.TournamentSelector()
-        adult_selector = adlt_sel.AdultSelector("full_and_elitism")
 
         best_ind = current_generation[0]
         for ind in current_generation:
             if ind.fitness > best_ind.fitness:
                 best_ind = ind
 
-        ea_output.add_generation(current_generation)
         while not problem.fitness_threshold(best_ind.fitness) \
                 and problem.max_number_of_generations > generation_number:
+
+
+            sys.stdout.flush()
+            sys.stdout.write("\r"+"Current generation: " + str(generation_number) + " --Best fitness: " + str(ea_output.best_individuals_per_gen[-1].fitness) + " --Mean fitness:  " + str((ea_output.mean_fitness_per_gen[-1])))
+
+            if generation_number != 0 and (generation_number % 10) == 0:  # Every 10th gen gets a new line
+                print("\n", end="")
 
             new_gen = self.run_ea_step(current_generation, parent_selector, adult_selector, problem)
             current_generation = new_gen
 
             ea_output.add_generation(current_generation)
+
+            self.save_ea_state(current_generation, parent_selector, adult_selector, generation_number, ea_output)
+
             generation_number += 1
+            best_ind = ea_output.best_individual
 
-
+        print("\n", end="")
         return ea_output
+
+    def save_ea_state(self, current_generation, parent_selector, adult_selector, generation_number, ea_output):
+        file_location = os.path.dirname(os.path.realpath(__file__))+"/../experiment_data/ea_runs/"
+        persistance_file = file_location + "state.ea"
+        backup_file = file_location + "state_old.ea"
+        saved_state = {}
+        saved_state["current_generation"] = current_generation
+        saved_state["parent_selector"] = parent_selector
+        saved_state["adult_selector"] = adult_selector
+        saved_state["generation_number"] = generation_number
+        saved_state["ea_output"] = ea_output
+        if os.path.isfile(persistance_file):
+            if os.path.isfile(backup_file):
+                os.remove(backup_file)
+            os.rename(persistance_file, file_location+"state_old.ea")
+
+        pickle.dump(saved_state, open(persistance_file, 'wb'))
+
+    def load_ea_state(self, file_name="state.ea"):
+        file_location = file_location = os.path.dirname(os.path.realpath(__file__))+"/../experiment_data/ea_runs/"
+        state_data = pickle.load(open(file_location+file_name, "rb"))
+        return state_data
 
     def run_ea_step(self, current_generation, parent_selector, adult_selector, ea_problem):
 
@@ -91,7 +141,7 @@ class EA:
 
 class EAProblem:
     def __init__(self):
-        self.max_number_of_generations = 25 # Default
+        self.max_number_of_generations = 100 # Default
 
     def fitness_threshold(self, *args):  # Some fitness-value such that the execution is stopped
         raise NotImplementedError()
@@ -102,11 +152,13 @@ class EAProblem:
     def test_fitness(self, population):
         raise NotImplementedError()
 
+    def __str__(self):
+        return "EA problem"
 class EAOutput:
     def __init__(self):
         self.all_generations = []  # list of lists with all generations
         self.best_individuals_per_gen = []
-        self.mean_fitness_per_gen =  []
+        self.mean_fitness_per_gen = []
         self.std_per_gen = []
         self.best_individual = None
 

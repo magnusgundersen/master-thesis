@@ -114,7 +114,7 @@ class ReservoirComputingFramework:
         self.rc_helper.reset()
         for _input in input_X:  # input and output at each timestep
             rc_output = self.rc_helper.run_input(_input)
-            classifier_input = rc_output.flattened_states
+            classifier_input = rc_output.classifier_output()
             classifier_prediction = self.classifier.predict(np.array(classifier_input).reshape(1,-1))
             _outputs.append(classifier_prediction)
 
@@ -213,8 +213,6 @@ class RCHelper:
 class RCOutput:
     """
     Class that contains the whole reservoir-computing process. May be used by the classifier for investigating.
-
-    TODO: Facilitate that the RCOutput may be "sparse" (Bio-inspired)
     """
 
     def __init__(self):
@@ -225,11 +223,13 @@ class RCOutput:
     def set_states(self, all_states, transitioned_state):
         self.list_of_states = all_states
         self.transitioned_state = transitioned_state
-        self.flattened_states = np.concatenate(all_states).ravel()
+        self.flattened_states = np.concatenate(all_states[-4:-1]).ravel()
+        #self.flattened_states = all_states[1:-1]
+
 
 
     def classifier_output(self):
-        return self.flattened_states
+        return self.flattened_states[::2]
 
 
 
