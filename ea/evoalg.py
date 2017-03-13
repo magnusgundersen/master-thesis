@@ -26,6 +26,7 @@ def develop_and_test(individual, problem):
     :param problem:
     :return:
     """
+
     individual.develop()
     problem.test_fitness(individual)
     return individual
@@ -82,12 +83,12 @@ class EA:
 
             new_gen = self.run_ea_step(current_generation, parent_selector, adult_selector, problem)
             current_generation = new_gen
+            generation_number += 1
 
             ea_output.add_generation(current_generation)
 
             self.save_ea_state(current_generation, parent_selector, adult_selector, generation_number, ea_output)
 
-            generation_number += 1
             best_ind = ea_output.best_individual
 
         print("\n", end="")
@@ -131,7 +132,25 @@ class EA:
                 child.develop()
                 ea_problem.test_fitness(child)
 
-        new_generation = adult_selector.run_adult_selection(current_generation, children)
+        new_generation, elite_pop = adult_selector.run_adult_selection(current_generation, children)
+
+
+        new_elite_pop = []
+        restest_elite_pop = True
+        if restest_elite_pop:
+            if parallel:
+                # Create a list of jobs and then iterate through
+                # the number of processes appending each process to
+                # the job list
+                with multiprocessing.Pool(5) as p:
+                    new_elite_pop = p.starmap(develop_and_test, [(elite_pop[i], ea_problem) for i in range(len(elite_pop))])
+
+            else:  # sequential execution
+                for ind in elite_pop:
+                    ea_problem.test_fitness(ind)
+        else:
+            new_elite_pop = elite_pop
+        new_generation = new_generation + new_elite_pop
 
         return new_generation
 
@@ -141,7 +160,7 @@ class EA:
 
 class EAProblem:
     def __init__(self):
-        self.max_number_of_generations = 100 # Default
+        self.max_number_of_generations = 1000 # Default
 
     def fitness_threshold(self, *args):  # Some fitness-value such that the execution is stopped
         raise NotImplementedError()
@@ -154,6 +173,7 @@ class EAProblem:
 
     def __str__(self):
         return "EA problem"
+
 class EAOutput:
     def __init__(self):
         self.all_generations = []  # list of lists with all generations
@@ -161,7 +181,6 @@ class EAOutput:
         self.mean_fitness_per_gen = []
         self.std_per_gen = []
         self.best_individual = None
-
         self.printing = False
 
     def add_generation(self, generation):

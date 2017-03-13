@@ -269,10 +269,10 @@ class CIFARBuilder:
 
 
 class FiveBitBuilder:
-    def __init__(self, dist_period=200):
+    def __init__(self, dist_period=200, test_ex=32, training_ex=32):
         self.dist_period = dist_period
-        self.no_training_ex = 32
-        self.no_testing_ex = 32
+        self.no_training_ex = training_ex
+        self.no_testing_ex = test_ex
 
     def get_training_data(self):
         file_location = os.path.dirname(os.path.realpath(__file__))

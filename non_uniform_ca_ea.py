@@ -111,7 +111,8 @@ class NonUniCAIndividual(ind.Individual):
 
 
     def develop(self):
-        self.phenotype = NonUniCAPhenotype(self.genotype, self.ca_size)
+        if self.phenotype == None:
+            self.phenotype = NonUniCAPhenotype(self.genotype, self.ca_size)
 
     def reproduce(self, other_parent_genotype):
         child = NonUniCAIndividual(self.allowed_number_of_rules, self.ca_size,
@@ -135,7 +136,7 @@ class NonUniCAProblem(evoalg.EAProblem):
     def test_fitness(self, individual):
         fitness = 0
         for _ in range(self.test_per_ind):
-            data_interpreter = self.open_data_interpreter("5bit")
+            data_interpreter = self.open_data_interpreter("5bit", test_ex=16)
             reCA_problem = reCA.ReCAProblem(data_interpreter)
             reCA_config = reCA.ReCAConfig()
 
@@ -156,7 +157,34 @@ class NonUniCAProblem(evoalg.EAProblem):
         #fitness += pseudo_lambda
         fitness = 1 if fitness == 0 else fitness//self.test_per_ind
         individual.fitness = fitness
-        return individual.fitness
+
+        making_sure_fitness = 0
+        if fitness > 980:
+            print("Investigation fitness! " + str(individual))
+            making_sure_tests = 10
+            for _ in range(making_sure_tests):
+                data_interpreter = self.open_data_interpreter("5bit", test_ex=32)
+                reCA_problem = reCA.ReCAProblem(data_interpreter)
+                reCA_config = reCA.ReCAConfig()
+
+                reCA_rule_scheme = reCA.ReCAruleConfig(individual.phenotype.non_uniform_config)
+
+                reCA_config.set_non_uniform_config(rule_scheme=reCA_rule_scheme, R=self.R, C=self.C, I=self.I,
+                                                   classifier="perceptron_sgd")
+                reCA_system = reCA.ReCASystem()
+
+                reCA_system.set_problem(reCA_problem)
+                reCA_system.set_config(reCA_config)
+                reCA_system.initialize_rc()
+                reCA_system.tackle_ReCA_problem()
+
+                reCA_out = reCA_system.test_on_problem()
+                making_sure_fitness += int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000)
+            making_sure_fitness = making_sure_fitness//making_sure_tests
+            individual.fitness = making_sure_fitness
+
+
+        return individual
 
     def calculate_pseudo_lambda(self, rule_set):
         ca_simulator = ca.ElemCAReservoir()
@@ -172,12 +200,12 @@ class NonUniCAProblem(evoalg.EAProblem):
     def get_initial_population(self):
         return [NonUniCAIndividual(ca_size=self.ca_size, allowed_number_of_rules=self.allowed_number_of_rules) for _ in range(self.init_pop_size)]
 
-    def open_data_interpreter(self, type_of_interpreter):
+    def open_data_interpreter(self, type_of_interpreter, test_ex=32):
         if type_of_interpreter == "europarl":
             return data_int.TranslationBuilder()
 
         elif type_of_interpreter == "5bit":
-            return data_int.FiveBitBuilder()
+            return data_int.FiveBitBuilder(test_ex=test_ex)
 
         elif type_of_interpreter == "20bit":
             return data_int.TwentyBitBuilder()
@@ -258,123 +286,6 @@ def make_fitnessgraph(ea_output, name):
     plt.savefig(file_location+"/experiment_data/ea_runs/" + name)
     plt.close()
 
-def run_ea_0903_test():
-    C = 5
-    Rs = [2, 4, 6 ,8]
-    I = 2
-    N = 4  # For 5-bit task. DO NOT CHANGE
-
-    file_location = os.path.dirname(os.path.realpath(__file__))
-    pop_size = 7*3  # Adapt to number of cores
-    max_no_generations = 10
-    tests_per_individual = 4
-    number_of_rules_list = [1, 2, 3, 4]
-    print_est = True
-    before = time.time()
-    for number_of_rules in number_of_rules_list:
-        for R in Rs:
-            ca_size = C * R * N
-            nonUniCAprob = NonUniCAProblem(R=R, I=I, C=C, fitness_threshold=1000, init_pop_size=pop_size,
-                                           max_number_of_generations=max_no_generations,
-                                           allowed_number_of_rules=number_of_rules, ca_size=ca_size, test_per_ind=tests_per_individual)
-            ea = evoalg.EA()
-
-            ea_output = ea.solve(nonUniCAprob)
-
-            # pickle.dump(ea_output, open("ea.pkl", "wb"))
-            run_name = "earun_R" + str(R) + "C" + str(C) + "I" + str(I) + \
-                       "_rules" + str(number_of_rules) + "_popsize" + str(pop_size) + \
-                       "_gens" + str(max_no_generations)
-
-            pickle.dump(ea_output, open(file_location+"/experiment_data/ea_runs/" + run_name + ".pkl", "wb"))
-            best_individual = ea_output.best_individual
-            best_individ_scheme = best_individual.phenotype.non_uniform_config
-            non_uni_rule_serialize = {}
-            non_uni_rule_serialize["full_size_rule_list"] = best_individ_scheme
-            non_uni_rule_serialize["raw rule"] = best_individual.genotype.rule_scheme
-            ea_data = {"R": R, "C": C, "I": I, "N": N,
-                       "ca size": ca_size,
-                       "popsize":pop_size,
-                       "max_gens":max_no_generations,
-                       "test per ind": tests_per_individual,
-                       "allowed number of rules": number_of_rules,
-                       }
-
-            non_uni_rule_serialize["ea_data"] = ea_data
-
-            with open(file_location+"/experiment_data/ea_runs/" + run_name +"JSON.json", "w") as outfile:
-                json.dump(non_uni_rule_serialize, outfile)
-
-            make_fitnessgraph(ea_output, run_name)
-        if print_est:
-            ts = time.time()
-            print("Time now : " +str(datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')))
-            print("Time used: " + str(ts-before))
-            print("Total time est.: " + str((ts-before)*(len(number_of_rules_list))))
-            print("Time est. left : " + str((ts-before)*(len(number_of_rules_list)-1)))
-            print_est = False
-
-    print("Actual time usage (ea evolve): " + str(time.time()-before))
-
-def run_ea_1003_test():
-    C = 1
-    Rs = [1]
-    I = 1
-    N = 4  # For 5-bit task. DO NOT CHANGE
-
-    file_location = os.path.dirname(os.path.realpath(__file__))
-    pop_size = 8  # Adapt to number of cores
-    max_no_generations = 3
-    tests_per_individual = 1
-    number_of_rules_list = [4, 6, 7, 8]
-    print_est = True
-    before = time.time()
-    for number_of_rules in number_of_rules_list:
-        for R in Rs:
-
-            ca_size = C * R * N
-            nonUniCAprob = NonUniCAProblem(R=R, I=I, C=C, fitness_threshold=1000, init_pop_size=pop_size,
-                                           max_number_of_generations=max_no_generations,
-                                           allowed_number_of_rules=number_of_rules, ca_size=ca_size, test_per_ind=tests_per_individual)
-            ea = evoalg.EA()
-
-            ea_output = ea.solve(nonUniCAprob, saved_state=True)
-
-            # pickle.dump(ea_output, open("ea.pkl", "wb"))
-            run_name = "earun_R" + str(R) + "C" + str(C) + "I" + str(I) + \
-                       "_rules" + str(number_of_rules) + "_popsize" + str(pop_size) + \
-                       "_gens" + str(max_no_generations)
-
-            pickle.dump(ea_output, open(file_location+"/experiment_data/ea_runs/" + run_name + ".pkl", "wb"))
-            best_individual = ea_output.best_individual
-            best_individ_scheme = best_individual.phenotype.non_uniform_config
-            non_uni_rule_serialize = {}
-            non_uni_rule_serialize["full_size_rule_list"] = best_individ_scheme
-            non_uni_rule_serialize["raw rule"] = best_individual.genotype.rule_scheme
-            ea_data = {"R": R, "C": C, "I": I, "N": N,
-                       "ca size": ca_size,
-                       "popsize":pop_size,
-                       "max_gens":max_no_generations,
-                       "test per ind": tests_per_individual,
-                       "allowed number of rules": number_of_rules,
-                       }
-
-            non_uni_rule_serialize["ea_data"] = ea_data
-
-            with open(file_location+"/experiment_data/ea_runs/" + run_name +"JSON.json", "w") as outfile:
-                json.dump(non_uni_rule_serialize, outfile)
-
-            make_fitnessgraph(ea_output, run_name)
-        if print_est:
-            ts = time.time()
-            print("Time now : " +str(datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')))
-            print("Time used: " + str(ts-before))
-            print("Total time est.: " + str((ts-before)*(len(number_of_rules_list))))
-            print("Time est. left : " + str((ts-before)*(len(number_of_rules_list)-1)))
-            print_est = False
-
-    print("Actual time usage (ea evolve): " + str(time.time()-before))
-
 def run_ea_1103_test():
     C = 5
     Rs = [16]
@@ -384,7 +295,7 @@ def run_ea_1103_test():
     file_location = os.path.dirname(os.path.realpath(__file__))
     pop_size = 8*4  # Adapt to number of cores
     max_no_generations = 100
-    tests_per_individual = 2
+    tests_per_individual = 1
     number_of_rules_list = [6]
     print_est = True
     before = time.time()
@@ -434,7 +345,7 @@ def run_ea_1103_test():
 
     print("Actual time usage (ea evolve): " + str(time.time()-before))
 def test_all_rules():
-    uni_rules = [90]
+    uni_rules = []
 
     json_rule_files = []
     file_location = os.path.dirname(os.path.realpath(__file__))

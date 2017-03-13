@@ -30,6 +30,7 @@ class AdultSelector:
         """
         adult_pool_size = len(old_generation)
         new_adult_pool = []
+        elite_pop = []
 
         #print("Old gen: " + str(old_generation))
         #print("candita: " + str(new_adult_candidates))
@@ -43,11 +44,9 @@ class AdultSelector:
         elif (self.selection_type == "full_and_elitism"):
             sorted_old_generation = sorted(old_generation, key=lambda x: x.fitness, reverse=True)
             sorted_new_generation = sorted(new_adult_candidates, key=lambda x: x.fitness)
-            new_adult_pool = sorted_old_generation[:self.elite_degree] + sorted_new_generation[self.elite_degree:]
-            #new_adult_pool.extend(self.adult_selector(adult_pool_size, new_adult_candidates))
-
-
+            elite_pop = sorted_old_generation[:self.elite_degree]
+            new_adult_pool = sorted_new_generation[self.elite_degree:]
 
         else:
             print("Adult selection currently not implemented: " + self.selection_type)
-        return new_adult_pool
+        return new_adult_pool, elite_pop
