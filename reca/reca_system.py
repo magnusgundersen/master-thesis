@@ -283,6 +283,36 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         self.time_transition = None
         self.parallelizer = None
 
+
+    def set_random_mapping_config(self, ca_rule_scheme=None, N=4, R=4, C=3, I=12, classifier="linear-svm", time_transition="random_permutation"):
+
+        ca_size = N*R*C  # Used to create rule scheme
+        # sets up elementary CA:
+        self.reservoir = ca.ElemCAReservoir(ca_size)
+        self.reservoir.set_rule_config(ca_rule_scheme)
+
+        # clf
+        if classifier == "linear-svm":
+            self.classifier = scikit_clfs.SVM()
+        elif classifier == "perceptron_sgd":
+            self.classifier = scikit_clfs.SGD()
+        elif classifier == "linear_regression":
+            self.classifier = scikit_clfs.LinReg()
+        elif classifier == "tlf_ann":
+            self.classifier = tflann.ANN()
+
+        # Encoder
+        self.encoder = enc.RandomMappingEncoder()
+        self.encoder.R = R
+        self.encoder.C = C
+
+        self.I = I
+        if time_transition == "normalized_addition":
+            self.time_transition = time_trans.RandomAdditionTimeTransition()
+        elif time_transition == "random_permutation":
+            self.time_transition = time_trans.RandomPermutationTransition()
+        elif time_transition == "xor":
+            self.time_transition = time_trans.XORTimeTransition()
     def set_uniform_config(self, ca_rule=105, R=4, C=3, I=12, classifier="linear-svm",
                                     encoding="random_mapping", time_transition="random_permutation"):
         # sets up elementary CA:
@@ -401,11 +431,23 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         elif time_transition == "xor":
             self.time_transition = time_trans.XORTimeTransition()
 class ReCAruleConfig:
-    def __init__(self, rule_list):
-        self.rule_list = rule_list
+    def __init__(self, uniform_rule=None, non_uniform_list=None, non_uniform_individual=None):
+        if uniform_rule is not None:
+            self.uniform = True
+            self.uniform_rule = uniform_rule
+        elif non_uniform_list is not None:
+            self.non_uniform = True
+            self.rule_list = non_uniform_list
+        elif non_uniform_individual is not None:
+            self.dynamic = True
 
-    def get_scheme(self):
-        return self.rule_list
+    def get_scheme(self, size):
+        if self.uniform:
+            return [self.uniform_rule for _ in range(size)]
+        elif self.non_uniform:
+            return self.rule_list
+        self.non_uni_ca_ind.develop(size)
+        return self.non_uni_ca_ind.non_uniform_scheme
 
 
 

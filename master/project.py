@@ -152,11 +152,11 @@ class Project:
         visual.visualize_example_run(outputs)
 
     def five_bit_task(self):
-        data_interpreter = self.open_data_interpreter("5bit", training_ex=32, testing_ex=1)
+        data_interpreter = self.open_data_interpreter("5bit", distractor_period=200, training_ex=1, testing_ex=1)
         reCA_problem = reCA.ReCAProblem(data_interpreter)
         reCA_config = reCA.ReCAConfig()
-        reCA_rule = reCA.ReCAruleConfig()
-        reCA_config.set_uniform_config(ca_rule=90, R=16, C=5, I=4, classifier="perceptron_sgd")
+        reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
+        reCA_config.set_random_mapping_config(reCA_rule, R=32, C=8, I=10, classifier="perceptron_sgd")
         #reCA_config.set_non_uniform_config(reCA_rule, R=8, C=5, I=8, classifier="perceptron_sgd")
         #reCA_config.set_uniform_margem_config(rule=[141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18], R_i=2, R=76, I=8, classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
