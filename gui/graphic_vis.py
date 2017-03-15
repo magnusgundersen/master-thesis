@@ -81,3 +81,13 @@ def visualize_example_run(run_config):
         whole_output.extend(new_output)
         whole_output.extend([[0 for _ in range(width)]])
     bvis.visualize(whole_output)
+
+
+def make_fitnessgraph(ea_output, name):
+    plt.plot([ind.fitness for ind in ea_output.best_individuals_per_gen])
+    #plt.plot(ea_output.mean_fitness_per_gen)
+    #plt.plot(ea_output.std_per_gen)
+    plt.xlabel('Fitnessplot: ' + name)
+    file_location = os.path.dirname(os.path.realpath(__file__))
+    plt.savefig(file_location+"/../experiment_data/ea_runs/" + name)
+    plt.close()

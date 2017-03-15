@@ -5,6 +5,12 @@ Functionality and experiments.
 __author__ = 'magnus'
 from reca import reca_system as reCA
 from gui import ca_basic_visualizer as bviz
+import master.ea_ca as ea_ca
+import ea.evoalg as evoalg
+import datetime
+import ea.adult_selector as adult_select
+import ea.parent_selector as parent_select
+import ea.individual as ea_ind
 import random
 import pprint
 import itertools # for permutations
@@ -39,10 +45,14 @@ def run_five_bit(data_interpreter, rci_value, classifier, rule=90):
 def run_non_uniform_five_bit(data_interpreter, rci_value, classifier, rule_scheme):
     reCA_problem = reCA.ReCAProblem(data_interpreter)
     reCA_config = reCA.ReCAConfig()
-    rule_config = reCA.ReCAruleConfig(rule_scheme)
 
-    reCA_config.set_non_uniform_config(rule_scheme=rule_config, R=rci_value[0], C=rci_value[1], I=rci_value[2], classifier=classifier)
+    reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=rule_scheme)
+
+    reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme,
+                                          R=rci_value[0], C=rci_value[1], I=rci_value[2],
+                                          classifier="perceptron_sgd")
     reCA_system = reCA.ReCASystem()
+
     reCA_system.set_problem(reCA_problem)
     reCA_system.set_config(reCA_config)
     reCA_system.initialize_rc()
@@ -152,11 +162,17 @@ class Project:
         visual.visualize_example_run(outputs)
 
     def five_bit_task(self):
-        data_interpreter = self.open_data_interpreter("5bit", distractor_period=200, training_ex=1, testing_ex=1)
+        data_interpreter = self.open_data_interpreter("5bit", distractor_period=10, training_ex=1, testing_ex=1)
         reCA_problem = reCA.ReCAProblem(data_interpreter)
         reCA_config = reCA.ReCAConfig()
-        reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
-        reCA_config.set_random_mapping_config(reCA_rule, R=32, C=8, I=10, classifier="perceptron_sgd")
+        size = 2048*16*4
+        rule_list = []
+        no_rules = 1
+        for i in range(no_rules):
+            rule = random.randint(0,255)
+            rule_list.extend([90 for _ in range(size//no_rules)])
+        reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
+        reCA_config.set_random_mapping_config(reCA_rule, R=2048, C=16, I=25, classifier="perceptron_sgd")
         #reCA_config.set_non_uniform_config(reCA_rule, R=8, C=5, I=8, classifier="perceptron_sgd")
         #reCA_config.set_uniform_margem_config(rule=[141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18], R_i=2, R=76, I=8, classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
@@ -182,8 +198,8 @@ class Project:
             print("Input: " + _input + "  Correct: " + str(correct) + "  Predicted:" + str(prediction))
 
         # Visualize:
-        outputs = reCA_system.get_example_run()
-        visual.visualize_example_run(outputs)
+        #outputs = reCA_system.get_example_run()
+        #visual.visualize_example_run(outputs)
 
     def twenty_bit_task(self):
         data_interpreter = self.open_data_interpreter("20bit")
@@ -242,18 +258,6 @@ class Project:
         C = 5
         I = 4
         RCI_values_r_change = [(x, C, I) for x in Rs]
-        #uni_rules = [90, 105, 150, 165]
-        #non_uni_rules = {"nuni=2":
-        #                {2: [random.choice([90,110]) for _ in range(2*C*4)],
-        #                 4: [random.choice([90,110]) for _ in range(4*C*4)],
-        #                 6: [random.choice([90,110]) for _ in range(6*C*4)],
-        #                 8: [random.choice([90,110]) for _ in range(8*C*4)]},
-        #                 "nuni=3":
-        #                 {2: [random.choice([90,110, 150]) for _ in range(2 * C * 4)],
-        #                  4: [random.choice([90,110, 150]) for _ in range(4 * C * 4)],
-        #                  6: [random.choice([90,110, 150]) for _ in range(6 * C * 4)],
-        #                  8: [random.choice([90,110, 150]) for _ in range(8 * C * 4)]},
-        #                 }
 
         RCI_values = RCI_values_r_change
         #RCI_values = [(1,1,1)]
@@ -314,8 +318,64 @@ class Project:
         visual.create_graph_from_jsonconfig(file_location + "/../experiment_data/rule_testing/full_plotconfig.json", Rs)
 
 
-    def evolve_non_uniform_ca(self, CA_config, state_name, pop_size, max_gens, mut_rate, crossover_rate, tournament_size):
-        pass
+    def evolve_non_uniform_ca(self):
+        #, CA_config=, state_name, pop_size, max_gens, mut_rate, crossover_rate, tournament_size
+        C = 4
+        Rs = [16]
+        I = 4
+        N = 4  # For 5-bit task. DO NOT CHANGE
+
+        file_location = os.path.dirname(os.path.realpath(__file__))
+        pop_size = 7 * 2  # Adapt to number of cores
+        max_no_generations = 100
+        tests_per_individual = 4
+        number_of_rules_list = [8]
+        print_est = False
+        before = time.time()
+        for number_of_rules in number_of_rules_list:
+            for R in Rs:
+                ca_size = C * R * N
+                nonUniCAprob = ea_ca.NonUniCAProblem(R=R, I=I, C=C, fitness_threshold=1000, init_pop_size=pop_size,
+                                               max_number_of_generations=max_no_generations,
+                                               allowed_number_of_rules=number_of_rules, ca_size=ca_size,
+                                               test_per_ind=tests_per_individual)
+                ea = evoalg.EA()
+
+                ea_output = ea.solve(nonUniCAprob, saved_state=False)
+
+                # pickle.dump(ea_output, open("ea.pkl", "wb"))
+                run_name = "earun_R" + str(R) + "C" + str(C) + "I" + str(I) + \
+                           "_rules" + str(number_of_rules) + "_popsize" + str(pop_size) + \
+                           "_gens" + str(max_no_generations)
+
+                pickle.dump(ea_output, open(file_location + "/../experiment_data/ea_runs/" + run_name + ".pkl", "wb"))
+                best_individual = ea_output.best_individual
+                best_individ_scheme = best_individual.phenotype.non_uniform_config
+                non_uni_rule_serialize = {}
+                non_uni_rule_serialize["full_size_rule_list"] = best_individ_scheme
+                non_uni_rule_serialize["raw rule"] = best_individual.genotype.rule_scheme
+                ea_data = {"R": R, "C": C, "I": I, "N": N,
+                           "ca size": ca_size,
+                           "popsize": pop_size,
+                           "max_gens": max_no_generations,
+                           "test per ind": tests_per_individual,
+                           "allowed number of rules": number_of_rules,
+                           }
+                non_uni_rule_serialize["ea_data"] = ea_data
+
+                with open(file_location + "/../experiment_data/ea_runs/" + run_name + "JSON.json", "w") as outfile:
+                    json.dump(non_uni_rule_serialize, outfile)
+
+                visual.make_fitnessgraph(ea_output, run_name)
+            if print_est:
+                ts = time.time()
+                print("Time now : " + str(datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')))
+                print("Time used: " + str(ts - before))
+                print("Total time est.: " + str((ts - before) * (len(number_of_rules_list))))
+                print("Time est. left : " + str((ts - before) * (len(number_of_rules_list) - 1)))
+                print_est = False
+
+        print("Actual time usage (ea evolve): " + str(time.time() - before))
 
     def classifier_testing(self):
         classifiers = ["linear-svm", "perceptron_sgd"]
@@ -350,6 +410,34 @@ class Project:
 
         print(plotconfigs)
         self.create_graph_from_plotconfig(plotconfigs, plotlabels)
+
+
+def test_all_rules():
+    uni_rules = []
+
+    json_rule_files = []
+    file_location = os.path.dirname(os.path.realpath(__file__))
+    all_files = os.listdir(file_location+"/experiment_data/ea_runs")
+    for file in all_files:
+        if str(file).lower().endswith(".json"):
+            json_rule_files.append(file)
+
+    json_data = []
+    for file in json_rule_files:
+        with open(file_location +"/experiment_data/ea_runs/"+file, "r") as outfile:
+            json_data.append(json.load(outfile))
+    nuni_rules = {}
+
+    for data in json_data:
+        #print(data)
+        ea_data = data.get('ea_data')
+        number_of_distinct_rules = ea_data.get('allowed number of rules')
+        if nuni_rules.get("nuni=" + str(number_of_distinct_rules)) is None:
+            nuni_rules["nuni=" + str(number_of_distinct_rules)] = {}
+        nuni_rules["nuni=" + str(number_of_distinct_rules)][ea_data.get("R")] = data.get("full_size_rule_list")
+
+    project = Project()
+    project.test_rules(uni_rules, nuni_rules)
 
 
 

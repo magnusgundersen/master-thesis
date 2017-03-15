@@ -285,9 +285,10 @@ class ReCAConfig(rc_if.ExternalRCConfig):
 
 
     def set_random_mapping_config(self, ca_rule_scheme=None, N=4, R=4, C=3, I=12, classifier="linear-svm", time_transition="random_permutation"):
-
+        #print("Setting config: R:" + str(R) + " C:" +str(C) + " I:" + str(I) + " clf: " + str(classifier) + " rule scheme: " + str(ca_rule_scheme.rule_list))
         ca_size = N*R*C  # Used to create rule scheme
         # sets up elementary CA:
+        #print(ca_rule_scheme)
         self.reservoir = ca.ElemCAReservoir(ca_size)
         self.reservoir.set_rule_config(ca_rule_scheme)
 
@@ -358,7 +359,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         """
         # sets up elementary CA:
         self.reservoir = ca.ElemCAReservoir()
-        self.reservoir.set_rules(rule_scheme.get_scheme())
+        self.reservoir.set_rules(rule_scheme.get_scheme(4*R*C))
         #self.reservoir.set_uniform_rule(90)
 
 
@@ -432,6 +433,9 @@ class ReCAConfig(rc_if.ExternalRCConfig):
             self.time_transition = time_trans.XORTimeTransition()
 class ReCAruleConfig:
     def __init__(self, uniform_rule=None, non_uniform_list=None, non_uniform_individual=None):
+        self.uniform = False
+        self.non_uniform_list = False
+        self.dynamic = False
         if uniform_rule is not None:
             self.uniform = True
             self.uniform_rule = uniform_rule

@@ -31,13 +31,14 @@ def main(argv):
     p = project.Project()  # Project with all implemented experiments
 
 
-    before = time.time()
-    print(p.five_bit_task())
+    #before = time.time()
+    #print(p.five_bit_task())
+    print(p.evolve_non_uniform_ca())
     #print(p.europarl_translation_task())
     #print(p.twenty_bit_task())
     #print(p.classifier_testing())
     #p.test_rules([90],[[141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18]])
-    print("Time used: " + str(time.time()-before))
+    #print("Time used: " + str(time.time()-before))
 
 if __name__ == "__main__":
     main(sys.argv[1:])

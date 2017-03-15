@@ -7,8 +7,8 @@ import numpy as np
 import random
 import warnings
 
-
-
+import timeit
+import time
 
 class ReservoirComputingFramework:
     """
@@ -156,6 +156,8 @@ class RCHelper:
         self.reservoir = self.config.reservoir
         self.I = self.config.I # Number of iterations (CA)
         self.parallelizer = self.config.parallelizer # CA parallelizer
+        self.time_usage = 0
+        self.time_counter = 0
 
 
     def reset(self):
@@ -184,7 +186,12 @@ class RCHelper:
 
 
         # 5. step is to propagate in CA reservoir
+        before = time.time()
         all_propagated_data = self.reservoir.run_simulation(transitioned_data, self.I)
+        #print("used: " + str(time.time() - before))
+        self.time_usage += (time.time() - before)
+        self.time_counter += 1
+        #print("avg so far: " + str(self.time_usage/self.time_counter))
         previous_data = np.copy(self.last_step_data)
         self.last_step_data = all_propagated_data[-1]
 
