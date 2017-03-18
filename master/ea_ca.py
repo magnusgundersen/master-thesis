@@ -36,7 +36,7 @@ class NonUniCAGenotype(ind.Genotype):
     def get_representation(self):
         pass
 
-    def reproduce(self, parent_one_genotype, parent_two_genotype, crossover_rate=0.5, mutation_rate=0.15):
+    def reproduce(self, parent_one_genotype, parent_two_genotype, crossover_rate=random.random(), mutation_rate=0.15):
         rule_bound_crossover = True
         crossover_type = "two point"
         number_of_crossover_points = len(parent_one_genotype.rule_scheme) // self.bit_per_rule
@@ -128,6 +128,7 @@ class NonUniCAIndividual(ind.Individual):
         self.phenotype = None
         self.ca_size = ca_size
         self.allowed_number_of_rules=allowed_number_of_rules
+        self.fitness_std = 0
 
 
     def develop(self, ca_size=0):

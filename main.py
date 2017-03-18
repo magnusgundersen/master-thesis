@@ -33,7 +33,8 @@ def main(argv):
 
     #before = time.time()
     #print(p.five_bit_task())
-    print(p.evolve_non_uniform_ca())
+    print(project.test_all_rules())
+    #print(p.evolve_non_uniform_ca())
     #print(p.europarl_translation_task())
     #print(p.twenty_bit_task())
     #print(p.classifier_testing())

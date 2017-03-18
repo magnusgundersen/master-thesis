@@ -21,7 +21,7 @@ parallel = True
 if parallel:
     cpu_count = multiprocessing.cpu_count()
     if cpu_count < 20:
-        threads_to_be_used = 7  # 4 not cloging the machine
+        threads_to_be_used = 8  # 4 not cloging the machine
     else:
         threads_to_be_used = 20
 
@@ -50,17 +50,18 @@ def develop_and_test_hacked(individual):
     individual.develop()
     # NB: HACKED FOR CA EA
     before_tesing = time.time()
-    fitness = 0
+    fitness = []
     #print("testing fitness")
-    tests_per_ind = 4
+    tests_per_ind = 8
     for _ in range(tests_per_ind):
         reCA_problem = reCA.ReCAProblem(open_data_interpreter("5bit", distractor_period=10, training_ex=32, testing_ex=16))
         reCA_config = reCA.ReCAConfig()
 
         reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
 
-        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, R=16, C=4, I=4,
-                                              classifier="perceptron_sgd")
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, R=100, C=1, I=4, classifier="perceptron_sgd",
+                                              time_transition="xor")
+
         reCA_system = reCA.ReCASystem()
 
         reCA_system.set_problem(reCA_problem)
@@ -69,12 +70,16 @@ def develop_and_test_hacked(individual):
         reCA_system.tackle_ReCA_problem()
 
         reCA_out = reCA_system.test_on_problem()
-        fitness += int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000)
+        fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
 
     # pseudo_lambda = self.calculate_pseudo_lambda(individual.phenotype.non_uniform_config)
     # fitness += pseudo_lambda
-    fitness = 1 if fitness == 0 else fitness // tests_per_ind
+    fitness_std = int(np.std(fitness))
+    fitness = int(np.mean(fitness))
+    fitness = fitness if (fitness<850) else fitness-fitness_std*(1000/fitness)
+    fitness = 1 if fitness == 0 else fitness
     individual.fitness = fitness
+    individual.fitness_std = fitness_std
 
     making_sure_fitness = 0
     if fitness > 1000:
@@ -159,6 +164,7 @@ class EA:
             sys.stdout.flush()
             sys.stdout.write("\r"+"Current generation: " + str(generation_number) +
                              " --Best fitness: " + str(ea_output.best_individuals_per_gen[-1].fitness) +
+                             " ±"+ str(ea_output.best_individuals_per_gen[-1].fitness_std) +
                              " --Mean fitness:  " + str((ea_output.mean_fitness_per_gen[-1])) +
                              " --Time usage last gen: m: " + str((time.time() - current_time)//60) +
                                                     " s: " + str(int((time.time() - current_time)%60))
@@ -224,14 +230,14 @@ class EA:
 
 
         new_elite_pop = []
-        restest_elite_pop = False
+        restest_elite_pop = True
         if restest_elite_pop:
             if parallel:
                 # Create a list of jobs and then iterate through
                 # the number of processes appending each process to
                 # the job list
                 with multiprocessing.Pool(5) as p:
-                    new_elite_pop = p.starmap(develop_and_test_hacked, [(elite_pop[i]) for i in range(len(elite_pop))])
+                    new_elite_pop = p.starmap(develop_and_test_hacked, [[elite_pop[i]] for i in range(len(elite_pop))])
 
             else:  # sequential execution
                 for ind in elite_pop:

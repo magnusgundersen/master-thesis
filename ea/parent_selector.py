@@ -13,7 +13,7 @@ class ParentSelector:
         raise NotImplementedError
 
 class TournamentSelector(ParentSelector):
-    def __init__(self, tournament_size=8):
+    def __init__(self, tournament_size=5):
         self.tournament_size = tournament_size
         self.probability_distribution = [0.70, 0.20, 0.09, 0.01]  # Two point precision
 

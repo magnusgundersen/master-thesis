@@ -3,7 +3,6 @@ import pprint
 import numpy as np
 import multiprocessing
 import inspect
-from dill.source import getsource
 
 def ca_step(i, length, rules, ca_vector):
     left_index = (i - 1) % length
@@ -154,13 +153,15 @@ class ElemCAReservoir:
         """
         output = [initial_inputs]
         current_input = np.array(initial_inputs, dtype="uint8")
+        intervals = self.rule_intervals.keys()
+        intervals = sorted(intervals, key=lambda x: x[0])  # Get in correct order
         for i in range(iterations):
             Z = current_input
             list_of_lefts = np.roll(Z, 1)
             list_of_rights = np.roll(Z, -1)
             birth = []
             survive = []
-            for interval_start, interval_end in self.rule_intervals.keys():
+            for interval_start, interval_end in intervals:
                 birth_function, survive_function = self.rule_intervals.get((interval_start, interval_end))
                 birth += list(birth_function(list_of_lefts[interval_start:interval_end],
                                         Z[interval_start:interval_end], list_of_rights[interval_start:interval_end]))
@@ -202,6 +203,8 @@ class ElemCAReservoir:
         """
         output = [initial_inputs]
         current_input = np.array(initial_inputs, dtype="uint8")
+        intervals = self.rule_intervals.keys()
+        intervals = sorted(intervals, key=lambda x: x[0])  # Get in correct order
         for i in range(iterations):
             Z = current_input
             list_of_lefts = np.roll(Z, 1)
@@ -209,9 +212,8 @@ class ElemCAReservoir:
             birth = []
             survive = []
 
-            intervals = self.rule_intervals.keys()
 
-
+            #print("intervals: " + str(intervals))
             # MAP
             #birth = map(
             #    lambda interval: self.get_birth(interval, list_of_lefts, Z, list_of_rights), intervals)
@@ -272,6 +274,7 @@ class Rule:
         return output
 
     def get_logical_expression(self):
+        #print("Creating logical expression for rule: "+ str(self.number))
         scheme = self.getRuleScheme()
         births = []
         survives = []

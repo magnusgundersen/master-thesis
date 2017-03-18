@@ -37,7 +37,7 @@ def create_graph_from_plotconfig(plotconfig, plotlabels):
         fig.savefig(file_location + "/../experiment_data/clf_test/" + name)
 
 
-def create_graph_from_jsonconfig(json_file_location, Rs=(2, 4, 6, 8)):
+def create_graph_from_jsonconfig(json_file_location, Rs=(600)):
     plot_data = None
     with open(json_file_location) as data_file:
         plot_data = json.load(data_file)
@@ -45,8 +45,8 @@ def create_graph_from_jsonconfig(json_file_location, Rs=(2, 4, 6, 8)):
     fig = plt.figure(figsize=(10, 8))
 
     ax1 = fig.add_subplot(1, 1, 1)
-    ax1.set_ylim([-10, 1550])
-    ax1.set_xlim([1, 9])
+    ax1.set_ylim([-10, 1450])
+    ax1.set_xlim([95, 105])
     ax1.set_title("Rule testing on 5-bit problem with T_d=10")
     name = str("Full plot")
     plot_colors = ["r", "g", "b", "y", "m", "k", "w", "c"]
@@ -84,10 +84,45 @@ def visualize_example_run(run_config):
 
 
 def make_fitnessgraph(ea_output, name):
-    plt.plot([ind.fitness for ind in ea_output.best_individuals_per_gen])
+    fitness_list = [ind.fitness for ind in ea_output.best_individuals_per_gen]
+    mean_fitness_list = ea_output.mean_fitness_per_gen
+    std_fitness_list = ea_output.std_per_gen
     #plt.plot(ea_output.mean_fitness_per_gen)
     #plt.plot(ea_output.std_per_gen)
-    plt.xlabel('Fitnessplot: ' + name)
+
+    #plt.xlabel('Fitnessplot: ' + name)
     file_location = os.path.dirname(os.path.realpath(__file__))
-    plt.savefig(file_location+"/../experiment_data/ea_runs/" + name)
-    plt.close()
+    #plt.savefig(file_location+"/../experiment_data/ea_runs/" + name)
+    #plt.close()
+
+    plot_data = [fitness_list, mean_fitness_list, std_fitness_list]
+    names = ["Best fitness", "Mean fitness", "Std. fitness"]
+    generations = len(fitness_list)
+
+    fig = plt.figure(figsize=(10, 8))
+
+    ax1 = fig.add_subplot(1, 1, 1)
+    ax1.set_ylim([-10, 1250])
+    ax1.set_xlim([-1, generations+3])
+    ax1.set_title("Fitness plot: " + name[:-9])
+    name = name
+    plot_colors = ["r", "g", "b", "y", "m", "k", "w", "c"]
+    i = 0
+
+    for data in plot_data:  # For nice legend
+        plots = []
+
+        # Make an example plot with two subplots...
+        clf_plot1 = ax1.plot(range(generations), data, label=str(names[i]))
+        #ax1.plot(range(generations), data, plot_colors[i % len(plot_colors)] + '--')  plot_colors[i % len(plot_colors)] + 's'
+
+        plt.xlabel("Generations")
+        plt.ylabel("Permille(1/1000) correct")
+
+        legend = ax1.legend(loc='upper left', shadow=True, prop={'size': 12})
+        frame = legend.get_frame()
+        frame.set_facecolor('0.90')
+        # Save the full figure...
+        file_location = os.path.dirname(os.path.realpath(__file__))
+        fig.savefig(file_location + "/../experiment_data/ea_runs/" + name)
+        i += 1
