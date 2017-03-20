@@ -23,26 +23,69 @@ import random
 import multiprocessing
 
 
+# Workers:
+def fitness_test_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd", time_transition="xor",
+                        distractor_period=10, train_ex=32, test_ex=32, tests_per_ind=6):
+    """
+        Method for running the develop_and_test with multiprocessing
+        :param individual:
+        :param problem:
+        :return:
+        """
+
+    fitness = []
+    for _ in range(tests_per_ind):
+        reCA_problem = reCA.ReCAProblem(
+            p.open_data_interpreter("5bit", distractor_period=distractor_period, training_ex=train_ex, testing_ex=test_ex))
+        reCA_config = reCA.ReCAConfig()
+        reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, R=R, C=C, I=I,
+                                              classifier=classifier,
+                                              time_transition=time_transition)
+        reCA_system = reCA.ReCASystem()
+
+        reCA_system.set_problem(reCA_problem)
+        reCA_system.set_config(reCA_config)
+        reCA_system.initialize_rc()
+        reCA_system.tackle_ReCA_problem()
+
+        reCA_out = reCA_system.test_on_problem()
+        fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
+
+
+    fitness_std = int(np.std(fitness))
+    fitness = int(np.mean(fitness))
+
+    # fitness = fitness if (fitness<850) else fitness-fitness_std*(1000/fitness)
+    fitness = 1 if fitness == 0 else fitness  # avoid div by zero
+    individual.fitness = fitness
+    individual.fitness_std = fitness_std
+
+    return individual
+
+
+
+# Classes:
 class NonUniCAGenotype(ind.Genotype):
     def __init__(self, parent_genotype_one, parent_genotype_two, allowed_number_of_rules=4):
         self.rule_scheme = []
         self.allowed_number_of_rules = allowed_number_of_rules
         self.bit_per_rule = 8
+        self.rule_bound_crossover = True
+        self.crossover_type = "two point"
+
         super().__init__(parent_genotype_one, parent_genotype_two)
 
     def init_first_genotype(self):
         self.rule_scheme = [random.choice([0,1]) for _ in range(self.allowed_number_of_rules*self.bit_per_rule)]
 
-    def get_representation(self):
-        pass
 
     def reproduce(self, parent_one_genotype, parent_two_genotype, crossover_rate=random.random(), mutation_rate=0.15):
-        rule_bound_crossover = True
-        crossover_type = "two point"
-        number_of_crossover_points = len(parent_one_genotype.rule_scheme) // self.bit_per_rule
 
-        if crossover_type == "single point":
-            if rule_bound_crossover:
+        # Crossover
+        number_of_crossover_points = len(parent_one_genotype.rule_scheme) // self.bit_per_rule
+        if self.crossover_type == "single point":
+            if self.rule_bound_crossover:
                 crossover_point = int(number_of_crossover_points*crossover_rate)
                 crossover_point *= self.bit_per_rule
 
@@ -52,25 +95,23 @@ class NonUniCAGenotype(ind.Genotype):
             self.rule_scheme = parent_one_genotype.rule_scheme[:crossover_point] + \
                                parent_two_genotype.rule_scheme[crossover_point:]
 
-        elif crossover_type == "two point":
-            if rule_bound_crossover:
+        elif self.crossover_type == "two point":
+            if self.rule_bound_crossover:
                 crossover_size = int(number_of_crossover_points * crossover_rate)  # int floors
                 point_one = random.randint(0, int(number_of_crossover_points - crossover_size))
                 point_two = point_one + crossover_size
-                #crossover_point = int(number_of_crossover_points * crossover_rate)
-                #crossover_point *= self.bit_per_rule
 
             else:
                 crossover_size = len(parent_one_genotype.rule_scheme)*crossover_rate # int floors
                 point_one = random.randint(0, int(parent_one_genotype.rule_scheme - crossover_size))
                 point_two = point_one + crossover_size
 
-
             self.rule_scheme = parent_one_genotype.rule_scheme[:point_one] + \
                                parent_two_genotype.rule_scheme[point_one:point_two] + \
                                parent_one_genotype.rule_scheme[point_two:]
-        random_number = random.random()
 
+        # Mutation
+        random_number = random.random()
         if random_number < mutation_rate:
             number_of_flips = random.choice([1,1,1,1,1,1,2,2,3])
             for _ in range(number_of_flips):
@@ -131,6 +172,7 @@ class NonUniCAIndividual(ind.Individual):
         self.fitness_std = 0
 
 
+
     def develop(self, ca_size=0):
         if ca_size == 0:
             ca_size = self.ca_size
@@ -142,74 +184,38 @@ class NonUniCAIndividual(ind.Individual):
                                    parent_genotype_one=self.genotype, parent_genotype_two=other_parent_genotype)
         return child
 
+    def serialize(self):
+        # Genotype:
+        binary_base_rule = self.genotype.rule_scheme
+        binary_base_list = [[binary_base_rule[self.genotype.bit_per_rule*i+j] for j in range(self.genotype.bit_per_rule)] for i in range(len(binary_base_rule)//self.genotype.bit_per_rule)]
+        int_base_rule = [int("".join([str(bin_int) for bin_int in bin_rule]),2) for bin_rule in binary_base_list]
+
+        #Phenotype
+
+    def __str__(self):
+        return "NuniRule"+ str(random.randint(0,10000)) + "_f=" + str(self.fitness)
+
+
+
 class NonUniCAProblem(evoalg.EAProblem):
-    def __init__(self, init_pop_size=40, ca_size=40, allowed_number_of_rules=4, fitness_threshold=900, max_number_of_generations=2, R=6, C=4, I=4, test_per_ind=4):
+    def __init__(self, ca_config=None, init_pop_size=40, allowed_number_of_rules=4, fitness_threshold=900, max_number_of_generations=2, test_per_ind=4):
         super().__init__()
         self.max_number_of_generations = max_number_of_generations
-        self.R = R
-        self.C = C
-        self.I = I
+        self.N = ca_config.get("N")
+        self.R = ca_config.get("R")
+        self.C = ca_config.get("C")
+        self.I = ca_config.get("I")
         self.test_per_ind = test_per_ind
         self.init_pop_size = init_pop_size
         self.fitness_threshold_value = fitness_threshold
         self.allowed_number_of_rules = allowed_number_of_rules
-        self.ca_size = 4*R*C
-        self.name = "Non uniform CA: PopSize: " + str(init_pop_size) + " Max gens: " + str(max_number_of_generations)
-        self.data_interpreter = self.open_data_interpreter("5bit", test_ex=16)
+        self.ca_size = self.N*self.C*self.R
+        self.name = "Non uniform CA"+"(" + str(self.N) + "*" + str(self.C) + "*" + str(self.R) + "): PopSize: " + str(init_pop_size) + " Max gens: " + str(max_number_of_generations)
 
+
+    #staticmethod
     def test_fitness(self, individual):
-        before_tesing = time.time()
-        fitness = 0
-        print("testing fitness")
-        for _ in range(self.test_per_ind):
-            reCA_problem = reCA.ReCAProblem(self.data_interpreter)
-            reCA_config = reCA.ReCAConfig()
-
-            reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
-
-            reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, R=self.R, C=self.C, I=self.I, classifier ="perceptron_sgd")
-            reCA_system = reCA.ReCASystem()
-
-            reCA_system.set_problem(reCA_problem)
-            reCA_system.set_config(reCA_config)
-            reCA_system.initialize_rc()
-            reCA_system.tackle_ReCA_problem()
-
-            reCA_out = reCA_system.test_on_problem()
-            fitness += int((reCA_out.total_correct/len(reCA_out.all_test_examples))*1000)
-
-        #pseudo_lambda = self.calculate_pseudo_lambda(individual.phenotype.non_uniform_config)
-        #fitness += pseudo_lambda
-        fitness = 1 if fitness == 0 else fitness//self.test_per_ind
-        individual.fitness = fitness
-
-        making_sure_fitness = 0
-        if fitness > 1000:
-            print("\n"+"Investigating fitness! " + str(individual))
-            making_sure_tests = 10
-            for _ in range(making_sure_tests):
-                data_interpreter = self.open_data_interpreter("5bit", test_ex=32)
-                reCA_problem = reCA.ReCAProblem(data_interpreter)
-                reCA_config = reCA.ReCAConfig()
-
-                reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
-
-                reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, R=self.R, C=self.C, I=self.I,
-                                                      classifier="perceptron_sgd")
-                reCA_system = reCA.ReCASystem()
-
-                reCA_system.set_problem(reCA_problem)
-                reCA_system.set_config(reCA_config)
-                reCA_system.initialize_rc()
-                reCA_system.tackle_ReCA_problem()
-
-                reCA_out = reCA_system.test_on_problem()
-                making_sure_fitness += int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000)
-            making_sure_fitness = making_sure_fitness//making_sure_tests
-            individual.fitness = making_sure_fitness
-
-        print("Finished testing fitness. Time: " + str((time.time()-before_tesing)))
-        return individual
+        return fitness_test_worker(individual, R=self.R, C=self.C, I=self.I)
 
     def calculate_pseudo_lambda(self, rule_set):
         ca_simulator = ca.ElemCAReservoir()
@@ -225,15 +231,6 @@ class NonUniCAProblem(evoalg.EAProblem):
     def get_initial_population(self):
         return [NonUniCAIndividual(ca_size=self.ca_size, allowed_number_of_rules=self.allowed_number_of_rules) for _ in range(self.init_pop_size)]
 
-    def open_data_interpreter(self, type_of_interpreter, test_ex=32):
-        if type_of_interpreter == "europarl":
-            return data_int.TranslationBuilder()
-
-        elif type_of_interpreter == "5bit":
-            return data_int.FiveBitBuilder(test_ex=test_ex)
-
-        elif type_of_interpreter == "20bit":
-            return data_int.TwentyBitBuilder()
 
     def fitness_threshold(self, *args):
         fitness = args[0]
@@ -244,7 +241,6 @@ class NonUniCAProblem(evoalg.EAProblem):
 
     def __str__(self):
         return self.name
-
 
 
 

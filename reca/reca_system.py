@@ -208,6 +208,7 @@ class ReCAProblem:
         self.is_dynamic_sequence = False
         self.training_data = []
         self.testing_data = []
+        self.input_size = 0
 
 
         self.initialize_data(data_interpreter)
@@ -260,7 +261,7 @@ class ReCAProblem:
         random.shuffle(self.training_data)
         random.shuffle(self.testing_data)
 
-
+        self.input_size = self.get_input_size()
 
 
 
@@ -314,6 +315,8 @@ class ReCAConfig(rc_if.ExternalRCConfig):
             self.time_transition = time_trans.RandomPermutationTransition()
         elif time_transition == "xor":
             self.time_transition = time_trans.XORTimeTransition()
+        elif time_transition == "or":
+            self.time_transition = time_trans.ORTimeTransition()
     def set_uniform_config(self, ca_rule=105, R=4, C=3, I=12, classifier="linear-svm",
                                     encoding="random_mapping", time_transition="random_permutation"):
         # sets up elementary CA:
@@ -387,7 +390,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         elif time_transition == "xor":
             self.time_transition = time_trans.XORTimeTransition()
 
-    def set_uniform_margem_config(self, rule=90, R_i=4, R=20, I=4, classifier="linear-svm", time_transition="xor"):
+    def set_uniform_margem_config(self, rule_scheme=None,N=4, R_i=4, R=20, I=4, classifier="perceptron_sgd-svm", time_transition="xor"):
         """
 
         :param rule:
@@ -398,11 +401,13 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         :param time_transition:
         :return:
         """
-        print("Running rotation with values: rule: " + str(rule) + ", R_i: " + str(R_i) + ", R:" + str(R), "I: " +str(I))
+        print("Running rotation with values: rule: " + str("unkn. ") + ", R_i: " + str(R_i) + ", R:" + str(R), "I: " +str(I))
+        ca_size = N * R_i + R*2  # Used to create rule scheme
         # sets up elementary CA:
         before_time = time.time()
-        self.reservoir = ca.ElemCAReservoir()
-        self.reservoir.set_rules(rule)
+        self.reservoir = ca.ElemCAReservoir(ca_size)
+        self.reservoir.set_rule_config(rule_scheme)
+        #self.reservoir.set_rules(rule)
         #self.reservoir.set_uniform_rule(rule)
 
 
@@ -425,16 +430,25 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         self.encoder.R_i = R_i
         self.I = I
 
-        if time_transition=="normalized_addition":
+        if time_transition == "normalized_addition":
             self.time_transition = time_trans.RandomAdditionTimeTransition()
         elif time_transition == "random_permutation":
             self.time_transition = time_trans.RandomPermutationTransition()
         elif time_transition == "xor":
             self.time_transition = time_trans.XORTimeTransition()
+        elif time_transition == "or":
+            self.time_transition = time_trans.ORTimeTransition()
+        elif time_transition == "and":
+            self.time_transition = time_trans.ANDTimeTransition()
+        elif time_transition == "nand":
+            self.time_transition = time_trans.NANDTimeTransition()
 class ReCAruleConfig:
     def __init__(self, uniform_rule=None, non_uniform_list=None, non_uniform_individual=None):
         self.uniform = False
         self.non_uniform_list = False
+        self.dynamic = False
+        self.uniform = False
+        self.non_uniform = False
         self.dynamic = False
         if uniform_rule is not None:
             self.uniform = True
@@ -444,14 +458,18 @@ class ReCAruleConfig:
             self.rule_list = non_uniform_list
         elif non_uniform_individual is not None:
             self.dynamic = True
+            self.non_uni_ca_ind = non_uniform_individual
 
     def get_scheme(self, size):
         if self.uniform:
             return [self.uniform_rule for _ in range(size)]
         elif self.non_uniform:
             return self.rule_list
-        self.non_uni_ca_ind.develop(size)
-        return self.non_uni_ca_ind.non_uniform_scheme
+        elif self.dynamic:
+            self.non_uni_ca_ind.develop(size)
+            return self.non_uni_ca_ind.phenotype.non_uniform_config
+        else:
+            raise ValueError
 
 
 

@@ -65,3 +65,36 @@ class XORTimeTransition:
         transmitted_output = np.bitwise_xor(transmission_input, _input)
         return transmitted_output
 
+class ORTimeTransition:
+    def __init__(self):
+        self.previous_inputs = {} # dict to contains the previous inputs to .....
+
+    def join(self, _input, transition_input, encoder):
+        return self._or(transition_input, _input)
+
+    def _or(self, transmission_input, _input):
+        transmitted_output = np.bitwise_or(transmission_input, _input)
+        return transmitted_output
+
+class ANDTimeTransition:
+    def __init__(self):
+        self.previous_inputs = {} # dict to contains the previous inputs to .....
+
+    def join(self, _input, transition_input, encoder):
+        return self._and(transition_input, _input)
+
+    def _and(self, transmission_input, _input):
+        transmitted_output = np.bitwise_and(transmission_input, _input)
+        return transmitted_output
+
+class NANDTimeTransition:
+    def __init__(self):
+        self.previous_inputs = {} # dict to contains the previous inputs to .....
+
+    def join(self, _input, transition_input, encoder):
+        return self.nand(transition_input, _input)
+
+    def nand(self, transmission_input, _input):
+        transmitted_output = np.bitwise_and(transmission_input, _input)
+        transmitted_output = np.bitwise_not(transmitted_output)
+        return transmitted_output

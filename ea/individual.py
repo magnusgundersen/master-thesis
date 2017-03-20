@@ -30,9 +30,6 @@ class Genotype:
 
         self.representation = None
 
-    def get_representation(self):
-        raise NotImplementedError("[Genotype] Please implement this method: __get_representation")
-
     def init_first_genotype(self):
         """
         this is for initializing the initial population

@@ -25,7 +25,10 @@ import numpy as np
 import json
 import gui.graphic_vis as visual
 
+# Global variables
+file_location = os.path.dirname(os.path.realpath(__file__))
 
+# Workers:
 def open_data_interpreter(type_of_interpreter, **kwargs):
     if type_of_interpreter == "europarl":
         return data_int.TranslationBuilder()
@@ -34,10 +37,13 @@ def open_data_interpreter(type_of_interpreter, **kwargs):
         distractor_period = kwargs.get("distractor_period") if kwargs.get('distractor_period') is not None else 10
         training_ex = kwargs.get("training_ex") if kwargs.get('training_ex') is not None else 32
         testing_ex = kwargs.get("testing_ex") if kwargs.get('testing_ex') is not None else 32
-        return data_int.FiveBitBuilder(distractor_period, training_ex=training_ex, test_ex=testing_ex)
+        return data_int.FiveBitBuilder(distractor_period, training_ex=training_ex, testing_ex=testing_ex)
 
     elif type_of_interpreter == "20bit":
-        return data_int.TwentyBitBuilder()
+        distractor_period = kwargs.get("distractor_period") if kwargs.get('distractor_period') is not None else 10
+        training_ex = kwargs.get("training_ex") if kwargs.get('training_ex') is not None else 120
+        testing_ex = kwargs.get("testing_ex") if kwargs.get('testing_ex') is not None else 100
+        return data_int.TwentyBitBuilder(distractor_period, training_ex=training_ex, testing_ex=testing_ex)
 
 def run_five_bit(data_interpreter, rci_value, classifier, rule=90):
     data_interpreter = open_data_interpreter(type_of_interpreter="5bit", distractor_period=200)
@@ -45,7 +51,7 @@ def run_five_bit(data_interpreter, rci_value, classifier, rule=90):
     reCA_config = reCA.ReCAConfig()
     reCA_rule_scheme = reCA.ReCAruleConfig(uniform_rule=rule)
     reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, R=rci_value[0], C=rci_value[1], I=rci_value[2],
-                                          classifier=classifier, time_transition="xor")
+                                          classifier=classifier, time_transition="or")
     reCA_system = reCA.ReCASystem()
     reCA_system.set_problem(reCA_problem)
     reCA_system.set_config(reCA_config)
@@ -66,7 +72,7 @@ def run_non_uniform_five_bit(data_interpreter, rci_value, classifier, rule_schem
 
     reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme,
                                           R=rci_value[0], C=rci_value[1], I=rci_value[2],
-                                          classifier="perceptron_sgd", time_transition="xor")
+                                          classifier="perceptron_sgd", time_transition="or")
     reCA_system = reCA.ReCASystem()
 
     reCA_system.set_problem(reCA_problem)
@@ -80,6 +86,8 @@ def run_non_uniform_five_bit(data_interpreter, rci_value, classifier, rule_schem
     result =  int((reCA_out.total_correct/len(reCA_out.all_test_examples))*1000)
     return result
 
+
+# Classes:
 class Project:
     """
     Contains all tasks and functionality specifically to the specialization project.
@@ -178,21 +186,26 @@ class Project:
         visual.visualize_example_run(outputs)
 
     def five_bit_task(self):
-        data_interpreter = self.open_data_interpreter("5bit", distractor_period=200, training_ex=1, testing_ex=1)
+        data_interpreter = open_data_interpreter("5bit", distractor_period=10, training_ex=1, testing_ex=1)
         reCA_problem = reCA.ReCAProblem(data_interpreter)
         reCA_config = reCA.ReCAConfig()
-        size = 100*4
-        rule_list = []
-        avail_rules = [110,1, 90,1]
-        no_rules = 4
-        for i in range(no_rules):
-            rule = random.randint(0,255)
-            rule = avail_rules[i]
-            rule_list.extend([rule for _ in range(size//no_rules)])
-        rule_list = [89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122]
+
+        #size = 100*4
+        #rule_list = []
+        #avail_rules = [110,1, 90,1]
+        #no_rules = 4
+        #for i in range(no_rules):
+        #    rule = random.randint(0,255)
+        #    rule = avail_rules[i]
+        #    rule_list.extend([rule for _ in range(size//no_rules)])
+        #rule_list = [89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122]
+
+
+        with open(file_location+ "/../experiment_data/rules/NuniRule7869f=15.ind", "rb") as f:
+            evolved_ind = pickle.load(f)
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
-        reCA_rule = reCA.ReCAruleConfig(uniform_rule=57)
-        reCA_config.set_random_mapping_config(reCA_rule, R=100, C=1, I=4, classifier="perceptron_sgd", time_transition="xor")
+        reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+        reCA_config.set_random_mapping_config(reCA_rule, R=1000, C=1, I=4, classifier="perceptron_sgd", time_transition="xor")
         #reCA_config.set_non_uniform_config(reCA_rule, R=8, C=5, I=8, classifier="perceptron_sgd")
         #reCA_config.set_uniform_margem_config(rule=[141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18], R_i=2, R=76, I=8, classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
@@ -222,17 +235,14 @@ class Project:
         visual.visualize_example_run(outputs)
 
     def twenty_bit_task(self):
-        data_interpreter = self.open_data_interpreter("20bit")
+        data_interpreter = open_data_interpreter("20bit", distractor_period=1000, training_ex=1, testing_ex=1)
         reCA_problem = reCA.ReCAProblem(data_interpreter)
-        reCA_rule_scheme = reCA.ReCAruleConfig(1)
+        reCA_rule_scheme = reCA.ReCAruleConfig(uniform_rule=110)
         reCA_config = reCA.ReCAConfig()
-
         #reCA_config.set_non_uniform_config(reCA_rule_scheme)
-        reCA_config.set_uniform_margem_config()
+        #reCA_config.set_random_mapping_config(reCA_rule_scheme, N=reCA_problem.input_size, R=400, C=1, I=16, classifier="perceptron_sgd", time_transition="or")
+        reCA_config.set_uniform_margem_config(reCA_rule_scheme, N=reCA_problem.input_size, R=(2*(1000+10+10)), R_i=2, I=2, classifier="perceptron_sgd", time_transition="xor")
         reCA_system = reCA.ReCASystem()
-
-
-
 
         reCA_system.set_problem(reCA_problem)
         reCA_system.set_config(reCA_config)
@@ -260,24 +270,13 @@ class Project:
     def visualise_example(self, training_array):
         bviz.visualize(training_array)
 
-    def open_data_interpreter(self, type_of_interpreter, **kwargs):
-        if type_of_interpreter == "europarl":
-            return data_int.TranslationBuilder()
-
-        elif type_of_interpreter == "5bit":
-            distractor_period = kwargs.get("distractor_period") if kwargs.get('distractor_period') is not None else 10
-            training_ex = kwargs.get("training_ex") if kwargs.get('training_ex') is not None else 32
-            testing_ex = kwargs.get("testing_ex") if kwargs.get('testing_ex') is not None else 32
-            return data_int.FiveBitBuilder(distractor_period, training_ex=training_ex, test_ex=testing_ex)
-
-        elif type_of_interpreter == "20bit":
-            return data_int.TwentyBitBuilder()
 
     def test_rules(self, uni_rules, non_uni_rules):
         Rs= [100]
         C = 1
         I = 4
         RCI_values_r_change = [(x, C, I) for x in Rs]
+        print(non_uni_rules)
         print("testing rules")
         RCI_values = RCI_values_r_change
         #RCI_values = [(1,1,1)]
@@ -295,7 +294,7 @@ class Project:
             r_list = []
             for rci_value in RCI_values:
 
-                data_interpreter = self.open_data_interpreter("5bit", distractor_period=200)
+                data_interpreter = self.open_data_interpreter("5bit", distractor_period=10)
                 with multiprocessing.Pool(threads) as p:
                     results = p.starmap(run_five_bit,
                                         [(data_interpreter, rci_value, "perceptron_sgd", rule) for _ in range(number_of_tests)])
@@ -316,7 +315,7 @@ class Project:
                 rule_scheme = nuni_rule_rs.get(R)
 
                 non_uni_size = len(set(rule_scheme))
-                data_interpreter = self.open_data_interpreter("5bit", distractor_period=200)
+                data_interpreter = self.open_data_interpreter("5bit", distractor_period=10)
                 with multiprocessing.Pool(threads) as p:
                     results = p.starmap(run_non_uniform_five_bit,
                                         [(data_interpreter, rci_value, "perceptron_sgd", rule_scheme) for _ in
@@ -339,55 +338,29 @@ class Project:
         visual.create_graph_from_jsonconfig(file_location + "/../experiment_data/rule_testing/full_plotconfig.json", Rs)
 
 
-    def evolve_non_uniform_ca(self):
-        #, CA_config=, state_name, pop_size, max_gens, mut_rate, crossover_rate, tournament_size
+    def evolve_and_test_non_uni_ca(self):
+        # , CA_config=, state_name, pop_size, max_gens, mut_rate, crossover_rate, tournament_size
         C = 1
-        Rs = [100]
+        Rs = [128]
         I = 4
-        N = 4  # For 5-bit task. DO NOT CHANGE
-
-        file_location = os.path.dirname(os.path.realpath(__file__))
-        pop_size = 8 * 3  # Adapt to number of cores
-        max_no_generations = 100
-        tests_per_individual = 1
-        number_of_rules_list = [10]
+        N = 4  #
+        pop_size = 7*2  # Adapt to number of cores
+        max_no_generations = 1000
+        tests_per_individual = 4
+        number_of_rules_list = [6]
         print_est = False
         before = time.time()
         for number_of_rules in number_of_rules_list:
             for R in Rs:
-                ca_size = C * R * N
-                nonUniCAprob = ea_ca.NonUniCAProblem(R=R, I=I, C=C, fitness_threshold=1000, init_pop_size=pop_size,
-                                               max_number_of_generations=max_no_generations,
-                                               allowed_number_of_rules=number_of_rules, ca_size=ca_size,
-                                               test_per_ind=tests_per_individual)
-                ea = evoalg.EA()
+                ca_config = {
+                    "N": N,
+                    "R": R,
+                    "I": I,
+                    "C": C,
 
-                ea_output = ea.solve(nonUniCAprob, saved_state=True)
-
-                # pickle.dump(ea_output, open("ea.pkl", "wb"))
-                run_name = "earun_R" + str(R) + "C" + str(C) + "I" + str(I) + \
-                           "_rules" + str(number_of_rules) + "_popsize" + str(pop_size) + \
-                           "_gens" + str(max_no_generations)
-
-                pickle.dump(ea_output, open(file_location + "/../experiment_data/ea_runs/" + run_name + ".pkl", "wb"))
-                best_individual = ea_output.best_individual
-                best_individ_scheme = best_individual.phenotype.non_uniform_config
-                non_uni_rule_serialize = {}
-                non_uni_rule_serialize["full_size_rule_list"] = best_individ_scheme
-                non_uni_rule_serialize["raw rule"] = best_individual.genotype.rule_scheme
-                ea_data = {"R": R, "C": C, "I": I, "N": N,
-                           "ca size": ca_size,
-                           "popsize": pop_size,
-                           "max_gens": max_no_generations,
-                           "test per ind": tests_per_individual,
-                           "allowed number of rules": number_of_rules,
-                           }
-                non_uni_rule_serialize["ea_data"] = ea_data
-
-                with open(file_location + "/../experiment_data/ea_runs/" + run_name + "JSON.json", "w") as outfile:
-                    json.dump(non_uni_rule_serialize, outfile)
-
-                visual.make_fitnessgraph(ea_output, run_name)
+                }
+                self.evolve_non_uniform_ca(ca_config, pop_size=pop_size, max_generations=max_no_generations, allowed_distinct_rules=number_of_rules, tests_per_ind=tests_per_individual,
+                                           fitness_threshold_value=1000)
             if print_est:
                 ts = time.time()
                 print("Time now : " + str(datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')))
@@ -395,47 +368,55 @@ class Project:
                 print("Total time est.: " + str((ts - before) * (len(number_of_rules_list))))
                 print("Time est. left : " + str((ts - before) * (len(number_of_rules_list) - 1)))
                 print_est = False
-            test_all_rules()
+            #test_all_rules()
 
         print("Actual time usage (ea evolve): " + str(time.time() - before))
 
-    def classifier_testing(self):
-        classifiers = ["linear-svm", "perceptron_sgd"]
-        RCI_values_some = [(4,4,4),(4,10,2)]
-        RCI_values_r_change = [(x,5,2) for x in [2,4,6,8]]
+    def evolve_non_uniform_ca(self, ca_config,
+                              pop_size=14, max_generations=1000, allowed_distinct_rules=8,
+                              tests_per_ind=6, fitness_threshold_value=1000):
+
+        nonUniCAprob = ea_ca.NonUniCAProblem(ca_config, fitness_threshold=fitness_threshold_value, init_pop_size=pop_size,
+                                             max_number_of_generations=max_generations,
+                                             allowed_number_of_rules=allowed_distinct_rules,
+                                             test_per_ind=tests_per_ind)
+        ea = evoalg.EA()
+
+        ea_output = ea.solve(nonUniCAprob, saved_state=False)
+
+        # pickle.dump(ea_output, open("ea.pkl", "wb"))
+        run_name = "earun_R" + str(ca_config.get("R")) + "C" + str(ca_config.get("C")) + "I" + str(ca_config.get("I")) + \
+                   "_rules" + str(allowed_distinct_rules) + "_popsize" + str(pop_size) + \
+                   "_gens" + str(max_generations)
+
+        pickle.dump(ea_output, open(file_location + "/../experiment_data/ea_runs/" + run_name + ".ea_output", "wb"))
+        best_individual = ea_output.best_individual
+        best_individ_scheme = best_individual.phenotype.non_uniform_config
+        print(best_individual.serialize())
+        non_uni_rule_serialize = {}
+        non_uni_rule_serialize["full_size_rule_list"] = best_individ_scheme
+        non_uni_rule_serialize["raw rule"] = best_individual.genotype.rule_scheme
+        ea_data = {"ca_config": ca_config,
+                   "popsize": pop_size,
+                   "max_gens": max_generations,
+                   "test per ind": tests_per_ind,
+                   "allowed number of rules": allowed_distinct_rules,
+                   }
+        non_uni_rule_serialize["ea_data"] = ea_data
+
+        with open(file_location + "/../experiment_data/rules/" + run_name + "JSON.json", "w") as outfile:
+            json.dump(non_uni_rule_serialize, outfile, sort_keys = True, indent = 4)
+        with open(file_location + "/../experiment_data/rules/" + str(best_individual) + ".ind", "wb") as outfile:
+            pickle.dump(best_individual, outfile)
+        visual.make_fitnessgraph(ea_output, run_name)
 
 
-        RCI_values = RCI_values_r_change
-        #RCI_values = [(1,1,1)]
-        distractor_periods = [10, 50, 100, 200]
-        distractor_periods = [10, 25, 50]
-        threads = 3
-        number_of_tests = threads*10
-
-        plotconfigs = {}
-        plotlabels = []
-
-
-        for rci_value in RCI_values:
-            classifier_dict = {}
-            for classifier in classifiers:
-                plotlabels.append(classifier)
-                distactor_dict = {}
-                for distractor_period in distractor_periods:
-                    data_interpreter = self.open_data_interpreter("5bit", distractor_period)
-                    with multiprocessing.Pool(threads) as p:
-                        results = p.starmap(run_five_bit, [(data_interpreter, rci_value, classifier) for _ in range(number_of_tests)])
-
-                    distactor_dict[distractor_period] = int(np.mean(results))
-                classifier_dict[classifier] = distactor_dict
-            plotconfigs["R=" + str(rci_value[0])] = classifier_dict
-
-        print(plotconfigs)
-        self.create_graph_from_plotconfig(plotconfigs, plotlabels)
 
 
 def test_all_rules():
     uni_rules = [89, 149, 151, 57, 133, 196, 101, 120, 20, 122]
+    uni_rules = [90, 110, 150]
+    #uni_rules = [i for i in range(256)]
 
     json_rule_files = []
     file_location = os.path.dirname(os.path.realpath(__file__))
