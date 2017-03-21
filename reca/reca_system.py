@@ -418,6 +418,8 @@ class ReCAConfig(rc_if.ExternalRCConfig):
             self.classifier = scikit_clfs.SVM()
         elif classifier =="perceptron_sgd":
             self.classifier = scikit_clfs.SGD()
+        elif classifier == "random_forest":
+            self.classifier = scikit_clfs.RandomForest()
         elif classifier =="linear_regression":
             self.classifier = scikit_clfs.LinReg()
         elif classifier =="tlf_ann":

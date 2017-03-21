@@ -230,13 +230,15 @@ class RCOutput:
     def set_states(self, all_states, transitioned_state):
         self.list_of_states = all_states
         self.transitioned_state = transitioned_state
-        self.flattened_states = np.concatenate(all_states[-4:-1]).ravel()
+        #self.flattened_states = np.concatenate(all_states[-4:-1]).ravel()
+        self.flattened_states = np.concatenate(all_states)
         #self.flattened_states = all_states[1:-1]
 
 
 
     def classifier_output(self):
-        return self.flattened_states[::2]
+        #return self.flattened_states[::2]
+        return self.flattened_states
 
 
 

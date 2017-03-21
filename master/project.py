@@ -186,7 +186,7 @@ class Project:
         visual.visualize_example_run(outputs)
 
     def five_bit_task(self):
-        data_interpreter = open_data_interpreter("5bit", distractor_period=10, training_ex=1, testing_ex=1)
+        data_interpreter = open_data_interpreter("5bit", distractor_period=200, training_ex=32, testing_ex=32)
         reCA_problem = reCA.ReCAProblem(data_interpreter)
         reCA_config = reCA.ReCAConfig()
 
@@ -201,11 +201,12 @@ class Project:
         #rule_list = [89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122]
 
 
-        with open(file_location+ "/../experiment_data/rules/NuniRule7869f=15.ind", "rb") as f:
+        with open(file_location+ "/../experiment_data/rules/NuniRule6061_f=968.ind", "rb") as f:
             evolved_ind = pickle.load(f)
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
         reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
-        reCA_config.set_random_mapping_config(reCA_rule, R=1000, C=1, I=4, classifier="perceptron_sgd", time_transition="xor")
+        #reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
+        reCA_config.set_random_mapping_config(reCA_rule, R=64, C=1, I=4, classifier="perceptron_sgd", time_transition="xor")
         #reCA_config.set_non_uniform_config(reCA_rule, R=8, C=5, I=8, classifier="perceptron_sgd")
         #reCA_config.set_uniform_margem_config(rule=[141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18], R_i=2, R=76, I=8, classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
@@ -235,13 +236,21 @@ class Project:
         visual.visualize_example_run(outputs)
 
     def twenty_bit_task(self):
-        data_interpreter = open_data_interpreter("20bit", distractor_period=1000, training_ex=1, testing_ex=1)
+        """
+        A run of the 20-bit task
+        :return:
+        """
+        before = time.time()
+        data_interpreter = open_data_interpreter("20bit", distractor_period=10, training_ex=120, testing_ex=20)
         reCA_problem = reCA.ReCAProblem(data_interpreter)
-        reCA_rule_scheme = reCA.ReCAruleConfig(uniform_rule=110)
+        with open(file_location + "/../experiment_data/rules/NuniRule6061_f=968.ind", "rb") as f:
+            evolved_ind = pickle.load(f)
+        #reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
+        reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
         reCA_config = reCA.ReCAConfig()
         #reCA_config.set_non_uniform_config(reCA_rule_scheme)
-        #reCA_config.set_random_mapping_config(reCA_rule_scheme, N=reCA_problem.input_size, R=400, C=1, I=16, classifier="perceptron_sgd", time_transition="or")
-        reCA_config.set_uniform_margem_config(reCA_rule_scheme, N=reCA_problem.input_size, R=(2*(1000+10+10)), R_i=2, I=2, classifier="perceptron_sgd", time_transition="xor")
+        reCA_config.set_random_mapping_config(reCA_rule, N=reCA_problem.input_size, R=128, C=1, I=4, classifier="perceptron_sgd", time_transition="xor")
+        #reCA_config.set_uniform_margem_config(reCA_rule, N=reCA_problem.input_size, R=(20*(10+10+10)), R_i=2, I=20, classifier="perceptron_sgd", time_transition="xor")
         reCA_system = reCA.ReCASystem()
 
         reCA_system.set_problem(reCA_problem)
@@ -251,6 +260,7 @@ class Project:
 
 
         reCA_out = reCA_system.test_on_problem()
+        print("time usage: " + str(time.time()- before))
         print(str(reCA_out.total_correct) + " of " + str(len(reCA_out.all_test_examples)))
         print("--example--")
         example_run = reCA_out.all_predictions[0]
@@ -341,12 +351,12 @@ class Project:
     def evolve_and_test_non_uni_ca(self):
         # , CA_config=, state_name, pop_size, max_gens, mut_rate, crossover_rate, tournament_size
         C = 1
-        Rs = [128]
+        Rs = [32]
         I = 4
         N = 4  #
         pop_size = 7*2  # Adapt to number of cores
         max_no_generations = 1000
-        tests_per_individual = 4
+        tests_per_individual = 6
         number_of_rules_list = [6]
         print_est = False
         before = time.time()
@@ -360,7 +370,7 @@ class Project:
 
                 }
                 self.evolve_non_uniform_ca(ca_config, pop_size=pop_size, max_generations=max_no_generations, allowed_distinct_rules=number_of_rules, tests_per_ind=tests_per_individual,
-                                           fitness_threshold_value=1000)
+                                           fitness_threshold_value=950)
             if print_est:
                 ts = time.time()
                 print("Time now : " + str(datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')))
@@ -382,7 +392,7 @@ class Project:
                                              test_per_ind=tests_per_ind)
         ea = evoalg.EA()
 
-        ea_output = ea.solve(nonUniCAprob, saved_state=False)
+        ea_output = ea.solve(nonUniCAprob, saved_state=True)
 
         # pickle.dump(ea_output, open("ea.pkl", "wb"))
         run_name = "earun_R" + str(ca_config.get("R")) + "C" + str(ca_config.get("C")) + "I" + str(ca_config.get("I")) + \

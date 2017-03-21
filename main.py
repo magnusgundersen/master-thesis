@@ -32,9 +32,9 @@ def main(argv):
 
 
     #before = time.time()
-    #print(p.five_bit_task())
+    p.five_bit_task()
     #print(project.test_all_rules())
-    print(p.evolve_and_test_non_uni_ca())
+    #print(p.evolve_and_test_non_uni_ca())
     #print(p.europarl_translation_task())
     #print(p.twenty_bit_task())
     #print(p.classifier_testing())
