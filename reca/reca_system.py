@@ -12,7 +12,7 @@ from reca import encoder as enc
 from reca import time_transition_function as time_trans
 import random
 import time
-
+import pprint
 
 class ReCASystem:
     """
@@ -61,9 +61,49 @@ class ReCASystem:
         self.rc_framework.train_classifier()
 
 
+    def test_semi_dynamic_sequence_data(self):
+        """
+                :return:
 
+                """
+        if self.reCA_problem is None:
+            raise ValueError("No reCAProblem set!")
 
-    def test_on_dynamic_sequence_data(self):
+        reCA_output = ReCAOutput()
+        reCA_output.reCA_config = self.reCA_config
+
+        # divide testing data:
+        test_data = self.reCA_problem.testing_data
+        reCA_output.all_test_examples = test_data
+
+        number_of_correct = 0
+
+        for test_ex in test_data:
+            #  We now have a timeseries of data, on which the rc-framework must be fitted
+            input_X = test_ex[0]
+            output_Y = test_ex[1]
+            outputs = self.rc_framework.predict(input_X)
+            reCA_output.all_RCOutputs.append(outputs)
+            pointer = 0
+            all_correct = True
+            predictions = []
+            for output in output_Y:
+                predictions.append(outputs[pointer])
+                if output != outputs[pointer]:
+                    #print("WRONG: " + str(output) + str( "  ") + str(outputs[pointer]))
+                    all_correct = False
+                pointer += 1
+            reCA_output.all_predictions.append(predictions)
+
+            if all_correct:
+                number_of_correct += 1
+
+        # print("Number of correct: " + str(number_of_correct) +" of " + str(len(test_data)))
+
+        reCA_output.total_correct = number_of_correct
+        return reCA_output
+
+    def test_fully_dynamic_sequence_data(self):
         """
                 :return:
 
@@ -390,7 +430,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         elif time_transition == "xor":
             self.time_transition = time_trans.XORTimeTransition()
 
-    def set_uniform_margem_config(self, rule_scheme=None,N=4, R_i=4, R=20, I=4, classifier="perceptron_sgd-svm", time_transition="xor"):
+    def set_uniform_margem_config(self, rule_scheme=None,N=4, R_i=4, R=20, I=4, classifier="perceptron_sgd", time_transition="xor"):
         """
 
         :param rule:

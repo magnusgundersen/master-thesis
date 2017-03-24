@@ -88,8 +88,6 @@ class ReservoirComputingFramework:
         return rc_outputs
 
     def train_classifier(self):
-
-
         self.classifier.fit(self.classifier_input_set, self.classifier_output_set)
 
     def predict(self, input_X):

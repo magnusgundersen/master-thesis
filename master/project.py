@@ -45,6 +45,9 @@ def open_data_interpreter(type_of_interpreter, **kwargs):
         testing_ex = kwargs.get("testing_ex") if kwargs.get('testing_ex') is not None else 100
         return data_int.TwentyBitBuilder(distractor_period, training_ex=training_ex, testing_ex=testing_ex)
 
+    elif type_of_interpreter == "japanese_vowels":
+        return data_int.JapaneseVowelsBuilder()
+
 def run_five_bit(data_interpreter, rci_value, classifier, rule=90):
     data_interpreter = open_data_interpreter(type_of_interpreter="5bit", distractor_period=200)
     reCA_problem = reCA.ReCAProblem(data_interpreter)
@@ -180,6 +183,55 @@ class Project:
             print("Input: " + _input + "  Correct: " + str(correct) + "  Predicted:" + str(prediction))
 
         print("Predicted sentence:" + data_interpreter.convert_from_bit_sequence_to_string(raw_predictions, "german"))
+
+        # Visualize:
+        outputs = reCA_system.get_example_run()
+        visual.visualize_example_run(outputs)
+
+
+    def japanese_vowels(self):
+
+        # Currently only german is implemented
+        #translation_data = self.open_temporal_data("en-de.data")
+        data_interpreter = open_data_interpreter("japanese_vowels")
+
+        # reca_prob
+        reCA_problem = reCA.ReCAProblem(data_interpreter)
+        reCA_config = reCA.ReCAConfig()
+        #reCA_config.set_single_reservoir_config(ca_rule=90, R=2, C=3, I=16, classifier="linear-svm",
+        #                                        encoding="random_mapping",
+        #                                        time_transition="random_permutation")
+        reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
+        #reCA_config.set_uniform_margem_config(rule_scheme=reCA_rule, N=14*2, R=120, R_i=40, I=8)
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=8, C=4, I=4, classifier="linear-svm")
+        #reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=64, C=1, I=4, time_transition="xor", classifier="perceptron_sgd")
+        reCA_system = reCA.ReCASystem()
+
+        reCA_system.set_problem(reCA_problem)
+        reCA_system.set_config(reCA_config)
+        reCA_system.initialize_rc()
+        reCA_system.tackle_ReCA_problem()
+
+        #return
+
+        reCA_out = reCA_system.test_semi_dynamic_sequence_data()  # tested on the test-set
+
+
+        print(str(reCA_out.total_correct) + " of " + str(len(reCA_out.all_test_examples)))
+        print("--example--")
+        example_run = reCA_out.all_predictions[0]
+        example_test = reCA_out.all_test_examples[0]
+        #print("ex run:"+str(example_run))
+        raw_predictions = []
+        for i in range(len(example_run)):
+            time_step = example_run[i]
+            prediction = time_step[0]
+            raw_predictions.append(prediction)
+            correct = example_test[1][i]
+            _input = "".join([str(x) for x in example_test[0][i]])
+            print("Input: " + _input + "  Correct: " + str(correct) + "  Predicted:" + str(prediction))
+
+        #print("Predicted sentence:" + data_interpreter.convert_from_bit_sequence_to_string(raw_predictions, "german"))
 
         # Visualize:
         outputs = reCA_system.get_example_run()

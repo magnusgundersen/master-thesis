@@ -2,6 +2,7 @@
 import pickle
 import numpy as np
 import os
+import random
 import pprint
 import xml.etree.ElementTree as ET
 import scipy.sparse as sprs
@@ -9,6 +10,8 @@ import scipy.io as sci_io
 #from speech import Speech, SpeakerStatistics, SpeakerStatisticsCollection
 from PIL import Image
 #import Image
+file_location = os.path.dirname(os.path.realpath(__file__))
+
 class TranslationBuilder:
     def __init__(self):
         """
@@ -34,7 +37,7 @@ class TranslationBuilder:
         self.language = "german"  #ONLY ONE IMPLEMENTED
 
     def get_training_data(self):
-        file_location = os.path.dirname(os.path.realpath(__file__))
+
         if self.language == "german":
             dataset = []  #
             batches_location = file_location + "/translation/en-de/"
@@ -183,10 +186,6 @@ class TranslationBuilder:
         #print(translation_data.shape)
         #pickle.dump(translation_data, open('save.p', 'wb'))
 
-
-
-
-
     def create_bin_data(self, source_sentence, source_alphabet, target_sentence, target_alphabet):
         sequence_length = len(source_sentence) + len(target_sentence) + 1  # : +1: prediction end signal
         source_array = np.zeros((sequence_length, len(source_alphabet)+1), dtype="uint8")  # + 1: end of source sentence
@@ -222,7 +221,6 @@ class TranslationBuilder:
         #print(target_array.shape)
 
         return source_array, target_array
-
 
 
 class CIFARBuilder:
@@ -275,8 +273,6 @@ class FiveBitBuilder:
         self.no_testing_ex = testing_ex
 
     def get_training_data(self):
-        file_location = os.path.dirname(os.path.realpath(__file__))
-
         dataset = []
         with open(file_location+"/5bit/5_bit_" + str(self.dist_period) + "_dist_32", "r") as f:
             content = f.readlines()
@@ -296,8 +292,6 @@ class FiveBitBuilder:
 
 
     def get_testing_data(self):
-        file_location = os.path.dirname(os.path.realpath(__file__))
-
         dataset = []
         with open(file_location+"/5bit/5_bit_" + str(self.dist_period) + "_dist_32", "r") as f:
             content = f.readlines()
@@ -315,7 +309,6 @@ class FiveBitBuilder:
 
         dataset = dataset[(32-self.no_testing_ex):]
         return dataset
-
 
 
 class TwentyBitBuilder:
@@ -363,10 +356,171 @@ class TwentyBitBuilder:
                     training_ouputs.append(_output[0:-1])  # class is text
         return dataset
 
-if __name__ == "__main__":
-    translator = TranslationBuilder()
-    #translator.create_efficient_data_to_file()
-    translator.generate_translation_data()
 
+class JapaneseVowelsBuilder:
+    def __init__(self):
+        pass
+
+    def read_test_and_train_files(self):
+        training_set = []
+        testing_set = []
+
+        with open(file_location +"/japanese_vowels/size_ae.train", "r") as f:
+            sizes = f.readlines()[0]
+            sizes = sizes.split(" ")
+            sizes[-1] = sizes[-1][:-1]  #RM newline
+            sizes = [int(size) for size in sizes]
+
+        with open(file_location +"/japanese_vowels/ae.train", "r") as f:
+            lines = f.readlines()
+            training_set = self._get_speaker_utterances_from_size_and_lines(lines, sizes)
+
+
+        with open(file_location +"/japanese_vowels/size_ae.test", "r") as f:
+            sizes = f.readlines()[0]
+            sizes = sizes.split(" ")
+            sizes[-1] = sizes[-1][:-1]  #RM newline
+            sizes = [int(size) for size in sizes]
+
+
+        with open(file_location +"/japanese_vowels/ae.test", "r") as f:
+            lines = f.readlines()
+            testing_set = self._get_speaker_utterances_from_size_and_lines(lines, sizes)
+
+        return training_set, testing_set
+
+    def _get_speaker_utterances_from_size_and_lines(self, lines, sizes):
+        """
+        Extracts the utterances from the nine speakers, each of the given size
+        :param lines:
+        :param sizes:
+        :return:
+        """
+        #print(lines)
+        all_lines = []
+
+        for line in lines:
+            line = line.split(" ")
+            all_lines.append(line)
+
+        all_utterances = []
+        temp_utterance = []
+        for line in all_lines:
+            #print(line)
+            if line[0] == "\n":  # newline between each utterance
+                all_utterances.append(temp_utterance)
+                temp_utterance = []
+            else:
+                temp_utterance.append(line)
+
+        #print(len(all_utterances))
+        current_point = 0
+        speaker_lines = []
+        for i in range(len(sizes)):
+
+            speaker_lines.append(all_utterances[current_point:current_point+sizes[i]])
+            current_point += sizes[i]
+
+        #print(len(speaker_lines[0]))
+        return speaker_lines
+
+
+    def _create_binary_data(self, utterance, speaker_number):
+        """
+        Uses the binarization scheme to create a training-set example
+        :param utterance: A list of numpy-arrays of size 12, and data type floats.
+        :return:
+        """
+        _input = []
+        number_of_speakers = 9
+        _output = []
+        resolution = 2
+        eos_signal = [0]*12*resolution + [1]
+        wait_signal = [0]*number_of_speakers + [1]
+        label_signal = [0]*(speaker_number) + [1] + [0]*((number_of_speakers-1)-speaker_number) + [0]
+
+
+
+        for time_step in utterance:
+
+            binary_version = [self._binarize(float_number, resolution) for float_number in time_step[:-1]] + [[0]] # Not EOS
+            binary_version = list(np.concatenate(binary_version))
+            _input.append(binary_version)
+            _output.append(wait_signal)
+
+        _input.append(eos_signal)
+        _output.append(label_signal)
+        #print(_input)
+        #_input = np.array(_input, dtype="uint8")
+        #_output = np.array(_output, dtype="uint8")
+        return _input, _output
+
+
+    def _binarize(self, input_float, resolution):
+        try:
+            input_float = float(input_float)
+        except:
+            raise ValueError("error on binarzation")
+        if input_float<-1:
+            return [0,0]
+        elif input_float<0:
+            return [0,1]
+        elif input_float<1:
+            return [1,0]
+        else:
+            return [1, 1]
+        #return [random.choice([0, 1]) for _ in range(resolution)]
+
+    def get_training_data(self):
+        training_data, _ = self.read_test_and_train_files()
+        dataset = []  #
+
+        for i in range(len(training_data)):
+            _inputs = []
+            _outputs = []
+            for utterance in training_data[i]:
+                _inputs, _outputs = self._create_binary_data(utterance, i)
+
+                string_outputs = []
+                for _output in _outputs:
+                    string_result = ""
+                    for char in _output:
+                        string_result+= str(char)
+                    string_outputs.append(string_result)
+                dataset.append((_inputs, np.array(string_outputs)))
+
+        print(len(dataset))
+
+        return dataset
+
+    def get_testing_data(self):
+        _, testing_data = self.read_test_and_train_files()
+        dataset = []  #
+
+
+        for i in range(len(testing_data)):
+            _inputs = []
+            _outputs = []
+            for utterance in testing_data[i]:
+                _inputs, _outputs = self._create_binary_data(utterance, i)
+
+                string_outputs = []
+                for _output in _outputs:
+                    string_result = ""
+                    for char in _output:
+                        string_result+= str(char)
+                    string_outputs.append(string_result)
+                dataset.append((_inputs, np.array(string_outputs)))
+
+
+        return dataset
+
+if __name__ == "__main__":
+    #translator = TranslationBuilder()
+    #translator.create_efficient_data_to_file()
+    #translator.generate_translation_data()
+    jap_vows = JapaneseVowelsBuilder()
+    #jap_vows.read_test_and_train_files()
+    print(jap_vows.get_training_data())
 #cifarB = CIFARBuilder()
 #cifarB.get_cifar_data()
