@@ -25,11 +25,15 @@ class RandomMappingEncoder(rcif.RCEncoder):
         self.unencoded_input_length = input_length
         num_list = [x for x in range(self.unencoded_input_length*self.C)]  # list of number to be shuffled
         num_list2 = num_list[:]  # copy list to have a ref to the original
+        random_mappings = False
 
-        for _ in range(self.R):
-            random.shuffle(num_list2)  # New random mapping for each R.
-            list_of_mappings.append(
-                num_list2[:self.unencoded_input_length])  # Only to the size of the input, and let there be C padding
+        if random_mappings:
+            for _ in range(self.R):
+                random.shuffle(num_list2)  # New random mapping for each R.
+                list_of_mappings.append(
+                    num_list2[:self.unencoded_input_length])  # Only to the size of the input, and let there be C padding
+        else:
+            list_of_mappings = [num_list for _ in range(self.R)]
 
 
         self.mappings = list_of_mappings

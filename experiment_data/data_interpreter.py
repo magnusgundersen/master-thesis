@@ -17,6 +17,9 @@ class TranslationBuilder:
         """
         utf-8
         """
+        self.training_set_fraction = 0.95
+        self.testing_set_fraction = 1-self.training_set_fraction
+
         self.prod_end_signal = ""
 
         self.english_alphabet = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r",
@@ -38,6 +41,64 @@ class TranslationBuilder:
 
     def get_training_data(self):
 
+        data_set = []
+        eng_lines, ger_lines = (self.read_translation_files("de"))
+        short_ger_lines = []
+        short_eng_lines = []
+        for i in range(len(ger_lines)):
+            ger_line = ger_lines[i]
+            eng_line = eng_lines[i]
+            if 20 < len(ger_line) < 25:
+                short_ger_lines.append(ger_line)
+                short_eng_lines.append(eng_line)
+
+                if len(short_ger_lines) == 20000: break
+
+        for i in range(len(short_eng_lines)):
+            _inputs, _outputs = self.create_bin_data(short_eng_lines[i], self.english_allowed, short_ger_lines[i], self.german_allowed)
+            string_outputs = []
+            for _output in _outputs:
+                string_result = ""
+                for char in _output:
+                    string_result += str(char)
+                string_outputs.append(string_result)
+            #_inputs = self.binarize(_inputs)
+            data_set.append((_inputs, np.array(string_outputs)))
+
+        return data_set[:int(self.training_set_fraction*len(data_set))]
+
+    def get_testing_data(self):
+
+        data_set = []
+        eng_lines, ger_lines = (self.read_translation_files("de"))
+        short_ger_lines = []
+        short_eng_lines = []
+        for i in range(len(ger_lines)):
+            ger_line = ger_lines[i]
+            eng_line = eng_lines[i]
+            if 20 < len(ger_line) < 25:
+                short_ger_lines.append(ger_line)
+                short_eng_lines.append(eng_line)
+
+                if len(short_ger_lines) == 20000: break
+
+        for i in range(len(short_eng_lines)):
+            _inputs, _outputs = self.create_bin_data(short_eng_lines[i], self.english_allowed, short_ger_lines[i],
+                                                  self.german_allowed)
+            string_outputs = []
+            for _output in _outputs:
+                string_result = ""
+                for char in _output:
+                    string_result += str(char)
+                string_outputs.append(string_result)
+            #_inputs = self.binarize(_inputs)
+
+            data_set.append((_inputs, np.array(string_outputs)))
+
+        return data_set[int(self.training_set_fraction*len(data_set)):]
+
+    def get_training_data_old(self):
+
         if self.language == "german":
             dataset = []  #
             batches_location = file_location + "/translation/en-de/"
@@ -48,7 +109,7 @@ class TranslationBuilder:
 
             #print(lang_files)
             number_of_examples = len(lang_files)
-            number_of_examples = 5000
+            number_of_examples = 10
 
             for i in range(number_of_examples):
 
@@ -69,7 +130,7 @@ class TranslationBuilder:
         else:
             raise ValueError("Language not implemented: " + str(self.language))
 
-    def get_testing_data(self):
+    def get_testing_data_old(self):
         print("getting testing data")
         file_location = os.path.dirname(os.path.realpath(__file__))
         if self.language == "german":
@@ -115,8 +176,10 @@ class TranslationBuilder:
 
     def convert_from_bit_sequence_to_string(self, bit_sequence, language):
         sentence = ""
-
+        if len(bit_sequence)<20:
+            bit_sequence = self.unbinarize(bit_sequence)
         if language == "german":
+
             for bit_string in bit_sequence:
                 alphabet_index = 0
                 for _index in bit_string:
@@ -128,9 +191,22 @@ class TranslationBuilder:
                         break  # Found correct character
                     else:
                         alphabet_index += 1
+
+        elif language == "english":
+            for bit_string in bit_sequence:
+                alphabet_index = 0
+                for _index in bit_string:
+                    if _index == '1':  # Correct char
+                        try:
+                            sentence += self.english_allowed[alphabet_index]
+                        except:
+                            pass  # Wait or finish signal given
+                        break  # Found correct character
+                    else:
+                        alphabet_index += 1
         return sentence
 
-    def read_translation_files(self, language):
+    def read_translation_files(self, language, breakoff=False):
         file_location = os.path.dirname(os.path.realpath(__file__))
         usable_eng_lines = []
         usable_lang_lines = []
@@ -143,7 +219,6 @@ class TranslationBuilder:
             if len(lang) != len(eng):
                 raise ValueError("Both languages must have the same number of lines!")
 
-            breakoff = True
             for i in range(len(lang)):
 
                 eng_line = eng[i]
@@ -187,6 +262,9 @@ class TranslationBuilder:
         #pickle.dump(translation_data, open('save.p', 'wb'))
 
     def create_bin_data(self, source_sentence, source_alphabet, target_sentence, target_alphabet):
+        #print("source sentence; " + source_sentence)
+        #print("english allowed: " + str(self.english_allowed))
+        #print("target sentence; " + target_sentence)
         sequence_length = len(source_sentence) + len(target_sentence) + 1  # : +1: prediction end signal
         source_array = np.zeros((sequence_length, len(source_alphabet)+1), dtype="uint8")  # + 1: end of source sentence
         target_array = np.zeros((sequence_length, len(target_alphabet)+1+1), dtype="uint8")  # + 1 +1 : wait and end of sentence
@@ -195,19 +273,20 @@ class TranslationBuilder:
         for i in range(len(source_sentence)):
             for j in range(len(source_alphabet)):
                 character = source_alphabet[j]
-                if source_alphabet[j] == character.lower():
+                if source_sentence[i].lower() == character.lower():
                     source_array[i][j] = 1
                     break
-            target_array[i][-2] = 1  # wait signal
+            target_array[i][-2] = 1  # wait signal for each input-timestep
 
-
+        target_sentence_pointer = 0
         for i in range(len(source_sentence), len(source_sentence) + len(target_sentence)):
             source_array[i][-1] = 1  # source sentence ended, produce translated sentence signal
             for j in range(len(target_alphabet)):
-                character = target_alphabet[j]
+                character = target_sentence[target_sentence_pointer]
                 if target_alphabet[j] == character.lower():
                     target_array[i][j] = 1
                     break
+            target_sentence_pointer += 1
 
 
         ## prediction end signal:
@@ -221,6 +300,32 @@ class TranslationBuilder:
         #print(target_array.shape)
 
         return source_array, target_array
+
+    def binarize(self, _inputs):
+        return_array = []
+        for time_step in _inputs:
+            # Find the "1":
+            index = 0
+            for _input in time_step:
+                if _input == 1:
+                    break
+                index += 1
+            binary_number = bin(index)[2:]  #Rm 0b
+            binary_number = binary_number.zfill(7) # pad to 64 bit number
+            return_array.append([int(bin_char) for bin_char in binary_number])
+        return return_array
+
+    def unbinarize(self, _inputs):
+        return_array = []
+        for time_step in _inputs:
+            #print(time_step)
+            index = int("".join([str(char) for char in time_step]), 2)
+            #print(index)
+            new_time_step = np.zeros(53)
+            new_time_step[index] = 1
+            return_array.append(new_time_step)
+
+        return return_array
 
 
 class CIFARBuilder:
@@ -489,7 +594,7 @@ class JapaneseVowelsBuilder:
                     string_outputs.append(string_result)
                 dataset.append((_inputs, np.array(string_outputs)))
 
-        print(len(dataset))
+        #print(len(dataset))
 
         return dataset
 
@@ -515,12 +620,18 @@ class JapaneseVowelsBuilder:
 
         return dataset
 
+class FiveBitAndDensityBuilder:
+    def __init__(self):
+        pass
+
+
 if __name__ == "__main__":
-    #translator = TranslationBuilder()
+    translator = TranslationBuilder()
+    translator.get_training_data()
     #translator.create_efficient_data_to_file()
     #translator.generate_translation_data()
-    jap_vows = JapaneseVowelsBuilder()
+    #jap_vows = JapaneseVowelsBuilder()
     #jap_vows.read_test_and_train_files()
-    print(jap_vows.get_training_data())
+    #print(jap_vows.get_training_data())
 #cifarB = CIFARBuilder()
 #cifarB.get_cifar_data()

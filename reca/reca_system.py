@@ -51,6 +51,8 @@ class ReCASystem:
         self.example_data = None
 
         training_data = self.reCA_problem.training_data
+        #pprint.pprint(training_data)
+        #print("training data size:" + str(len(training_data)) + "shapes:" + str(training_data[0].shape))
 
         # For each input.
         for training_example in training_data:
@@ -116,7 +118,7 @@ class ReCASystem:
 
         # divide training_data:
         test_data = self.reCA_problem.testing_data
-        pred_stop_signal = "000000000000000000000000000000000000000000000000000000001"
+        pred_stop_signal = "000000000000000000000000000000000000000000000000000000001"  # HACKED: German stop signal
         reCA_output.all_test_examples = test_data
 
         number_of_correct = 0
@@ -125,25 +127,35 @@ class ReCASystem:
             #  We now have a timeseries of data, on which the rc-framework must be fitted
             input_X = test_ex[0]
             output_Y = test_ex[1]
-            outputs = self.rc_framework.predict(input_X)
-            reCA_output.all_RCOutputs.append(outputs)
+            predicted_outputs = self.rc_framework.predict_dynamic_sequence(input_X, pred_stop_signal)
+            reCA_output.all_RCOutputs.append(predicted_outputs)
             pointer = 0
             all_correct = True
             predictions = []
-            for output in output_Y:
-                predictions.append(outputs[pointer])
-                if output != outputs[pointer]:
-                    #print("WRONG: " + str(output) + str( "  ") + str(outputs[pointer]))
-                    all_correct = False
-                pointer += 1
-            reCA_output.all_predictions.append(predictions)
+            #print("Number of predicted outputs: " + str(len(predicted_outputs)))
+            #print("number of correct outputs:   " + str(len(output_Y)))
 
-            if all_correct:
-                number_of_correct += 1
+            if len(predicted_outputs) > len(output_Y):  # System was not able to stop in time
+                for predicted_output in predicted_outputs:
+                    predictions.append(predicted_output)
+                reCA_output.all_predictions.append(predictions)
 
-        # print("Number of correct: " + str(number_of_correct) +" of " + str(len(test_data)))
+            elif len(predicted_outputs) < len(output_Y):  # System stopped too soon
+                for output in output_Y:
+                    if pointer>=len(predicted_outputs):
+                        dummy_output = "000000000000000000000000000000000000000000000000000000010"
+                        predictions.append(dummy_output)
+                    else:
+                        predictions.append(predicted_outputs[pointer])
+                reCA_output.all_predictions.append(predictions)
 
-        reCA_output.total_correct = number_of_correct
+            else: # System stopped on time
+                for predicted_output in predicted_outputs:
+                    predictions.append(predicted_output)
+                reCA_output.all_predictions.append(predictions)
+
+
+        reCA_output.total_correct = 12
         return reCA_output
     def test_on_problem(self, test_set_size=0):
         """

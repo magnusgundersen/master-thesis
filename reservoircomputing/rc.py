@@ -108,7 +108,6 @@ class ReservoirComputingFramework:
         """
 
         _outputs = []
-        classifier_input_set = []
         self.rc_helper.reset()
         for _input in input_X:  # input and output at each timestep
             rc_output = self.rc_helper.run_input(_input)
@@ -120,20 +119,19 @@ class ReservoirComputingFramework:
 
     def predict_dynamic_sequence(self, input_data, pred_stop_signal):
         _outputs = []
-        classifier_input_set = []
         self.rc_helper.reset()
         current_input = 0
-        input_size = len(input_data[0][0])
+        input_size = len(input_data[0])
         #print(input_data[0][0])
         while True:  # input and output at each timestep
             try:
-                rc_output = self.rc_helper.run_input(input_data[current_input][0])
+                rc_output = self.rc_helper.run_input(input_data[current_input])
             except:
-                rc_output = self.rc_helper.run_input([0]*input_size)
-            classifier_input = rc_output.flattened_states
+                rc_output = self.rc_helper.run_input([0]*(input_size-1) + [1])  # If the input-size is done...
+            classifier_input = rc_output.classifier_output()
             classifier_prediction = self.classifier.predict(np.array(classifier_input).reshape(1,-1))
             _outputs.append(classifier_prediction)
-            if classifier_prediction == "000000000000000000000000000000000000000000000000000000001" or current_input > 1000: # Avoid inf. loop
+            if classifier_prediction == pred_stop_signal or current_input > 100: # Avoid inf. loop
                 break
 
             current_input += 1

@@ -149,15 +149,25 @@ class Project:
 
         # Currently only german is implemented
         #translation_data = self.open_temporal_data("en-de.data")
-        data_interpreter = self.open_data_interpreter("europarl")
+        data_interpreter = open_data_interpreter("europarl")
 
         # reca_prob
         reCA_problem = reCA.ReCAProblem(data_interpreter)
         reCA_config = reCA.ReCAConfig()
-        #reCA_config.set_single_reservoir_config(ca_rule=90, R=2, C=3, I=16, classifier="linear-svm",
+        # reCA_config.set_single_reservoir_config(ca_rule=90, R=2, C=3, I=16, classifier="linear-svm",
         #                                        encoding="random_mapping",
         #                                        time_transition="random_permutation")
-        reCA_config.set_uniform_margem_config()
+        with open(file_location + "/../experiment_data/rules/NuniRule6061_f=968.ind", "rb") as f:
+            evolved_ind = pickle.load(f)
+        #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
+        #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+        reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
+
+        # English alphabet size: 54
+        #reCA_config.set_uniform_margem_config(rule_scheme=reCA_rule, N=54, R=10, R_i=1, I=2)
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=54, R=4, C=4, I=6,
+                                              classifier="perceptron_sgd")
+        # reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=64, C=1, I=4, time_transition="xor", classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
 
         reCA_system.set_problem(reCA_problem)
@@ -165,7 +175,7 @@ class Project:
         reCA_system.initialize_rc()
         reCA_system.tackle_ReCA_problem()
 
-        reCA_out = reCA_system.test_on_dynamic_sequence_data()  # tested on the test-set
+        reCA_out = reCA_system.test_fully_dynamic_sequence_data()  # tested on the test-set
 
 
         print(str(reCA_out.total_correct) + " of " + str(len(reCA_out.all_test_examples)))
@@ -178,11 +188,38 @@ class Project:
             time_step = example_run[i]
             prediction = time_step[0]
             raw_predictions.append(prediction)
-            correct = example_test[1][i]
-            _input = "".join([str(x) for x in example_test[0][i]])
+            try:
+                correct = example_test[1][i]
+            except:
+                correct = "-"*57
+
+            try:
+                _input = "".join([str(x) for x in example_test[0][i]])
+            except:
+                _input = "00000000000000000000000000000000000000000000000000001"
+
             print("Input: " + _input + "  Correct: " + str(correct) + "  Predicted:" + str(prediction))
 
         print("Predicted sentence:" + data_interpreter.convert_from_bit_sequence_to_string(raw_predictions, "german"))
+        pointer = 0
+        print()
+        print("All test-sentences: ")
+        for predictions in reCA_out.all_predictions:
+            raw_prediction = [pred[0] for pred in predictions]
+            sentence = data_interpreter.convert_from_bit_sequence_to_string(raw_prediction, "german")
+
+            correct_sentence = [corr for corr in reCA_out.all_test_examples[pointer][1]]
+            correct_sentence = data_interpreter.convert_from_bit_sequence_to_string(correct_sentence, "german")
+
+            from_sentence = ["".join([str(char) for char in from_sentence]) for from_sentence in reCA_out.all_test_examples[pointer][0]]
+            from_sentence = data_interpreter.convert_from_bit_sequence_to_string(from_sentence, "english")
+
+            print("From sentence: " + str(from_sentence))
+            print("To sentence  : " + str(correct_sentence))
+            print("Predicted    : " + str(sentence))
+            print("---")
+            pointer += 1
+
 
         # Visualize:
         outputs = reCA_system.get_example_run()
@@ -201,7 +238,11 @@ class Project:
         #reCA_config.set_single_reservoir_config(ca_rule=90, R=2, C=3, I=16, classifier="linear-svm",
         #                                        encoding="random_mapping",
         #                                        time_transition="random_permutation")
-        reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
+        with open(file_location+ "/../experiment_data/rules/NuniRule6061_f=968.ind", "rb") as f:
+            evolved_ind = pickle.load(f)
+        #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
+        reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+        #reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
         #reCA_config.set_uniform_margem_config(rule_scheme=reCA_rule, N=14*2, R=120, R_i=40, I=8)
         reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=8, C=4, I=4, classifier="linear-svm")
         #reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=64, C=1, I=4, time_transition="xor", classifier="perceptron_sgd")
@@ -238,7 +279,7 @@ class Project:
         visual.visualize_example_run(outputs)
 
     def five_bit_task(self):
-        data_interpreter = open_data_interpreter("5bit", distractor_period=200, training_ex=32, testing_ex=32)
+        data_interpreter = open_data_interpreter("5bit", distractor_period=10, training_ex=32, testing_ex=1)
         reCA_problem = reCA.ReCAProblem(data_interpreter)
         reCA_config = reCA.ReCAConfig()
 
@@ -403,12 +444,12 @@ class Project:
     def evolve_and_test_non_uni_ca(self):
         # , CA_config=, state_name, pop_size, max_gens, mut_rate, crossover_rate, tournament_size
         C = 1
-        Rs = [32]
+        Rs = [64]
         I = 4
         N = 4  #
-        pop_size = 7*2  # Adapt to number of cores
+        pop_size = 7  # Adapt to number of cores
         max_no_generations = 1000
-        tests_per_individual = 6
+        tests_per_individual = 4
         number_of_rules_list = [6]
         print_est = False
         before = time.time()
@@ -422,7 +463,7 @@ class Project:
 
                 }
                 self.evolve_non_uniform_ca(ca_config, pop_size=pop_size, max_generations=max_no_generations, allowed_distinct_rules=number_of_rules, tests_per_ind=tests_per_individual,
-                                           fitness_threshold_value=950)
+                                           fitness_threshold_value=1000)
             if print_est:
                 ts = time.time()
                 print("Time now : " + str(datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')))
@@ -434,6 +475,39 @@ class Project:
 
         print("Actual time usage (ea evolve): " + str(time.time() - before))
 
+    def evolve_and_test_non_uni_ca_jap_vowls(self):
+        # , CA_config=, state_name, pop_size, max_gens, mut_rate, crossover_rate, tournament_size
+        C = 1
+        Rs = [10]
+        I = 4
+        N = 14*2  # Adapt to binarization scheme
+        pop_size = 7*2  # Adapt to number of cores
+        max_no_generations = 10
+        tests_per_individual = 1
+        number_of_rules_list = [6]
+        print_est = False
+        before = time.time()
+        for number_of_rules in number_of_rules_list:
+            for R in Rs:
+                ca_config = {
+                    "N": N,
+                    "R": R,
+                    "I": I,
+                    "C": C,
+
+                }
+                self.evolve_non_uniform_ca_jap_vowls(ca_config, pop_size=pop_size, max_generations=max_no_generations, allowed_distinct_rules=number_of_rules, tests_per_ind=tests_per_individual,
+                                           fitness_threshold_value=950)
+            if print_est:
+                ts = time.time()
+                print("Time now : " + str(datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')))
+                print("Time used: " + str(ts - before))
+                print("Total time est.: " + str((ts - before) * (len(number_of_rules_list))))
+                print("Time est. left : " + str((ts - before) * (len(number_of_rules_list) - 1)))
+                print_est = False
+            #test_all_rules()
+
+        print("Actual time usage (ea evolve): " + str(time.time() - before))
     def evolve_non_uniform_ca(self, ca_config,
                               pop_size=14, max_generations=1000, allowed_distinct_rules=8,
                               tests_per_ind=6, fitness_threshold_value=1000):
@@ -444,7 +518,7 @@ class Project:
                                              test_per_ind=tests_per_ind)
         ea = evoalg.EA()
 
-        ea_output = ea.solve(nonUniCAprob, saved_state=True)
+        ea_output = ea.solve(nonUniCAprob, saved_state=False)
 
         # pickle.dump(ea_output, open("ea.pkl", "wb"))
         run_name = "earun_R" + str(ca_config.get("R")) + "C" + str(ca_config.get("C")) + "I" + str(ca_config.get("I")) + \
@@ -473,6 +547,42 @@ class Project:
         visual.make_fitnessgraph(ea_output, run_name)
 
 
+    def evolve_non_uniform_ca_jap_vowls(self, ca_config,
+                              pop_size=14, max_generations=1000, allowed_distinct_rules=8,
+                              tests_per_ind=6, fitness_threshold_value=1000):
+        nonUniCAprob = ea_ca.NonUniCAJapVowsProblem(ca_config, fitness_threshold=fitness_threshold_value, init_pop_size=pop_size,
+                                             max_number_of_generations=max_generations,
+                                             allowed_number_of_rules=allowed_distinct_rules,
+                                             test_per_ind=tests_per_ind)
+        ea = evoalg.EA()
+
+        ea_output = ea.solve(nonUniCAprob, saved_state=False)
+
+        # pickle.dump(ea_output, open("ea.pkl", "wb"))
+        run_name = "earun_jap_R" + str(ca_config.get("R")) + "C" + str(ca_config.get("C")) + "I" + str(ca_config.get("I")) + \
+                   "_rules" + str(allowed_distinct_rules) + "_popsize" + str(pop_size) + \
+                   "_gens" + str(max_generations)
+
+        pickle.dump(ea_output, open(file_location + "/../experiment_data/ea_runs/" + run_name + ".ea_output", "wb"))
+        best_individual = ea_output.best_individual
+        best_individ_scheme = best_individual.phenotype.non_uniform_config
+        print(best_individual.serialize())
+        non_uni_rule_serialize = {}
+        non_uni_rule_serialize["full_size_rule_list"] = best_individ_scheme
+        non_uni_rule_serialize["raw rule"] = best_individual.genotype.rule_scheme
+        ea_data = {"ca_config": ca_config,
+                   "popsize": pop_size,
+                   "max_gens": max_generations,
+                   "test per ind": tests_per_ind,
+                   "allowed number of rules": allowed_distinct_rules,
+                   }
+        non_uni_rule_serialize["ea_data"] = ea_data
+
+        with open(file_location + "/../experiment_data/rules/" + run_name + "JSON.json", "w") as outfile:
+            json.dump(non_uni_rule_serialize, outfile, sort_keys=True, indent=4)
+        with open(file_location + "/../experiment_data/rules/" + str(best_individual) + ".ind", "wb") as outfile:
+            pickle.dump(best_individual, outfile)
+        visual.make_fitnessgraph(ea_output, run_name)
 
 
 def test_all_rules():

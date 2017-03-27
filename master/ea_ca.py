@@ -63,6 +63,44 @@ def fitness_test_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd"
 
     return individual
 
+def jap_vows_fitness_test_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd", time_transition="xor",
+                        train_ex=32, test_ex=32, tests_per_ind=1):
+    """
+        Method for running the develop_and_test with multiprocessing
+        :param individual:
+        :param problem:
+        :return:
+        """
+
+    fitness = []
+    for _ in range(tests_per_ind):
+        reCA_problem = reCA.ReCAProblem(
+            p.open_data_interpreter("japanese_vowels"))
+        reCA_config = reCA.ReCAConfig()
+        reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, R=R, C=C, I=I,
+                                              classifier=classifier,
+                                              time_transition=time_transition)
+        reCA_system = reCA.ReCASystem()
+
+        reCA_system.set_problem(reCA_problem)
+        reCA_system.set_config(reCA_config)
+        reCA_system.initialize_rc()
+        reCA_system.tackle_ReCA_problem()
+
+        reCA_out = reCA_system.test_on_problem()
+        fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
+
+
+    fitness_std = int(np.std(fitness))
+    fitness = int(np.mean(fitness))
+
+    # fitness = fitness if (fitness<850) else fitness-fitness_std*(1000/fitness)
+    fitness = 1 if fitness == 0 else fitness  # avoid div by zero
+    individual.fitness = fitness
+    individual.fitness_std = fitness_std
+
+    return individual
 
 
 # Classes:
@@ -216,6 +254,54 @@ class NonUniCAProblem(evoalg.EAProblem):
     #staticmethod
     def test_fitness(self, individual):
         return fitness_test_worker(individual, R=self.R, C=self.C, I=self.I)
+
+    def calculate_pseudo_lambda(self, rule_set):
+        ca_simulator = ca.ElemCAReservoir()
+        ca_simulator.set_rules(rule_set)
+        initial_input = np.zeros(len(rule_set))
+        initial_input[int(len(initial_input)/2)] = 1
+        simulation = ca_simulator.run_simulation(initial_input, 1)
+        second_row = simulation[1]
+        ones = list(second_row).count(1)
+        return int(1000/(ones+1))
+
+
+    def get_initial_population(self):
+        return [NonUniCAIndividual(ca_size=self.ca_size, allowed_number_of_rules=self.allowed_number_of_rules) for _ in range(self.init_pop_size)]
+
+
+    def fitness_threshold(self, *args):
+        fitness = args[0]
+        if fitness >= self.fitness_threshold_value:
+            return True
+        else:
+            return False
+
+    def __str__(self):
+        return self.name
+
+
+
+
+class NonUniCAJapVowsProblem(evoalg.EAProblem):
+    def __init__(self, ca_config=None, init_pop_size=40, allowed_number_of_rules=4, fitness_threshold=900, max_number_of_generations=2, test_per_ind=4):
+        super().__init__()
+        self.max_number_of_generations = max_number_of_generations
+        self.N = ca_config.get("N")
+        self.R = ca_config.get("R")
+        self.C = ca_config.get("C")
+        self.I = ca_config.get("I")
+        self.test_per_ind = test_per_ind
+        self.init_pop_size = init_pop_size
+        self.fitness_threshold_value = fitness_threshold
+        self.allowed_number_of_rules = allowed_number_of_rules
+        self.ca_size = self.N*self.C*self.R
+        self.name = "Non uniform JapVowls CA"+"(" + str(self.N) + "*" + str(self.C) + "*" + str(self.R) + "): PopSize: " + str(init_pop_size) + " Max gens: " + str(max_number_of_generations)
+
+
+    #staticmethod
+    def test_fitness(self, individual):
+        return jap_vows_fitness_test_worker(individual, R=self.R, C=self.C, I=self.I)
 
     def calculate_pseudo_lambda(self, rule_set):
         ca_simulator = ca.ElemCAReservoir()
