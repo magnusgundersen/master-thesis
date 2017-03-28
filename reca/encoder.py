@@ -4,11 +4,12 @@ import numpy as np
 
 
 class RandomMappingEncoder(rcif.RCEncoder):
-    def __init__(self):
+    def __init__(self, permutations = True):
         super().__init__()
         self.R = 1
         self.C = 1
         self.encoding_scheme = "separate"  # Whether to keep the reservoirs separate or not
+        self.permutations = permutations
 
         self.unencoded_input_length = 0
 
@@ -25,9 +26,9 @@ class RandomMappingEncoder(rcif.RCEncoder):
         self.unencoded_input_length = input_length
         num_list = [x for x in range(self.unencoded_input_length*self.C)]  # list of number to be shuffled
         num_list2 = num_list[:]  # copy list to have a ref to the original
-        random_mappings = False
 
-        if random_mappings:
+
+        if self.permutations:
             for _ in range(self.R):
                 random.shuffle(num_list2)  # New random mapping for each R.
                 list_of_mappings.append(

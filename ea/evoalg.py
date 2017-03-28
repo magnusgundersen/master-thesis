@@ -121,7 +121,7 @@ class EA:
 
     @staticmethod
     def load_ea_state(file_name="state.ea"):
-        file_location = file_location = os.path.dirname(os.path.realpath(__file__))+"/../experiment_data/ea_runs/"
+        file_location = os.path.dirname(os.path.realpath(__file__))+"/../experiment_data/ea_runs/"
         state_data = pickle.load(open(file_location+file_name, "rb"))
         return state_data
 

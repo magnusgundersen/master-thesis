@@ -337,7 +337,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
         self.parallelizer = None
 
 
-    def set_random_mapping_config(self, ca_rule_scheme=None, N=4, R=4, C=3, I=12, classifier="linear-svm", time_transition="random_permutation"):
+    def set_random_mapping_config(self, ca_rule_scheme=None, N=4, R=4, C=3, I=12, classifier="linear-svm", time_transition="random_permutation", mapping_permutations=True):
         #print("Setting config: R:" + str(R) + " C:" +str(C) + " I:" + str(I) + " clf: " + str(classifier) + " rule scheme: " + str(ca_rule_scheme.rule_list))
         ca_size = N*R*C  # Used to create rule scheme
         # sets up elementary CA:
@@ -356,7 +356,7 @@ class ReCAConfig(rc_if.ExternalRCConfig):
             self.classifier = tflann.ANN()
 
         # Encoder
-        self.encoder = enc.RandomMappingEncoder()
+        self.encoder = enc.RandomMappingEncoder(permutations=mapping_permutations)
         self.encoder.R = R
         self.encoder.C = C
 

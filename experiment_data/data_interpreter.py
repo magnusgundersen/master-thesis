@@ -529,7 +529,6 @@ class JapaneseVowelsBuilder:
         #print(len(speaker_lines[0]))
         return speaker_lines
 
-
     def _create_binary_data(self, utterance, speaker_number):
         """
         Uses the binarization scheme to create a training-set example
@@ -560,20 +559,39 @@ class JapaneseVowelsBuilder:
         #_output = np.array(_output, dtype="uint8")
         return _input, _output
 
-
     def _binarize(self, input_float, resolution):
         try:
             input_float = float(input_float)
         except:
             raise ValueError("error on binarzation")
-        if input_float<-1:
-            return [0,0]
-        elif input_float<0:
-            return [0,1]
-        elif input_float<1:
-            return [1,0]
-        else:
-            return [1, 1]
+
+        if resolution==2:
+            if input_float<-1:
+                return [0,0]
+            elif input_float<0:
+                return [0,1]
+            elif input_float<1:
+                return [1,0]
+            else:
+                return [1, 1]
+
+        elif resolution==3:
+            if input_float<-2:
+                return [0,0,0]
+            elif input_float<-1.5:
+                return [0,0,1]
+            elif input_float<-1:
+                return [0,1,0]
+            elif input_float<-0.5:
+                return [0,1,1]
+            elif input_float<0.5:
+                return [1,0,0]
+            elif input_float<1.0:
+                return [1,0,1]
+            elif input_float<1.5:
+                return [1,1,0]
+            else:
+                return [1, 1, 1]
         #return [random.choice([0, 1]) for _ in range(resolution)]
 
     def get_training_data(self):
@@ -621,17 +639,138 @@ class JapaneseVowelsBuilder:
         return dataset
 
 class FiveBitAndDensityBuilder:
-    def __init__(self):
-        pass
+    """
+    Solve both five bit memory task, and the density task at the same time.
+    Idea of the task is to emulate a complex problem (i.e. translation)
+    """
+    def __init__(self, dist_period=10, testing_ex=32, training_ex=32):
+        self.dist_period = dist_period
+        self.no_training_ex = training_ex
+        self.no_testing_ex = testing_ex
+
+        self.density_signals = 5  # Must be an odd number
+
+
+    def generate_density_dataset(self):
+        """
+
+        :return:
+        """
+        input_length = 5
+        cue_length = 1
+        output_length = 5
+        data_set = []
+
+        for i in range(self.no_training_ex + self.no_testing_ex):
+            example_input = []
+            example_output = []
+            density_count = []
+            for j in range(input_length):
+                _input = np.random.randint(2, size=self.density_signals)
+                density_count.extend(list(_input))
+                _output = "00"
+                example_input.append(_input)
+                example_output.append(_output)
+
+            ones = density_count.count(1)
+            zeros = density_count.count(0)
+
+            for j in range(self.dist_period):
+                _input = np.zeros(self.density_signals, dtype="uint8")
+                _output = "00"
+                example_input.append(_input)
+                example_output.append(_output)
+
+            for j in range(cue_length+3):
+                _input = np.zeros(self.density_signals, dtype="uint8")
+                _output = "00"
+                example_input.append(_input)
+                example_output.append(_output)
+
+            for j in range(output_length-4):
+                _input = np.zeros(self.density_signals, dtype="uint8")
+                if zeros > ones:
+                    _output = "10"
+                else:
+                    _output = "01"
+                example_input.append(_input)
+                example_output.append(_output)
+            data_set.append((np.array(example_input, dtype="uint8"), np.array(example_output)))
+        return data_set
+
+
+
+    def get_training_data(self):
+        five_bit_and_density_data = []
+        five_bit_data = self.get_five_bit_data()
+        # Hacked:
+        while len(five_bit_data) < self.no_training_ex:
+            five_bit_data.extend(five_bit_data[:])
+        density_data = self.generate_density_dataset()
+
+        for i in range(self.no_training_ex):
+            _inputs, _outputs = five_bit_data[i]
+            new_inputs = []
+            new_outputs = []
+            density_data_inputs, density_data_outputs = density_data[i]
+
+            for j in range(len(_inputs)):
+                new_inputs.append(np.append(_inputs[j], density_data_inputs[j]))
+                new_outputs.append(np.array(str(_outputs[j])+ str(density_data_outputs[j])))
+
+            five_bit_and_density_data.append((np.array(new_inputs), np.array(new_outputs)))
+
+        return five_bit_and_density_data
+    def get_five_bit_data(self):
+        dataset = []
+        with open(file_location+"/5bit/5_bit_" + str(self.dist_period) + "_dist_32", "r") as f:
+            content = f.readlines()
+            training_inputs = []
+            training_ouputs = []
+            for line in content:
+                if line == "\n":
+                    dataset.append((np.array(training_inputs, dtype="uint8"), np.array(training_ouputs)))
+                    training_inputs = []
+                    training_ouputs = []
+                else:
+                    _input, _output = line.split(" ")
+                    training_inputs.append([int(number) for number in _input])
+                    training_ouputs.append(_output[0:-1])  # class is text
+        return dataset
+
+
+    def get_testing_data(self):
+        five_bit_and_density_data = []
+        five_bit_data = self.get_five_bit_data()
+        # Hacked:
+        while len(five_bit_data) < self.no_testing_ex:
+            five_bit_data.extend(five_bit_data[:])
+        density_data = self.generate_density_dataset()
+
+        for i in range(self.no_testing_ex):
+            _inputs, _outputs = five_bit_data[i]
+            new_inputs = []
+            new_outputs = []
+            density_data_inputs, density_data_outputs = density_data[i]
+
+            for j in range(len(_inputs)):
+                new_inputs.append(np.append(_inputs[j], density_data_inputs[j]))
+                new_outputs.append(np.array(str(_outputs[j]) + str(density_data_outputs[j])))
+
+            five_bit_and_density_data.append((np.array(new_inputs), np.array(new_outputs)))
+
+        return five_bit_and_density_data
 
 
 if __name__ == "__main__":
-    translator = TranslationBuilder()
-    translator.get_training_data()
+    #translator = TranslationBuilder()
+    #translator.get_training_data()
     #translator.create_efficient_data_to_file()
     #translator.generate_translation_data()
     #jap_vows = JapaneseVowelsBuilder()
     #jap_vows.read_test_and_train_files()
     #print(jap_vows.get_training_data())
+    five_and_dens = FiveBitAndDensityBuilder()
+    five_and_dens.get_training_data()
 #cifarB = CIFARBuilder()
 #cifarB.get_cifar_data()

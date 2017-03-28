@@ -33,6 +33,7 @@ def main(argv):
 
     #before = time.time()
     #p.five_bit_task()
+    #p.five_bit_density_task()
     #p.japanese_vowels()
     #p.evolve_and_test_non_uni_ca_jap_vowls()
     #print(project.test_all_rules())
