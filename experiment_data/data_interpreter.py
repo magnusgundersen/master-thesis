@@ -461,7 +461,6 @@ class TwentyBitBuilder:
                     training_ouputs.append(_output[0:-1])  # class is text
         return dataset
 
-
 class JapaneseVowelsBuilder:
     def __init__(self):
         pass
@@ -761,6 +760,71 @@ class FiveBitAndDensityBuilder:
 
         return five_bit_and_density_data
 
+class SyntheticSequenceToSequenceBuilder:
+    def __init__(self, no_training_ex=100, no_testing_ex=10):
+        self.input_signals = 3
+        self.input_length = 7
+
+        self.no_training_ex = no_training_ex
+        self.no_testing_ex = no_testing_ex
+
+
+
+    def get_training_data(self):
+        data_set = []
+
+        for i in range(self.no_training_ex):
+            _inputs = []
+            _outputs = []
+            # Input-sequence
+            count_inputs =[]
+            for j in range(random.randint(1, self.input_length)):
+                input_signal = list(np.random.randint(2,size=self.input_signals))
+                count_inputs.extend(input_signal)
+                _inputs.append(input_signal+[0])  # + EOS signal
+                _outputs.append("100")
+
+            end_of_sequence = list(np.zeros(self.input_signals)) + [1]
+            _inputs.append(end_of_sequence)
+            _outputs.append("100")
+            number_of_ones = count_inputs.count(1)
+            for j in range(number_of_ones):
+                _inputs.append(end_of_sequence)
+                _outputs.append("010")
+
+            _inputs.append(end_of_sequence)
+            _outputs.append("001")
+
+            data_set.append((np.array(_inputs, dtype="uint8"), np.array(_outputs)))
+        return data_set
+
+    def get_testing_data(self):
+        data_set = []
+
+        for i in range(self.no_testing_ex):
+            _inputs = []
+            _outputs = []
+            # Input-sequence
+            count_inputs = []
+            for j in range(self.input_length):
+                input_signal = list(np.random.randint(2, size=self.input_signals))
+                count_inputs.extend(input_signal)
+                _inputs.append(input_signal + [0])  # + EOS signal
+                _outputs.append("100")
+
+            end_of_sequence = list(np.zeros(self.input_signals)) + [1]
+            _inputs.append(end_of_sequence)
+            _outputs.append("100")
+            number_of_ones = count_inputs.count(1)
+            for j in range(number_of_ones):
+                _inputs.append(end_of_sequence)
+                _outputs.append("010")
+
+            _inputs.append(end_of_sequence)
+            _outputs.append("001")
+
+            data_set.append((np.array(_inputs, dtype="uint8"), np.array(_outputs)))
+        return data_set
 
 if __name__ == "__main__":
     #translator = TranslationBuilder()
@@ -770,7 +834,7 @@ if __name__ == "__main__":
     #jap_vows = JapaneseVowelsBuilder()
     #jap_vows.read_test_and_train_files()
     #print(jap_vows.get_training_data())
-    five_and_dens = FiveBitAndDensityBuilder()
-    five_and_dens.get_training_data()
+    seq_to_seq = SyntheticSequenceToSequenceBuilder()
+    print(seq_to_seq.get_training_data())
 #cifarB = CIFARBuilder()
 #cifarB.get_cifar_data()
