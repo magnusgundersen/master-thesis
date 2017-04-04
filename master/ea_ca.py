@@ -90,8 +90,8 @@ def fitness_test_worker(individual, R=100, C=1, I=4, classifier="linear-svm", ti
 
     return individual
 
-def jap_vows_fitness_test_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd", time_transition="xor",
-                        train_ex=32, test_ex=32, tests_per_ind=1):
+def jap_vows_fitness_test_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd", time_transition="random_permutation",
+                        tests_per_ind=1):
     """
         Method for running the develop_and_test with multiprocessing
         :param individual:
@@ -102,12 +102,13 @@ def jap_vows_fitness_test_worker(individual, R=100, C=1, I=4, classifier="percep
     fitness = []
     for _ in range(tests_per_ind):
         reCA_problem = reCA.ReCAProblem(
-            p.open_data_interpreter("japanese_vowels"))
+            p.open_data_interpreter("japanese_vowels", testing_ex=100))
         reCA_config = reCA.ReCAConfig()
         reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
         reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, R=R, C=C, I=I,
                                               classifier=classifier,
-                                              time_transition=time_transition)
+                                              time_transition=time_transition,
+                                              mapping_permutations=True)
         reCA_system = reCA.ReCASystem()
 
         reCA_system.set_problem(reCA_problem)
@@ -122,7 +123,32 @@ def jap_vows_fitness_test_worker(individual, R=100, C=1, I=4, classifier="percep
     fitness_std = int(np.std(fitness))
     fitness = int(np.mean(fitness))
 
-    # fitness = fitness if (fitness<850) else fitness-fitness_std*(1000/fitness)
+    if fitness == 1000:
+        print("Making sure tests")
+        making_sure_tests = 4
+        fitness = []
+        for _ in range(making_sure_tests):
+            reCA_problem = reCA.ReCAProblem(
+                p.open_data_interpreter("japanese_vowels"))
+            reCA_config = reCA.ReCAConfig()
+            reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
+            reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, R=R, C=C, I=I,
+                                                  classifier=classifier,
+                                                  time_transition=time_transition,
+                                                  mapping_permutations=True)
+            reCA_system = reCA.ReCASystem()
+
+            reCA_system.set_problem(reCA_problem)
+            reCA_system.set_config(reCA_config)
+            reCA_system.initialize_rc()
+            reCA_system.tackle_ReCA_problem()
+
+            reCA_out = reCA_system.test_on_problem()
+            fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
+        fitness_std = int(np.std(fitness))
+        fitness = int(np.mean(fitness))
+        print("results: ", fitness)
+
     fitness = 1 if fitness == 0 else fitness  # avoid div by zero
     individual.fitness = fitness
     individual.fitness_std = fitness_std

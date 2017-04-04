@@ -118,7 +118,7 @@ class ReCASystem:
 
         # divide training_data:
         test_data = self.reCA_problem.testing_data
-        pred_stop_signal = "000000000000000000000000000000000000000000000000000000001"  # HACKED: German stop signal
+        prediction_stop_signal = self.reCA_problem.prediction_end_signal
         reCA_output.all_test_examples = test_data
 
         number_of_correct = 0
@@ -127,7 +127,7 @@ class ReCASystem:
             #  We now have a timeseries of data, on which the rc-framework must be fitted
             input_X = test_ex[0]
             output_Y = test_ex[1]
-            predicted_outputs = self.rc_framework.predict_dynamic_sequence(input_X, pred_stop_signal)
+            predicted_outputs = self.rc_framework.predict_dynamic_sequence(input_X, prediction_stop_signal)
             reCA_output.all_RCOutputs.append(predicted_outputs)
             pointer = 0
             all_correct = True
@@ -136,20 +136,23 @@ class ReCASystem:
             #print("number of correct outputs:   " + str(len(output_Y)))
 
             if len(predicted_outputs) > len(output_Y):  # System was not able to stop in time
+                print("system did not stop in time")
                 for predicted_output in predicted_outputs:
                     predictions.append(predicted_output)
                 reCA_output.all_predictions.append(predictions)
 
             elif len(predicted_outputs) < len(output_Y):  # System stopped too soon
+                print("system stopped too soon")
                 for output in output_Y:
                     if pointer>=len(predicted_outputs):
-                        dummy_output = "000000000000000000000000000000000000000000000000000000010"
+                        dummy_output = "0"
                         predictions.append(dummy_output)
                     else:
                         predictions.append(predicted_outputs[pointer])
                 reCA_output.all_predictions.append(predictions)
 
-            else: # System stopped on time
+            else:  # System stopped on time
+                print("system stopped on time")
                 for predicted_output in predicted_outputs:
                     predictions.append(predicted_output)
                 reCA_output.all_predictions.append(predictions)
@@ -258,6 +261,8 @@ class ReCAProblem:
         self.is_feed_forward = False
         self.is_fixed_sequence = False
         self.is_dynamic_sequence = False
+        self.prediction_end_signal = None
+        self.prediction_input_signal = None
         self.training_data = []
         self.testing_data = []
         self.input_size = 0
@@ -278,9 +283,6 @@ class ReCAProblem:
         except Exception as e:
             raise ValueError("Data in a training-example was bad " + str(e))
 
-
-
-
     def initialize_data(self, data_interpreter, testing_portion=0.0):
         # Determine if it is a feed-forward classification task
         example_data = data_interpreter.get_training_data()
@@ -291,15 +293,19 @@ class ReCAProblem:
             else:
                 self.is_feed_forward = False
 
-        first_example_sequence_length = len(example_data[0])
+        first_example_sequence_length = len(example_data[0][0])
         for data in example_data:
-            if len(data) == first_example_sequence_length:
+            if len(data[0]) == first_example_sequence_length:
                 self.is_fixed_sequence = True
 
             else:
                 self.is_dynamic_sequence = True
                 self.is_fixed_sequence = False
-                self.pred_end_signal = data_interpreter.get_pred_end_signal()
+                try:
+                    self.prediction_end_signal = data_interpreter.get_prediction_end_signal()
+                    self.prediction_input_signal = data_interpreter.get_prediction_input_signal()
+                except:
+                    pass
                 break  # we know at least some training-examples are of different lengths
 
         self.testing_data = data_interpreter.get_testing_data()

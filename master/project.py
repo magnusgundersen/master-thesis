@@ -46,7 +46,9 @@ def open_data_interpreter(type_of_interpreter, **kwargs):
         return data_int.TwentyBitBuilder(distractor_period, training_ex=training_ex, testing_ex=testing_ex)
 
     elif type_of_interpreter == "japanese_vowels":
-        return data_int.JapaneseVowelsBuilder()
+        training_ex = kwargs.get("training_ex") if kwargs.get('training_ex') is not None else 270
+        testing_ex = kwargs.get("testing_ex") if kwargs.get('testing_ex') is not None else 370
+        return data_int.JapaneseVowelsBuilder(training_ex=training_ex, testing_ex=testing_ex)
 
     elif type_of_interpreter == "5bit_density":
         distractor_period = kwargs.get("distractor_period") if kwargs.get('distractor_period') is not None else 10
@@ -227,13 +229,13 @@ class Project:
         #reCA_config.set_single_reservoir_config(ca_rule=90, R=2, C=3, I=16, classifier="linear-svm",
         #                                        encoding="random_mapping",
         #                                        time_transition="random_permutation")
-        with open(file_location+ "/../experiment_data/rules/NuniRule2251_f=1000.ind", "rb") as f:
+        with open(file_location+ "/../experiment_data/rules/NuniRule7343_f=980.ind", "rb") as f:
             evolved_ind = pickle.load(f)
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
         reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
         #reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
-        #reCA_config.set_uniform_margem_config(rule_scheme=reCA_rule, N=14*2, R=120, R_i=40, I=8)
-        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=8, C=5, I=4, classifier="linear-svm")
+        #reCA_config.set_uniform_margem_config(rule_scheme=reCA_rule, N=reCA_problem.input_size, R=(reCA_problem.input_size*2)+29*4, R_i=2, I=4)
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=6, C=6, I=4, classifier="linear-svm", mapping_permutations=True)
         #reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=64, C=1, I=4, time_transition="xor", classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
 
@@ -414,15 +416,15 @@ class Project:
         # reCA_config.set_single_reservoir_config(ca_rule=90, R=2, C=3, I=16, classifier="linear-svm",
         #                                        encoding="random_mapping",
         #                                        time_transition="random_permutation")
-        with open(file_location + "/../experiment_data/rules/NuniRule6061_f=968.ind", "rb") as f:
-            evolved_ind = pickle.load(f)
+        #with open(file_location + "/../experiment_data/rules/NuniRule6061_f=968.ind", "rb") as f:
+        #    evolved_ind = pickle.load(f)
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
-        reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
+        reCA_rule = reCA.ReCAruleConfig(uniform_rule=150)
 
-        # English alphabet size: 54
+        #
         #reCA_config.set_uniform_margem_config(rule_scheme=reCA_rule, N=54, R=10, R_i=1, I=2)
-        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=4, C=4, I=6,
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=12, C=6, I=4,
                                               classifier="perceptron_sgd")
         # reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=64, C=1, I=4, time_transition="xor", classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
@@ -433,7 +435,6 @@ class Project:
         reCA_system.tackle_ReCA_problem()
 
         reCA_out = reCA_system.test_fully_dynamic_sequence_data()  # tested on the test-set
-
 
         print(str(reCA_out.total_correct) + " of " + str(len(reCA_out.all_test_examples)))
         print("--example--")
@@ -448,39 +449,21 @@ class Project:
             try:
                 correct = example_test[1][i]
             except:
-                correct = "-"*57
+                correct = "-"*len(reCA_problem.prediction_end_signal)
 
             try:
                 _input = "".join([str(x) for x in example_test[0][i]])
             except:
-                _input = "00000000000000000000000000000000000000000000000000001"
+                _input = "".join([str(x) for x in reCA_problem.prediction_input_signal])
 
             print("Input: " + _input + "  Correct: " + str(correct) + "  Predicted:" + str(prediction))
 
-        print("Predicted sentence:" + data_interpreter.convert_from_bit_sequence_to_string(raw_predictions, "german"))
-        pointer = 0
-        print()
-        print("All test-sentences: ")
-        for predictions in reCA_out.all_predictions:
-            raw_prediction = [pred[0] for pred in predictions]
-            sentence = data_interpreter.convert_from_bit_sequence_to_string(raw_prediction, "german")
-
-            correct_sentence = [corr for corr in reCA_out.all_test_examples[pointer][1]]
-            correct_sentence = data_interpreter.convert_from_bit_sequence_to_string(correct_sentence, "german")
-
-            from_sentence = ["".join([str(char) for char in from_sentence]) for from_sentence in reCA_out.all_test_examples[pointer][0]]
-            from_sentence = data_interpreter.convert_from_bit_sequence_to_string(from_sentence, "english")
-
-            print("From sentence: " + str(from_sentence))
-            print("To sentence  : " + str(correct_sentence))
-            print("Predicted    : " + str(sentence))
-            print("---")
-            pointer += 1
-
+        #print("Predicted sentence:" + data_interpreter.convert_from_bit_sequence_to_string(raw_predictions, "german"))
 
         # Visualize:
         outputs = reCA_system.get_example_run()
         visual.visualize_example_run(outputs)
+
     def visualise_example(self, training_array):
         bviz.visualize(training_array)
 
@@ -583,14 +566,14 @@ class Project:
 
     def evolve_and_test_non_uni_ca_jap_vowls(self):
         # , CA_config=, state_name, pop_size, max_gens, mut_rate, crossover_rate, tournament_size
-        C = 1
-        Rs = [10]
+        C = 6
+        Rs = [8]
         I = 4
-        N = 14*2  # Adapt to binarization scheme
-        pop_size = 7*2  # Adapt to number of cores
-        max_no_generations = 10
+        N = 14*4  # Adapt to binarization scheme
+        pop_size = 7  # Adapt to number of cores
+        max_no_generations = 1000
         tests_per_individual = 1
-        number_of_rules_list = [6]
+        number_of_rules_list = [8]
         print_est = False
         before = time.time()
         for number_of_rules in number_of_rules_list:
@@ -603,7 +586,7 @@ class Project:
 
                 }
                 self.evolve_non_uniform_ca_jap_vowls(ca_config, pop_size=pop_size, max_generations=max_no_generations, allowed_distinct_rules=number_of_rules, tests_per_ind=tests_per_individual,
-                                           fitness_threshold_value=950)
+                                           fitness_threshold_value=1000)
             if print_est:
                 ts = time.time()
                 print("Time now : " + str(datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')))

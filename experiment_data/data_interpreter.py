@@ -170,9 +170,12 @@ class TranslationBuilder:
         else:
             raise ValueError("Language not implemented: " + str(self.language))
 
-    def get_pred_end_signal(self):
+    def get_prediction_end_signal(self):
         if self.language == "german":
-            return "000000000000000000000000000000000000000000000000000000001"  # TODO: make dynamic
+            return "000000000000000000000000000000000000000000000000000000001"
+
+    def get_prediction_input(self):
+        return [0]*len(self.english_allowed)+[1]
 
     def convert_from_bit_sequence_to_string(self, bit_sequence, language):
         sentence = ""
@@ -461,9 +464,11 @@ class TwentyBitBuilder:
                     training_ouputs.append(_output[0:-1])  # class is text
         return dataset
 
+
 class JapaneseVowelsBuilder:
-    def __init__(self):
-        pass
+    def __init__(self, training_ex=270, testing_ex=370):
+        self.no_training_ex = training_ex
+        self.no_testing_ex = testing_ex
 
     def read_test_and_train_files(self):
         training_set = []
@@ -537,7 +542,7 @@ class JapaneseVowelsBuilder:
         _input = []
         number_of_speakers = 9
         _output = []
-        resolution = 2
+        resolution = 4
         eos_signal = [0]*12*resolution + [1]
         wait_signal = [0]*number_of_speakers + [1]
         label_signal = [0]*(speaker_number) + [1] + [0]*((number_of_speakers-1)-speaker_number) + [0]
@@ -559,39 +564,178 @@ class JapaneseVowelsBuilder:
         return _input, _output
 
     def _binarize(self, input_float, resolution):
+        encoding_type = "grey"
         try:
             input_float = float(input_float)
         except:
             raise ValueError("error on binarzation")
+        if encoding_type == "grey":
+            if resolution==2:
+                if input_float<-1:
+                    return [0, 0]
+                elif input_float<0:
+                    return [0, 1]
+                elif input_float<1:
+                    return [1, 1]
+                else:
+                    return [1, 0]
+            elif resolution == 3:
+                # Gray encoding binarization of the floats
+                intervals = {
+                    (-100, -1.5): [0, 0, 0],
+                    (-1.5, -0.8): [0, 0, 1],
+                    (-0.8, -0.2): [0, 1, 1],
+                    (-0.2,    0): [0, 1, 0],
+                    (0,     0.2): [1, 1, 0],
+                    (0.2,   0.8): [1, 1, 1],
+                    (0.8,   1.5): [1, 0, 1],
+                    (1.5,   100): [1, 0, 0],
+                }
+                sorted_keys = sorted(intervals.keys(), key=lambda x: x[0])
+                # print(sorted_keys)
+                for start, stop in sorted_keys:
+                    if input_float < stop:
+                        return intervals.get((start, stop))
+            elif resolution == 4:
+                # Gray encoding binarization of the floats
+                intervals = {
+                    (-100,   -1.8): [0, 0, 0, 0],
+                    (-1.8,   -1.4): [0, 0, 0, 1],
+                    (-1.4,   -0.9): [0, 0, 1, 1],
+                    (-0.9,   -0.6): [0, 0, 1, 0],
+                    (-0.6,   -0.3): [0, 1, 1, 0],
+                    (-0.3,  -0.15): [0, 1, 1, 1],
+                    (-0.15, -0.05): [0, 1, 0, 1],
+                    (-0.05,     0): [0, 1, 0, 0],
+                    (0,      0.05): [1, 1, 0, 0],
+                    (00.5,   0.15): [1, 1, 0, 1],
+                    (0.15,    0.3): [1, 1, 1, 1],
+                    (0.3,     0.6): [1, 1, 1, 0],
+                    (0.6,     0.9): [1, 0, 1, 0],
+                    (0.9,     1.4): [1, 0, 1, 1],
+                    (1.4,     1.8): [1, 0, 0, 1],
+                    (1.8,     100): [1, 0, 0, 0]
+                }
+                sorted_keys = sorted(intervals.keys(), key=lambda x: x[0])
+                # print(sorted_keys)
+                for start, stop in sorted_keys:
+                    if input_float < stop:
+                        return intervals.get((start, stop))
 
-        if resolution==2:
-            if input_float<-1:
-                return [0,0]
-            elif input_float<0:
-                return [0,1]
-            elif input_float<1:
-                return [1,0]
-            else:
-                return [1, 1]
+        elif encoding_type == "binary":
+            if resolution == 2:
+                if input_float < -1:
+                    return [0, 0]
+                elif input_float < 0:
+                    return [0, 1]
+                elif input_float < 1:
+                    return [1, 0]
+                else:
+                    return [1, 1]
+            elif resolution == 3:
+                # Gray encoding binarization of the floats
+                intervals = {
+                    (-100, -1.5): [0, 0, 0],
+                    (-1.5, -0.8): [0, 0, 1],
+                    (-0.8, -0.2): [0, 1, 1],
+                    (-0.2, 0): [0, 1, 0],
+                    (0, 0.2): [1, 1, 0],
+                    (0.2, 0.8): [1, 1, 1],
+                    (0.8, 1.5): [1, 0, 1],
+                    (1.5, 100): [1, 0, 0],
+                }
+                sorted_keys = sorted(intervals.keys(), key=lambda x: x[0])
+                # print(sorted_keys)
+                for start, stop in sorted_keys:
+                    if input_float < stop:
+                        return intervals.get((start, stop))
 
-        elif resolution==3:
-            if input_float<-2:
-                return [0,0,0]
-            elif input_float<-1.5:
-                return [0,0,1]
-            elif input_float<-1:
-                return [0,1,0]
-            elif input_float<-0.5:
-                return [0,1,1]
-            elif input_float<0.5:
-                return [1,0,0]
-            elif input_float<1.0:
-                return [1,0,1]
-            elif input_float<1.5:
-                return [1,1,0]
+            elif resolution == 4:
+                # Gray encoding binarization of the floats
+                intervals = {
+                    (-100, -1.8): [0, 0, 0, 0],
+                    (-1.8, -1.4): [0, 0, 0, 1],
+                    (-1.4, -0.9): [0, 0, 1, 1],
+                    (-0.9, -0.6): [0, 0, 1, 0],
+                    (-0.6, -0.3): [0, 1, 1, 0],
+                    (-0.3, -0.15): [0, 1, 1, 1],
+                    (-0.15, -0.05): [0, 1, 0, 1],
+                    (-0.05, 0): [0, 1, 0, 0],
+                    (0, 0.05): [1, 1, 0, 0],
+                    (00.5, 0.15): [1, 1, 0, 1],
+                    (0.15, 0.3): [1, 1, 1, 1],
+                    (0.3, 0.6): [1, 1, 1, 0],
+                    (0.6, 0.9): [1, 0, 1, 0],
+                    (0.9, 1.4): [1, 0, 1, 1],
+                    (1.4, 1.8): [1, 0, 0, 1],
+                    (1.8, 100): [1, 0, 0, 0]
+                }
+                sorted_keys = sorted(intervals.keys(), key=lambda x: x[0])
+                # print(sorted_keys)
+                for start, stop in sorted_keys:
+                    if input_float < stop:
+                        return intervals.get((start, stop))
+
+        elif encoding_type == "one hot":
+            if resolution==4:
+                if input_float < -1:
+                    return [0, 0, 0, 1]
+                elif input_float < 0:
+                    return [0, 0, 1, 0]
+                elif input_float < 1:
+                    return [0, 1, 0, 0]
+                else:
+                    return [1, 0, 0, 0]
+            elif resolution == 8:
+                intervals = {
+                    (-100, -1.8):   [1, 0, 0, 0, 0, 0, 0, 0],
+                    (-1.8, -1.4):   [1, 0, 0, 0, 0, 0, 0, 0],
+                    (-1.4, -0.9):   [0, 1, 0, 0, 0, 0, 0, 0],
+                    (-0.9, -0.6):   [0, 1, 0, 0, 0, 0, 0, 0],
+                    (-0.6, -0.3):   [0, 0, 1, 0, 0, 0, 0, 0],
+                    (-0.3, -0.15) : [0, 0, 1, 0, 0, 0, 0, 0],
+                    (-0.15, -0.05): [0, 0, 0, 1, 0, 0, 0, 0],
+                    (-0.05, 0):     [0, 0, 0, 1, 0, 0, 0, 0],
+                    (0, 0.05):      [0, 0, 0, 0, 1, 0, 0, 0],
+                    (00.5, 0.15):   [0, 0, 0, 0, 1, 0, 0, 0],
+                    (0.15, 0.3):    [0, 0, 0, 0, 0, 1, 0, 0],
+                    (0.3, 0.6):     [0, 0, 0, 0, 0, 1, 0, 0],
+                    (0.6, 0.9):     [0, 0, 0, 0, 0, 0, 1, 0],
+                    (0.9, 1.4):     [0, 0, 0, 0, 0, 0, 1, 0],
+                    (1.4, 1.8):     [0, 0, 0, 0, 0, 0, 0, 1],
+                    (1.8, 100):     [0, 0, 0, 0, 0, 0, 0, 1]
+                }
+                sorted_keys = sorted(intervals.keys(), key=lambda x: x[0])
+                # print(sorted_keys)
+                for start, stop in sorted_keys:
+                    if input_float < stop:
+                        return intervals.get((start, stop))
+            elif resolution == 16:
+                intervals = {
+                    (-100, -1.8):   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    (-1.8, -1.4):   [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    (-1.4, -0.9):   [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    (-0.9, -0.6):   [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    (-0.6, -0.3):   [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    (-0.3, -0.15) : [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    (-0.15, -0.05): [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    (-0.05, 0):     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                    (0, 0.05):      [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    (00.5, 0.15):   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    (0.15, 0.3):    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                    (0.3, 0.6):     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                    (0.6, 0.9):     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    (0.9, 1.4):     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                    (1.4, 1.8):     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    (1.8, 100):     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                }
+                sorted_keys = sorted(intervals.keys(), key =lambda x: x[0])
+                #print(sorted_keys)
+                for start, stop in sorted_keys:
+                    if input_float < stop:
+                        return intervals.get((start, stop))
             else:
-                return [1, 1, 1]
-        #return [random.choice([0, 1]) for _ in range(resolution)]
+                raise ValueError("Resolution %d not implemented for encoding %d", resolution, encoding_type)
 
     def get_training_data(self):
         training_data, _ = self.read_test_and_train_files()
@@ -613,7 +757,7 @@ class JapaneseVowelsBuilder:
 
         #print(len(dataset))
 
-        return dataset
+        return dataset[:self.no_training_ex]
 
     def get_testing_data(self):
         _, testing_data = self.read_test_and_train_files()
@@ -635,7 +779,7 @@ class JapaneseVowelsBuilder:
                 dataset.append((_inputs, np.array(string_outputs)))
 
 
-        return dataset
+        return dataset[:self.no_testing_ex]
 
 class FiveBitAndDensityBuilder:
     """
@@ -761,14 +905,17 @@ class FiveBitAndDensityBuilder:
         return five_bit_and_density_data
 
 class SyntheticSequenceToSequenceBuilder:
-    def __init__(self, no_training_ex=100, no_testing_ex=10):
+    def __init__(self, no_training_ex=1000, no_testing_ex=10):
         self.input_signals = 3
-        self.input_length = 7
-
+        self.input_length = 3
         self.no_training_ex = no_training_ex
         self.no_testing_ex = no_testing_ex
 
+    def get_prediction_input_signal(self):
+        return [0]*(self.input_signals) + [1]
 
+    def get_prediction_end_signal(self):
+        return "001"
 
     def get_training_data(self):
         data_set = []
@@ -784,7 +931,7 @@ class SyntheticSequenceToSequenceBuilder:
                 _inputs.append(input_signal+[0])  # + EOS signal
                 _outputs.append("100")
 
-            end_of_sequence = list(np.zeros(self.input_signals)) + [1]
+            end_of_sequence = list(np.zeros(self.input_signals)) + [1]  # + EOS signal
             _inputs.append(end_of_sequence)
             _outputs.append("100")
             number_of_ones = count_inputs.count(1)
