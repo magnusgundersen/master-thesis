@@ -24,8 +24,8 @@ import multiprocessing
 
 
 # Workers:
-def fitness_test_worker(individual, R=100, C=1, I=4, classifier="linear-svm", time_transition="xor",
-                        distractor_period=10, train_ex=100, test_ex=10, tests_per_ind=1):
+def fitness_test_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd", time_transition="random_permutation",
+                        distractor_period=10, train_ex=400, test_ex=100, tests_per_ind=1):
     """
         Method for running the develop_and_test with multiprocessing
         :param individual:
@@ -42,7 +42,7 @@ def fitness_test_worker(individual, R=100, C=1, I=4, classifier="linear-svm", ti
         reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, N=reCA_problem.input_size, R=R, C=C, I=I,
                                               classifier=classifier,
                                               time_transition=time_transition,
-                                              mapping_permutations=False)
+                                              mapping_permutations=True)
         reCA_system = reCA.ReCASystem()
 
         reCA_system.set_problem(reCA_problem)
@@ -62,14 +62,14 @@ def fitness_test_worker(individual, R=100, C=1, I=4, classifier="linear-svm", ti
         making_sure_tests = 10
         for _ in range(making_sure_tests):
             reCA_problem = reCA.ReCAProblem(
-                p.open_data_interpreter("5bit", distractor_period=distractor_period, training_ex=train_ex,
+                p.open_data_interpreter("5bit_density", distractor_period=distractor_period, training_ex=train_ex,
                                         testing_ex=test_ex))
             reCA_config = reCA.ReCAConfig()
             reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
             reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, R=R, C=C, I=I,
                                                   classifier=classifier,
                                                   time_transition=time_transition,
-                                                  mapping_permutations=False)
+                                                  mapping_permutations=True)
             reCA_system = reCA.ReCASystem()
 
             reCA_system.set_problem(reCA_problem)

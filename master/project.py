@@ -593,14 +593,14 @@ class Project:
 
     def evolve_and_test_non_uni_ca(self):
         # , CA_config=, state_name, pop_size, max_gens, mut_rate, crossover_rate, tournament_size
-        C = 1
-        Rs = [128]
+        C = 10
+        Rs = [32]
         I = 4
         N = 4+5  #
-        pop_size = 7*2  # Adapt to number of cores
+        pop_size = 7  # Adapt to number of cores
         max_no_generations = 1000
         tests_per_individual = 1
-        number_of_rules_list = [6]
+        number_of_rules_list = [8]
         print_est = False
         before = time.time()
         for number_of_rules in number_of_rules_list:
@@ -628,7 +628,7 @@ class Project:
     def evolve_and_test_non_uni_ca_jap_vowls(self):
         # , CA_config=, state_name, pop_size, max_gens, mut_rate, crossover_rate, tournament_size
         C = 10
-        Rs = [18]
+        Rs = [64]
         I = 2
         N = 14*4  # Adapt to binarization scheme
         pop_size = 7*2  # Adapt to number of cores
