@@ -10,6 +10,7 @@ import scipy.io as sci_io
 #from speech import Speech, SpeakerStatistics, SpeakerStatisticsCollection
 from PIL import Image
 #import Image
+import math
 file_location = os.path.dirname(os.path.realpath(__file__))
 
 class TranslationBuilder:
@@ -617,40 +618,12 @@ class JapaneseVowelsBuilder:
                     (1.8,     100): [1, 0, 0, 0]
                 }
                 sorted_keys = sorted(intervals.keys(), key=lambda x: x[0])
-                # print(sorted_keys)
+                #print(sorted_keys)
                 for start, stop in sorted_keys:
                     if input_float < stop:
                         return intervals.get((start, stop))
 
-        elif encoding_type == "binary":
-            if resolution == 2:
-                if input_float < -1:
-                    return [0, 0]
-                elif input_float < 0:
-                    return [0, 1]
-                elif input_float < 1:
-                    return [1, 0]
-                else:
-                    return [1, 1]
-            elif resolution == 3:
-                # Gray encoding binarization of the floats
-                intervals = {
-                    (-100, -1.5): [0, 0, 0],
-                    (-1.5, -0.8): [0, 0, 1],
-                    (-0.8, -0.2): [0, 1, 1],
-                    (-0.2, 0): [0, 1, 0],
-                    (0, 0.2): [1, 1, 0],
-                    (0.2, 0.8): [1, 1, 1],
-                    (0.8, 1.5): [1, 0, 1],
-                    (1.5, 100): [1, 0, 0],
-                }
-                sorted_keys = sorted(intervals.keys(), key=lambda x: x[0])
-                # print(sorted_keys)
-                for start, stop in sorted_keys:
-                    if input_float < stop:
-                        return intervals.get((start, stop))
-
-            elif resolution == 4:
+            elif resolution == 5:
                 # Gray encoding binarization of the floats
                 intervals = {
                     (-100, -1.8): [0, 0, 0, 0],
@@ -675,6 +648,18 @@ class JapaneseVowelsBuilder:
                 for start, stop in sorted_keys:
                     if input_float < stop:
                         return intervals.get((start, stop))
+
+        elif encoding_type == "binary":
+            if resolution == 2:
+                if input_float < -1:
+                    return [0, 0]
+                elif input_float < 0:
+                    return [0, 1]
+                elif input_float < 1:
+                    return [1, 0]
+                else:
+                    return [1, 1]
+
 
         elif encoding_type == "one hot":
             if resolution==4:
@@ -778,7 +763,7 @@ class JapaneseVowelsBuilder:
                     string_outputs.append(string_result)
                 dataset.append((_inputs, np.array(string_outputs)))
 
-
+        np.random.shuffle(dataset)
         return dataset[:self.no_testing_ex]
 
 class FiveBitAndDensityBuilder:
@@ -972,7 +957,58 @@ class SyntheticSequenceToSequenceBuilder:
 
             data_set.append((np.array(_inputs, dtype="uint8"), np.array(_outputs)))
         return data_set
+class SequenceSquareRootBuilder:
+    def __init__(self, no_training_ex=1500, no_testing_ex=30):
+        self.input_signals = 13
+        self.input_length_interval = (3, 7)
+        self.no_training_ex = no_training_ex
+        self.no_testing_ex = no_testing_ex
 
+    def get_prediction_input_signal(self):
+        return [0]*(self.input_signals) + [1]
+
+    def get_prediction_end_signal(self):
+        return "001"
+
+
+    def create_example(self):
+        _inputs = []
+        _outputs = []
+        # Input-sequence
+        count_inputs = []
+        for j in range(random.randint(self.input_length_interval[0], self.input_length_interval[1])):
+            input_signal = list(np.random.randint(2, size=self.input_signals))
+            count_inputs.extend(input_signal)
+            _inputs.append(input_signal + [0])  # + EOS signal
+            _outputs.append("100")
+
+        end_of_sequence = list(np.zeros(self.input_signals)) + [1]  # + EOS signal
+        _inputs.append(end_of_sequence)
+        _outputs.append("100")
+        number_of_ones = count_inputs.count(1)
+        square_root_floor = math.floor(math.sqrt(number_of_ones))
+        for j in range(square_root_floor):
+            _inputs.append(end_of_sequence)
+            _outputs.append("010")
+
+        _inputs.append(end_of_sequence)
+        _outputs.append("001")
+
+        return (np.array(_inputs, dtype="uint8"), np.array(_outputs))
+
+    def get_training_data(self):
+        data_set = []
+
+        for i in range(self.no_training_ex):
+            data_set.append(self.create_example())
+        return data_set
+
+    def get_testing_data(self):
+        data_set = []
+
+        for i in range(self.no_testing_ex):
+            data_set.append(self.create_example())
+        return data_set
 if __name__ == "__main__":
     #translator = TranslationBuilder()
     #translator.get_training_data()
@@ -981,7 +1017,7 @@ if __name__ == "__main__":
     #jap_vows = JapaneseVowelsBuilder()
     #jap_vows.read_test_and_train_files()
     #print(jap_vows.get_training_data())
-    seq_to_seq = SyntheticSequenceToSequenceBuilder()
+    seq_to_seq = SequenceSquareRootBuilder()
     print(seq_to_seq.get_training_data())
 #cifarB = CIFARBuilder()
 #cifarB.get_cifar_data()
