@@ -24,8 +24,8 @@ import multiprocessing
 
 
 # Workers:
-def fitness_test_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd", time_transition="random_permutation",
-                        distractor_period=10, train_ex=400, test_ex=100, tests_per_ind=1):
+def fitness_test_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd", time_transition="or",
+                        distractor_period=10, train_ex=1000, test_ex=100, tests_per_ind=1):
     """
         Method for running the develop_and_test with multiprocessing
         :param individual:
@@ -57,7 +57,7 @@ def fitness_test_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd"
     fitness_std = int(np.std(fitness))
     fitness = int(np.mean(fitness))
 
-    if fitness>1000:
+    if fitness>999:
         fitness = []
         making_sure_tests = 10
         for _ in range(making_sure_tests):
@@ -82,6 +82,7 @@ def fitness_test_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd"
 
         fitness_std = int(np.std(fitness))
         fitness = int(np.mean(fitness))
+        print("result after making sure: ", fitness)
 
     # fitness = fitness if (fitness<850) else fitness-fitness_std*(1000/fitness)
     fitness = 1 if fitness == 0 else fitness  # avoid div by zero
@@ -90,7 +91,7 @@ def fitness_test_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd"
 
     return individual
 
-def jap_vows_fitness_test_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd", time_transition="random_permutation",
+def jap_vows_fitness_test_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd", time_transition="or",
                         tests_per_ind=1):
     """
         Method for running the develop_and_test with multiprocessing
@@ -108,7 +109,7 @@ def jap_vows_fitness_test_worker(individual, R=100, C=1, I=4, classifier="percep
         reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, R=R, C=C, I=I,
                                               classifier=classifier,
                                               time_transition=time_transition,
-                                              mapping_permutations=True)
+                                              mapping_permutations=False)
         reCA_system = reCA.ReCASystem()
 
         reCA_system.set_problem(reCA_problem)
@@ -135,7 +136,7 @@ def jap_vows_fitness_test_worker(individual, R=100, C=1, I=4, classifier="percep
             reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, R=R, C=C, I=I,
                                                   classifier=classifier,
                                                   time_transition=time_transition,
-                                                  mapping_permutations=True)
+                                                  mapping_permutations=False)
             reCA_system = reCA.ReCASystem()
 
             reCA_system.set_problem(reCA_problem)

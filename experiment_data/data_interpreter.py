@@ -565,7 +565,7 @@ class JapaneseVowelsBuilder:
         return _input, _output
 
     def _binarize(self, input_float, resolution):
-        encoding_type = "grey"
+        encoding_type = "quantile"
         try:
             input_float = float(input_float)
         except:
@@ -649,6 +649,18 @@ class JapaneseVowelsBuilder:
                     if input_float < stop:
                         return intervals.get((start, stop))
 
+
+        elif encoding_type == "quantile":
+            if input_float < -0.2984444:
+                return [0, 0, 0, 1]
+            elif input_float < -0.1379516:
+                return [0, 0, 1, 1]
+            elif input_float < 0.004259:
+                return [0, 1, 1, 1]
+            elif input_float < 0.2079332:
+                return [0, 1, 1, 0]
+            else:
+                return  [0, 1, 0, 0]
         elif encoding_type == "binary":
             if resolution == 2:
                 if input_float < -1:
@@ -776,7 +788,7 @@ class FiveBitAndDensityBuilder:
         self.no_training_ex = training_ex
         self.no_testing_ex = testing_ex
 
-        self.density_signals = 5  # Must be an odd number
+        self.density_signals = 1  # Must be an odd number
 
 
     def generate_density_dataset(self):
