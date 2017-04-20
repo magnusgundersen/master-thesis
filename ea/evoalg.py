@@ -17,7 +17,7 @@ parallel = True
 if parallel:
     cpu_count = multiprocessing.cpu_count()
     if cpu_count < 20:
-        threads_to_be_used = 7  # 4 not cloging the machine
+        threads_to_be_used = 3  # 4 not cloging the machine
     else:
         threads_to_be_used = 20
 

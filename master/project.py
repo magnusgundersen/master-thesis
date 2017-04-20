@@ -232,13 +232,13 @@ class Project:
         #reCA_config.set_single_reservoir_config(ca_rule=90, R=2, C=3, I=16, classifier="linear-svm",
         #                                        encoding="random_mapping",
         #                                        time_transition="random_permutation")
-        with open(file_location+ "/../experiment_data/rules/NuniRule1917_f=990.ind", "rb") as f:
-            evolved_ind = pickle.load(f)
+        #with open(file_location+ "/../experiment_data/rules/NuniRule1917_f=990.ind", "rb") as f:
+        #    evolved_ind = pickle.load(f)
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
-        reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
-        #reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
+        #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+        reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
         #reCA_config.set_uniform_margem_config(rule_scheme=reCA_rule, N=reCA_problem.input_size, R=(reCA_problem.input_size*2)+29*4, R_i=2, I=4)
-        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=12, C=6, I=4, classifier="linear-svm",
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=8, C=6, I=2, classifier="linear-svm",
                                               mapping_permutations=True, time_transition="random_permutation")
         #reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=64, C=1, I=4, time_transition="xor", classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
@@ -628,14 +628,14 @@ class Project:
 
     def evolve_and_test_non_uni_ca_jap_vowls(self):
         # , CA_config=, state_name, pop_size, max_gens, mut_rate, crossover_rate, tournament_size
-        C = 1
-        Rs = [80]
-        I = 4
-        N = 14*4  # Adapt to binarization scheme
-        pop_size = 7*4  # Adapt to number of cores
+        C = 4
+        Rs = [12]
+        I = 2
+        N = 14*3  # Adapt to binarization scheme
+        pop_size = 3*2  # Adapt to number of cores
         max_no_generations = 1000
         tests_per_individual = 1
-        number_of_rules_list = [40]
+        number_of_rules_list = [12]
         print_est = False
         before = time.time()
         for number_of_rules in number_of_rules_list:
@@ -707,7 +707,7 @@ class Project:
                                              test_per_ind=tests_per_ind)
         ea = evoalg.EA()
 
-        ea_output = ea.solve(nonUniCAprob, saved_state=False)
+        ea_output = ea.solve(nonUniCAprob, saved_state=True)
 
         # pickle.dump(ea_output, open("ea.pkl", "wb"))
         run_name = "earun_jap_R" + str(ca_config.get("R")) + "C" + str(ca_config.get("C")) + "I" + str(ca_config.get("I")) + \

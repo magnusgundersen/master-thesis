@@ -471,7 +471,40 @@ class JapaneseVowelsBuilder:
         self.no_training_ex = training_ex
         self.no_testing_ex = testing_ex
 
-    def read_test_and_train_files(self):
+
+
+    def process_vowels_data(self):
+
+        training_data, testing_data = self.get_raw_data()
+        dataset = []  #
+
+        all_floats = []
+
+        for i in range(len(training_data)):  # for each speaker
+            _inputs = []
+            _outputs = []
+            for utterance in training_data[i]:
+                _inputs, _outputs = self._create_binary_data(utterance, i)
+                for flt in utterance:
+                    all_floats.extend(flt)
+
+                string_outputs = []
+                for _output in _outputs:
+                    string_result = ""
+                    for char in _output:
+                        string_result+= str(char)
+                    string_outputs.append(string_result)
+                dataset.append((_inputs, np.array(string_outputs)))
+        all_floats = [float(x) for x in all_floats if x!="\n"]
+        all_floats = sorted(all_floats)
+        tot_number_of_floats = len(all_floats)
+        indecies_size = tot_number_of_floats//8
+        print([all_floats[indecies_size*i] for i in range(8)])
+        print()
+
+        return dataset[:self.no_training_ex]
+
+    def get_raw_data(self):
         training_set = []
         testing_set = []
 
@@ -543,7 +576,7 @@ class JapaneseVowelsBuilder:
         _input = []
         number_of_speakers = 9
         _output = []
-        resolution = 4
+        resolution = 3
         eos_signal = [0]*12*resolution + [1]
         wait_signal = [0]*number_of_speakers + [1]
         label_signal = [0]*(speaker_number) + [1] + [0]*((number_of_speakers-1)-speaker_number) + [0]
@@ -565,7 +598,11 @@ class JapaneseVowelsBuilder:
         return _input, _output
 
     def _binarize(self, input_float, resolution):
-        encoding_type = "quantile"
+        #encoding_type = "quantile"
+        encoding_type = "grey"
+        #encoding_type = "one hot"
+        #encoding_type = "binary"
+        #encoding_type = "even div"
         try:
             input_float = float(input_float)
         except:
@@ -583,14 +620,14 @@ class JapaneseVowelsBuilder:
             elif resolution == 3:
                 # Gray encoding binarization of the floats
                 intervals = {
-                    (-100, -1.5): [0, 0, 0],
-                    (-1.5, -0.8): [0, 0, 1],
-                    (-0.8, -0.2): [0, 1, 1],
-                    (-0.2,    0): [0, 1, 0],
-                    (0,     0.2): [1, 1, 0],
-                    (0.2,   0.8): [1, 1, 1],
-                    (0.8,   1.5): [1, 0, 1],
-                    (1.5,   100): [1, 0, 0],
+                    (-100, -1.852765): [0, 0, 0],
+                    (-1.852765, -0.399826): [0, 0, 1],
+                    (-0.399826, -0.250122): [0, 1, 1],
+                    (-0.250122,    -0.155586): [0, 1, 0],
+                    (-0.155586,     -0.0665): [1, 1, 0],
+                    (-0.0665,   0.022394): [1, 1, 1],
+                    (0.022394,   0.140693): [1, 0, 1],
+                    (0.140693,   100): [1, 0, 0],
                 }
                 sorted_keys = sorted(intervals.keys(), key=lambda x: x[0])
                 # print(sorted_keys)
@@ -661,6 +698,12 @@ class JapaneseVowelsBuilder:
                 return [0, 1, 1, 0]
             else:
                 return  [0, 1, 0, 0]
+
+        elif encoding_type == "even div":
+            with open(file_location+"/", "rb") as f:
+                division = f.readlines()
+
+            pass
         elif encoding_type == "binary":
             if resolution == 2:
                 if input_float < -1:
@@ -735,7 +778,7 @@ class JapaneseVowelsBuilder:
                 raise ValueError("Resolution %d not implemented for encoding %d", resolution, encoding_type)
 
     def get_training_data(self):
-        training_data, _ = self.read_test_and_train_files()
+        training_data, _ = self.get_raw_data()
         dataset = []  #
 
         for i in range(len(training_data)):
@@ -757,7 +800,7 @@ class JapaneseVowelsBuilder:
         return dataset[:self.no_training_ex]
 
     def get_testing_data(self):
-        _, testing_data = self.read_test_and_train_files()
+        _, testing_data = self.get_raw_data()
         dataset = []  #
 
 
@@ -1026,10 +1069,11 @@ if __name__ == "__main__":
     #translator.get_training_data()
     #translator.create_efficient_data_to_file()
     #translator.generate_translation_data()
-    #jap_vows = JapaneseVowelsBuilder()
+    jap_vows = JapaneseVowelsBuilder()
+    jap_vows.process_vowels_data()
     #jap_vows.read_test_and_train_files()
     #print(jap_vows.get_training_data())
-    seq_to_seq = SequenceSquareRootBuilder()
-    print(seq_to_seq.get_training_data())
+    #seq_to_seq = SequenceSquareRootBuilder()
+    #print(seq_to_seq.get_training_data())
 #cifarB = CIFARBuilder()
 #cifarB.get_cifar_data()
