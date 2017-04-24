@@ -33,9 +33,10 @@ def main(argv):
 
     #before = time.time()
     #p.five_bit_task()
+    p.evolve_ca_five_bit()
     #p.five_bit_density_task()
     #p.japanese_vowels()
-    p.evolve_and_test_non_uni_ca_jap_vowls()
+    #p.evolve_and_test_non_uni_ca_jap_vowls()
     #p.square_root_sequence_task()
     #print(project.test_all_rules())
     #print(p.evolve_and_test_non_uni_ca())

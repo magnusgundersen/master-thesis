@@ -238,8 +238,8 @@ class Project:
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
         reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
         #reCA_config.set_uniform_margem_config(rule_scheme=reCA_rule, N=reCA_problem.input_size, R=(reCA_problem.input_size*2)+29*4, R_i=2, I=4)
-        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=8, C=6, I=2, classifier="linear-svm",
-                                              mapping_permutations=True, time_transition="random_permutation")
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=60, C=1, I=2, classifier="perceptron_sgd",
+                                              mapping_permutations=True, time_transition="or")
         #reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=64, C=1, I=4, time_transition="xor", classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
 
@@ -274,7 +274,7 @@ class Project:
         visual.visualize_example_run(outputs)
 
     def five_bit_task(self):
-        data_interpreter = open_data_interpreter("5bit", distractor_period=200, training_ex=1, testing_ex=1)
+        data_interpreter = open_data_interpreter("5bit", distractor_period=10, training_ex=32, testing_ex=32)
         reCA_problem = reCA.ReCAProblem(data_interpreter)
         reCA_config = reCA.ReCAConfig()
 
@@ -289,12 +289,12 @@ class Project:
         #rule_list = [89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122]
 
 
-        with open(file_location+ "/../experiment_data/rules/NuniRule2251_f=1000.ind", "rb") as f:
-            evolved_ind = pickle.load(f)
+        #with open(file_location+ "/../experiment_data/rules/NuniRule2251_f=1000.ind", "rb") as f:
+        #    evolved_ind = pickle.load(f)
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
-        reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
-        #reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
-        reCA_config.set_random_mapping_config(reCA_rule, R=128, C=1, I=4, classifier="perceptron_sgd", time_transition="xor")
+        #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+        reCA_rule = reCA.ReCAruleConfig(uniform_rule=195)
+        reCA_config.set_random_mapping_config(reCA_rule, R=60, C=1, I=2, classifier="perceptron_sgd", time_transition="or")
         #reCA_config.set_non_uniform_config(reCA_rule, R=8, C=5, I=8, classifier="perceptron_sgd")
         #reCA_config.set_uniform_margem_config(rule=[141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18], R_i=2, R=76, I=8, classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
@@ -592,16 +592,18 @@ class Project:
         visual.create_graph_from_jsonconfig(file_location + "/../experiment_data/rule_testing/full_plotconfig.json", Rs)
 
 
-    def evolve_and_test_non_uni_ca(self):
-        # , CA_config=, state_name, pop_size, max_gens, mut_rate, crossover_rate, tournament_size
-        C = 6
-        Rs = [18]
-        I = 4
-        N = 4+5  #
-        pop_size = 7*2  # Adapt to number of cores
+    def evolve_ca_five_bit(self):
+
+        C = 1
+        Rs = [60]
+        I = 2
+        N = 4  #
+        pop_size = 7*3  # Adapt to number of cores
         max_no_generations = 1000
         tests_per_individual = 1
-        number_of_rules_list = [6]
+        number_of_rules_list = [10]
+        fitness_threshold_value = 1000
+
         print_est = False
         before = time.time()
         for number_of_rules in number_of_rules_list:
@@ -613,8 +615,11 @@ class Project:
                     "C": C,
 
                 }
-                self.evolve_non_uniform_ca(ca_config, pop_size=pop_size, max_generations=max_no_generations, allowed_distinct_rules=number_of_rules, tests_per_ind=tests_per_individual,
-                                           fitness_threshold_value=1000)
+                ea_problem = ea_ca.NonUni5BitProblem(ca_config, fitness_threshold=fitness_threshold_value, init_pop_size=pop_size,
+                                             max_number_of_generations=max_no_generations,
+                                             allowed_number_of_rules=number_of_rules,
+                                             test_per_ind=tests_per_individual)
+                self.evolve_non_uniform_ca(ca_config, ea_problem)
             if print_est:
                 ts = time.time()
                 print("Time now : " + str(datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')))
@@ -628,14 +633,14 @@ class Project:
 
     def evolve_and_test_non_uni_ca_jap_vowls(self):
         # , CA_config=, state_name, pop_size, max_gens, mut_rate, crossover_rate, tournament_size
-        C = 4
-        Rs = [12]
+        C = 1
+        Rs = [40]
         I = 2
-        N = 14*3  # Adapt to binarization scheme
-        pop_size = 3*2  # Adapt to number of cores
+        N = 14*4  # Adapt to binarization scheme
+        pop_size = 7*2  # Adapt to number of cores
         max_no_generations = 1000
         tests_per_individual = 1
-        number_of_rules_list = [12]
+        number_of_rules_list = [40]
         print_est = False
         before = time.time()
         for number_of_rules in number_of_rules_list:
@@ -659,22 +664,21 @@ class Project:
             #test_all_rules()
 
         print("Actual time usage (ea evolve): " + str(time.time() - before))
-    def evolve_non_uniform_ca(self, ca_config,
-                              pop_size=14, max_generations=1000, allowed_distinct_rules=8,
-                              tests_per_ind=6, fitness_threshold_value=1000):
+    def evolve_non_uniform_ca(self, ca_config, ea_prob):
 
-        nonUniCAprob = ea_ca.NonUniCAProblem(ca_config, fitness_threshold=fitness_threshold_value, init_pop_size=pop_size,
-                                             max_number_of_generations=max_generations,
-                                             allowed_number_of_rules=allowed_distinct_rules,
-                                             test_per_ind=tests_per_ind)
+        #nonUniCAprob = ea_ca.NonUniCAProblem(ca_config, fitness_threshold=fitness_threshold_value, init_pop_size=pop_size,
+        #                                     max_number_of_generations=max_generations,
+        #                                     allowed_number_of_rules=allowed_distinct_rules,
+        #                                     test_per_ind=tests_per_ind)
+
         ea = evoalg.EA()
 
-        ea_output = ea.solve(nonUniCAprob, saved_state=False)
+        ea_output = ea.solve(ea_prob, saved_state=True)
 
         # pickle.dump(ea_output, open("ea.pkl", "wb"))
         run_name = "earun_R" + str(ca_config.get("R")) + "C" + str(ca_config.get("C")) + "I" + str(ca_config.get("I")) + \
-                   "_rules" + str(allowed_distinct_rules) + "_popsize" + str(pop_size) + \
-                   "_gens" + str(max_generations)
+                   "_rules" + str(ea_prob.allowed_number_of_rules) + "_popsize" + str(ea_prob.init_pop_size) + \
+                   "_gens" + str(ea_prob.max_number_of_generations)
 
         pickle.dump(ea_output, open(file_location + "/../experiment_data/ea_runs/" + run_name + ".ea_output", "wb"))
         best_individual = ea_output.best_individual
@@ -684,10 +688,10 @@ class Project:
         non_uni_rule_serialize["full_size_rule_list"] = best_individ_scheme
         non_uni_rule_serialize["raw rule"] = best_individual.genotype.rule_scheme
         ea_data = {"ca_config": ca_config,
-                   "popsize": pop_size,
-                   "max_gens": max_generations,
-                   "test per ind": tests_per_ind,
-                   "allowed number of rules": allowed_distinct_rules,
+                   "popsize": ea_prob.init_pop_size,
+                   "max_gens": ea_prob.max_number_of_generations,
+                   "test per ind": ea_prob.test_per_ind,
+                   "allowed number of rules": ea_prob.allowed_number_of_rules,
                    }
         non_uni_rule_serialize["ea_data"] = ea_data
 
@@ -707,7 +711,7 @@ class Project:
                                              test_per_ind=tests_per_ind)
         ea = evoalg.EA()
 
-        ea_output = ea.solve(nonUniCAprob, saved_state=True)
+        ea_output = ea.solve(nonUniCAprob, saved_state=False)
 
         # pickle.dump(ea_output, open("ea.pkl", "wb"))
         run_name = "earun_jap_R" + str(ca_config.get("R")) + "C" + str(ca_config.get("C")) + "I" + str(ca_config.get("I")) + \

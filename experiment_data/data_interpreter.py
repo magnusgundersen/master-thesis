@@ -7,10 +7,13 @@ import pprint
 import xml.etree.ElementTree as ET
 import scipy.sparse as sprs
 import scipy.io as sci_io
+import json
+import codecs
 #from speech import Speech, SpeakerStatistics, SpeakerStatisticsCollection
 from PIL import Image
 #import Image
 import math
+
 file_location = os.path.dirname(os.path.realpath(__file__))
 
 class TranslationBuilder:
@@ -467,42 +470,14 @@ class TwentyBitBuilder:
 
 
 class JapaneseVowelsBuilder:
-    def __init__(self, training_ex=270, testing_ex=370):
+    def __init__(self, training_ex=270, testing_ex=370, resolution=4, binarization_scheme="quantize"):
         self.no_training_ex = training_ex
         self.no_testing_ex = testing_ex
 
+        self.resolution = resolution
+        self.binarization_scheme = binarization_scheme
 
 
-    def process_vowels_data(self):
-
-        training_data, testing_data = self.get_raw_data()
-        dataset = []  #
-
-        all_floats = []
-
-        for i in range(len(training_data)):  # for each speaker
-            _inputs = []
-            _outputs = []
-            for utterance in training_data[i]:
-                _inputs, _outputs = self._create_binary_data(utterance, i)
-                for flt in utterance:
-                    all_floats.extend(flt)
-
-                string_outputs = []
-                for _output in _outputs:
-                    string_result = ""
-                    for char in _output:
-                        string_result+= str(char)
-                    string_outputs.append(string_result)
-                dataset.append((_inputs, np.array(string_outputs)))
-        all_floats = [float(x) for x in all_floats if x!="\n"]
-        all_floats = sorted(all_floats)
-        tot_number_of_floats = len(all_floats)
-        indecies_size = tot_number_of_floats//8
-        print([all_floats[indecies_size*i] for i in range(8)])
-        print()
-
-        return dataset[:self.no_training_ex]
 
     def get_raw_data(self):
         training_set = []
@@ -567,7 +542,7 @@ class JapaneseVowelsBuilder:
         #print(len(speaker_lines[0]))
         return speaker_lines
 
-    def _create_binary_data(self, utterance, speaker_number):
+    def _create_binary_data(self, utterance, speaker_number, levels):
         """
         Uses the binarization scheme to create a training-set example
         :param utterance: A list of numpy-arrays of size 12, and data type floats.
@@ -576,8 +551,7 @@ class JapaneseVowelsBuilder:
         _input = []
         number_of_speakers = 9
         _output = []
-        resolution = 3
-        eos_signal = [0]*12*resolution + [1]
+        eos_signal = [0]*12*self.resolution + [1]
         wait_signal = [0]*number_of_speakers + [1]
         label_signal = [0]*(speaker_number) + [1] + [0]*((number_of_speakers-1)-speaker_number) + [0]
 
@@ -585,7 +559,7 @@ class JapaneseVowelsBuilder:
 
         for time_step in utterance:
 
-            binary_version = [self._binarize(float_number, resolution) for float_number in time_step[:-1]] + [[0]] # Not EOS
+            binary_version = [self._binarize(float_number, self.resolution, levels) for float_number in time_step[:-1]] + [[0]] # Not EOS
             binary_version = list(np.concatenate(binary_version))
             _input.append(binary_version)
             _output.append(wait_signal)
@@ -597,126 +571,62 @@ class JapaneseVowelsBuilder:
         #_output = np.array(_output, dtype="uint8")
         return _input, _output
 
-    def _binarize(self, input_float, resolution):
-        #encoding_type = "quantile"
-        encoding_type = "grey"
-        #encoding_type = "one hot"
-        #encoding_type = "binary"
-        #encoding_type = "even div"
+    def _binarize(self, input_float, resolution, levels):
+        levels.append(8)
+        grey_coding = {
+            2: [
+                [0,0],
+                [0,1],
+                [1,1],
+                [1,0]
+            ],
+            3: [
+                [0, 0, 0],
+                [0, 0, 1],
+                [0, 1, 1],
+                [0, 1, 0],
+                [1, 1, 0],
+                [1, 1, 1],
+                [1, 0, 1],
+                [1, 0, 0]
+            ],
+            4: [
+                [0, 0, 0, 0],
+                [0, 0, 0, 1],
+                [0, 0, 1, 1],
+                [0, 0, 1, 0],
+                [0, 1, 1, 0],
+                [0, 1, 1, 1],
+                [0, 1, 0, 1],
+                [0, 1, 0, 0],
+                [1, 1, 0, 0],
+                [1, 1, 0, 1],
+                [1, 1, 1, 1],
+                [1, 1, 1, 0],
+                [1, 0, 1, 0],
+                [1, 0, 1, 1],
+                [1, 0, 0, 1],
+                [1, 0, 0, 0]
+            ],
+        }
+
         try:
             input_float = float(input_float)
         except:
             raise ValueError("error on binarzation")
-        if encoding_type == "grey":
-            if resolution==2:
-                if input_float<-1:
-                    return [0, 0]
-                elif input_float<0:
-                    return [0, 1]
-                elif input_float<1:
-                    return [1, 1]
-                else:
-                    return [1, 0]
-            elif resolution == 3:
-                # Gray encoding binarization of the floats
-                intervals = {
-                    (-100, -1.852765): [0, 0, 0],
-                    (-1.852765, -0.399826): [0, 0, 1],
-                    (-0.399826, -0.250122): [0, 1, 1],
-                    (-0.250122,    -0.155586): [0, 1, 0],
-                    (-0.155586,     -0.0665): [1, 1, 0],
-                    (-0.0665,   0.022394): [1, 1, 1],
-                    (0.022394,   0.140693): [1, 0, 1],
-                    (0.140693,   100): [1, 0, 0],
-                }
-                sorted_keys = sorted(intervals.keys(), key=lambda x: x[0])
-                # print(sorted_keys)
-                for start, stop in sorted_keys:
-                    if input_float < stop:
-                        return intervals.get((start, stop))
-            elif resolution == 4:
-                # Gray encoding binarization of the floats
-                intervals = {
-                    (-100,   -1.8): [0, 0, 0, 0],
-                    (-1.8,   -1.4): [0, 0, 0, 1],
-                    (-1.4,   -0.9): [0, 0, 1, 1],
-                    (-0.9,   -0.6): [0, 0, 1, 0],
-                    (-0.6,   -0.3): [0, 1, 1, 0],
-                    (-0.3,  -0.15): [0, 1, 1, 1],
-                    (-0.15, -0.05): [0, 1, 0, 1],
-                    (-0.05,     0): [0, 1, 0, 0],
-                    (0,      0.05): [1, 1, 0, 0],
-                    (00.5,   0.15): [1, 1, 0, 1],
-                    (0.15,    0.3): [1, 1, 1, 1],
-                    (0.3,     0.6): [1, 1, 1, 0],
-                    (0.6,     0.9): [1, 0, 1, 0],
-                    (0.9,     1.4): [1, 0, 1, 1],
-                    (1.4,     1.8): [1, 0, 0, 1],
-                    (1.8,     100): [1, 0, 0, 0]
-                }
-                sorted_keys = sorted(intervals.keys(), key=lambda x: x[0])
-                #print(sorted_keys)
-                for start, stop in sorted_keys:
-                    if input_float < stop:
-                        return intervals.get((start, stop))
 
-            elif resolution == 5:
-                # Gray encoding binarization of the floats
-                intervals = {
-                    (-100, -1.8): [0, 0, 0, 0],
-                    (-1.8, -1.4): [0, 0, 0, 1],
-                    (-1.4, -0.9): [0, 0, 1, 1],
-                    (-0.9, -0.6): [0, 0, 1, 0],
-                    (-0.6, -0.3): [0, 1, 1, 0],
-                    (-0.3, -0.15): [0, 1, 1, 1],
-                    (-0.15, -0.05): [0, 1, 0, 1],
-                    (-0.05, 0): [0, 1, 0, 0],
-                    (0, 0.05): [1, 1, 0, 0],
-                    (00.5, 0.15): [1, 1, 0, 1],
-                    (0.15, 0.3): [1, 1, 1, 1],
-                    (0.3, 0.6): [1, 1, 1, 0],
-                    (0.6, 0.9): [1, 0, 1, 0],
-                    (0.9, 1.4): [1, 0, 1, 1],
-                    (1.4, 1.8): [1, 0, 0, 1],
-                    (1.8, 100): [1, 0, 0, 0]
-                }
-                sorted_keys = sorted(intervals.keys(), key=lambda x: x[0])
-                # print(sorted_keys)
-                for start, stop in sorted_keys:
-                    if input_float < stop:
-                        return intervals.get((start, stop))
+        binarization = grey_coding.get(resolution)
+        if binarization is None:
+            raise ValueError
 
 
-        elif encoding_type == "quantile":
-            if input_float < -0.2984444:
-                return [0, 0, 0, 1]
-            elif input_float < -0.1379516:
-                return [0, 0, 1, 1]
-            elif input_float < 0.004259:
-                return [0, 1, 1, 1]
-            elif input_float < 0.2079332:
-                return [0, 1, 1, 0]
-            else:
-                return  [0, 1, 0, 0]
 
-        elif encoding_type == "even div":
-            with open(file_location+"/", "rb") as f:
-                division = f.readlines()
+        for i in range(len(levels)):
+            level = levels[i]
+            if input_float<level:
+                return binarization[i]
 
-            pass
-        elif encoding_type == "binary":
-            if resolution == 2:
-                if input_float < -1:
-                    return [0, 0]
-                elif input_float < 0:
-                    return [0, 1]
-                elif input_float < 1:
-                    return [1, 0]
-                else:
-                    return [1, 1]
-
-
-        elif encoding_type == "one hot":
+        if self.binarization_scheme == "one hot":
             if resolution==4:
                 if input_float < -1:
                     return [0, 0, 0, 1]
@@ -775,17 +685,89 @@ class JapaneseVowelsBuilder:
                     if input_float < stop:
                         return intervals.get((start, stop))
             else:
-                raise ValueError("Resolution %d not implemented for encoding %d", resolution, encoding_type)
+                raise ValueError("Resolution is not implemented for encoding")
+    def create_persistence_data(self):
+        filename_training = "training_resolution=%d_binarization=%s" % (self.resolution, self.binarization_scheme)
+        filename_testing = "testing_resolution=%d_binarization=%s" % (self.resolution, self.binarization_scheme)
+        dataset = []
+
+        training_data, testing_data = self.get_raw_data()
+
+        quantization_steps = 2**self.resolution
+        levels = self.analyze_and_extract_quantization_levels(quantization_steps, training_data)
+        print(levels)
+        training_dataset, testing_dataset = self.binarize_data(training_data, testing_data, levels)
+        #print(training_dataset)
+        #pickle.dump(training_dataset, file_location+"/japanese_vowels/"+filename)
+        with open(file_location+"/japanese_vowels/"+filename_training, "wb") as f:
+            pickle.dump(training_dataset, f)
+        with open(file_location + "/japanese_vowels/" + filename_testing, "wb") as f:
+            pickle.dump(testing_dataset, f)
+
+
+    def get_data_from_persistance(self, filename):
+        dataset = []
+        with open(file_location+"/japanese_vowels/"+filename, "rb") as f:
+            dataset = pickle.load(f)
+
+        return dataset
+
+
 
     def get_training_data(self):
-        training_data, _ = self.get_raw_data()
-        dataset = []  #
+        filename = "training_resolution=%d_binarization=%s" % (self.resolution, self.binarization_scheme)
+        dataset = []
+        try:
+            dataset = self.get_data_from_persistance(filename)
+        except:
+            self.create_persistence_data()
+            dataset = self.get_data_from_persistance(filename)
+        np.random.shuffle(dataset)
+        return dataset[:self.no_testing_ex]
 
+
+
+    def get_testing_data(self):
+        filename = "testing_resolution=%d_binarization=%s" % (self.resolution, self.binarization_scheme)
+
+        try:
+            dataset = self.get_data_from_persistance(filename)
+        except:
+            self.create_persistence_data()
+            dataset = self.get_data_from_persistance(filename)
+        np.random.shuffle(dataset)
+        return dataset[:self.no_testing_ex]
+
+
+    def analyze_and_extract_quantization_levels(self, no_quantization_steps, dataset):
+
+        all_floats = []
+
+        for i in range(len(dataset)):
+            for utterance in dataset[i]:
+                for flt in utterance:
+                    all_floats.extend(flt)
+
+        all_floats = [float(x) for x in all_floats if x != "\n"]
+        all_floats = sorted(all_floats)
+        size_of_floats = len(all_floats)
+        quant_size = len(all_floats[:size_of_floats//no_quantization_steps-1])
+
+        levels = []
+        for i in range(no_quantization_steps-1):
+            levels.append(all_floats[int(quant_size*(i+1))])
+        return levels
+
+    def binarize_data(self,  training_data, testing_data, levels):
+
+        # Training data
+        training_dataset = []
         for i in range(len(training_data)):
             _inputs = []
             _outputs = []
             for utterance in training_data[i]:
-                _inputs, _outputs = self._create_binary_data(utterance, i)
+                _inputs, _outputs = self._create_binary_data(utterance, i, levels)
+
 
                 string_outputs = []
                 for _output in _outputs:
@@ -793,33 +775,29 @@ class JapaneseVowelsBuilder:
                     for char in _output:
                         string_result+= str(char)
                     string_outputs.append(string_result)
-                dataset.append((_inputs, np.array(string_outputs)))
+                training_dataset.append((_inputs, np.array(string_outputs)))
 
-        #print(len(dataset))
-
-        return dataset[:self.no_training_ex]
-
-    def get_testing_data(self):
-        _, testing_data = self.get_raw_data()
-        dataset = []  #
-
-
+        # Testing data
+        testing_dataset = []
         for i in range(len(testing_data)):
             _inputs = []
             _outputs = []
             for utterance in testing_data[i]:
-                _inputs, _outputs = self._create_binary_data(utterance, i)
-
+                #print(utterance)
+                _inputs, _outputs = self._create_binary_data(utterance, i, levels)
+                #print(_inputs)
+                #print()
+                #return
                 string_outputs = []
                 for _output in _outputs:
                     string_result = ""
                     for char in _output:
-                        string_result+= str(char)
+                        string_result += str(char)
                     string_outputs.append(string_result)
-                dataset.append((_inputs, np.array(string_outputs)))
+                testing_dataset.append((_inputs, np.array(string_outputs)))
 
-        np.random.shuffle(dataset)
-        return dataset[:self.no_testing_ex]
+        return training_dataset, testing_dataset
+
 
 class FiveBitAndDensityBuilder:
     """
@@ -1070,9 +1048,10 @@ if __name__ == "__main__":
     #translator.create_efficient_data_to_file()
     #translator.generate_translation_data()
     jap_vows = JapaneseVowelsBuilder()
-    jap_vows.process_vowels_data()
+    #jap_vows.process_vowels_data()
+    #jap_vows.create_persistence_data()
     #jap_vows.read_test_and_train_files()
-    #print(jap_vows.get_training_data())
+    print(len(jap_vows.get_testing_data()))
     #seq_to_seq = SequenceSquareRootBuilder()
     #print(seq_to_seq.get_training_data())
 #cifarB = CIFARBuilder()
