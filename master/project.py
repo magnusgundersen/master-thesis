@@ -531,9 +531,9 @@ class Project:
 
 
     def test_rules(self, uni_rules, non_uni_rules):
-        Rs= [64]
+        Rs= [80]
         C = 1
-        I = 4
+        I = 2
 
         RCI_values_r_change = [(x, C, I) for x in Rs]
         print("testing rules")
@@ -542,7 +542,7 @@ class Project:
         #distractor_periods = [10, 50, 100, 200]
         #distractor_periods = [10, 25, 50]
         threads = 7
-        number_of_tests = threads*20
+        number_of_tests = threads*10
 
         file_location = os.path.dirname(os.path.realpath(__file__))
 
@@ -592,34 +592,97 @@ class Project:
         visual.create_graph_from_jsonconfig(file_location + "/../experiment_data/rule_testing/full_plotconfig.json", Rs)
 
 
-    def evolve_ca_five_bit(self):
-
+    def evolve_ca_jap_vowels(self):
+        # ReCA params
         C = 1
-        Rs = [60]
+        R = 2
         I = 2
-        N = 4  #
-        pop_size = 7*3  # Adapt to number of cores
-        max_no_generations = 1000
-        tests_per_individual = 1
-        number_of_rules_list = [10]
+        N = 14*4
+        time_transition = "or"
+        classifier = "perceptron_sgd"
+        do_mappings = True
+        number_of_rules = 10  # Maximum number of distinct rules
+
+        # EA params
+        pop_size = 7 * 2  # Adapt to number of cores
+        max_no_generations = 10000
+        tests_per_individual = 4
+        fitness_threshold_value = 1000  # Value which the EA finished
+        continue_from_checkpoint = False
+
+
+        reca_config = {
+            "N": N,
+            "R": R,
+            "I": I,
+            "C": C,
+            "mappings": do_mappings,
+            "time_transition": time_transition,
+            "classifier": classifier,
+
+        }
+
+        ea_config = {
+            "pop_size": pop_size,
+            "max_gens": max_no_generations,
+            "fitness_threshold": fitness_threshold_value,
+            "tests_per_individual": tests_per_individual,
+            "number_of_rules": number_of_rules
+        }
+        ea_problem = ea_ca.NonUniCAJapVowsProblem(reca_config, ea_config)
+        self.evolve_non_uniform_ca(reca_config, ea_problem, continue_from_checkpoint)
+
+
+    def evolve_ca_twenty_bit(self):
+        pass
+
+    def evolve_ca_five_bit(self):
+        # ReCA params
+        C = 1
+        Rs = [80]
+        I = 2
+        N = 4
+        time_transition = "or"
+        classifier = "perceptron_sgd"
+        do_mappings = False
+        number_of_rules_list = [10]  # Maximum number of distinct rules
+
+        # EA params
+        pop_size = 7*2  # Adapt to number of cores
+        max_no_generations = 10000
+        tests_per_individual = 4
         fitness_threshold_value = 1000
+        retest_threshold = 999
+        retests_per_individual = 10
+        continue_from_checkpoint = True
 
         print_est = False
         before = time.time()
         for number_of_rules in number_of_rules_list:
             for R in Rs:
-                ca_config = {
+                reca_config = {
                     "N": N,
                     "R": R,
                     "I": I,
                     "C": C,
+                    "do_mappings": do_mappings,
+                    "time_transition": time_transition,
+                    "classifier": classifier,
 
                 }
-                ea_problem = ea_ca.NonUni5BitProblem(ca_config, fitness_threshold=fitness_threshold_value, init_pop_size=pop_size,
-                                             max_number_of_generations=max_no_generations,
-                                             allowed_number_of_rules=number_of_rules,
-                                             test_per_ind=tests_per_individual)
-                self.evolve_non_uniform_ca(ca_config, ea_problem)
+
+                ea_config = {
+                    "number_of_rules": number_of_rules,
+                    "pop_size": pop_size,
+                    "max_gens": max_no_generations,
+                    "fitness_threshold": fitness_threshold_value,
+                    "tests_per_individual": tests_per_individual,
+                    "retest_threshold": retest_threshold,
+                    "retests_per_individual": retests_per_individual,
+                }
+                ea_problem = ea_ca.NonUni5BitProblem(reca_config, ea_config)
+
+                self.evolve_non_uniform_ca(reca_config, ea_problem, continue_from_checkpoint)
             if print_est:
                 ts = time.time()
                 print("Time now : " + str(datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')))
@@ -633,6 +696,7 @@ class Project:
 
     def evolve_and_test_non_uni_ca_jap_vowls(self):
         # , CA_config=, state_name, pop_size, max_gens, mut_rate, crossover_rate, tournament_size
+
         C = 1
         Rs = [40]
         I = 2
@@ -664,7 +728,7 @@ class Project:
             #test_all_rules()
 
         print("Actual time usage (ea evolve): " + str(time.time() - before))
-    def evolve_non_uniform_ca(self, ca_config, ea_prob):
+    def evolve_non_uniform_ca(self, ca_config, ea_prob, continue_from_ckp=False):
 
         #nonUniCAprob = ea_ca.NonUniCAProblem(ca_config, fitness_threshold=fitness_threshold_value, init_pop_size=pop_size,
         #                                     max_number_of_generations=max_generations,
@@ -673,7 +737,7 @@ class Project:
 
         ea = evoalg.EA()
 
-        ea_output = ea.solve(ea_prob, saved_state=True)
+        ea_output = ea.solve(ea_prob, saved_state=continue_from_ckp)
 
         # pickle.dump(ea_output, open("ea.pkl", "wb"))
         run_name = "earun_R" + str(ca_config.get("R")) + "C" + str(ca_config.get("C")) + "I" + str(ca_config.get("I")) + \
@@ -740,40 +804,41 @@ class Project:
         visual.make_fitnessgraph(ea_output, run_name)
 
 
-def test_all_rules():
-    uni_rules = []
-    #uni_rules = [89, 149, 151, 57, 133, 196, 101, 120, 20, 122]
-    uni_rules = [90, 150, 22, 190]
-    #uni_rules = [i for i in range(256)]
+    def test_all_rules(self):
+        uni_rules = []
+        #uni_rules = [89, 149, 151, 57, 133, 196, 101, 120, 20, 122]
+        uni_rules = [90, 150, 22, 190]
+        #uni_rules = [i for i in range(256)]
 
-    with open(file_location + "/../experiment_data/rules/NuniRule2251_f=1000.ind", "rb") as f:
-        evolved_ind = pickle.load(f)
-    nuni_rules = [evolved_ind]
 
-    """
-    json_rule_files = []
-    file_location = os.path.dirname(os.path.realpath(__file__))
-    all_files = os.listdir(file_location+"/../experiment_data/ea_runs")
-    for file in all_files:
-        if str(file).lower().endswith(".json"):
-            json_rule_files.append(file)
+        with open(file_location + "/../experiment_data/rules/NuniRule1097_f=900.ind", "rb") as f:
+            evolved_ind = pickle.load(f)
+        nuni_rules = [evolved_ind]
 
-    json_data = []
-    for file in json_rule_files:
-        with open(file_location +"/../experiment_data/ea_runs/"+file, "r") as outfile:
-            json_data.append(json.load(outfile))
-    nuni_rules = {}
+        """
+        json_rule_files = []
+        file_location = os.path.dirname(os.path.realpath(__file__))
+        all_files = os.listdir(file_location+"/../experiment_data/ea_runs")
+        for file in all_files:
+            if str(file).lower().endswith(".json"):
+                json_rule_files.append(file)
 
-    for data in json_data:
-        #print(data)
-        ea_data = data.get('ea_data')
-        number_of_distinct_rules = ea_data.get('allowed number of rules')
-        if nuni_rules.get("nuni=" + str(number_of_distinct_rules)) is None:
-            nuni_rules["nuni=" + str(number_of_distinct_rules)] = {}
-        nuni_rules["nuni=" + str(number_of_distinct_rules)][ea_data.get("R")] = data.get("full_size_rule_list")
-    """
-    project = Project()
-    project.test_rules(uni_rules, nuni_rules)
+        json_data = []
+        for file in json_rule_files:
+            with open(file_location +"/../experiment_data/ea_runs/"+file, "r") as outfile:
+                json_data.append(json.load(outfile))
+        nuni_rules = {}
+
+        for data in json_data:
+            #print(data)
+            ea_data = data.get('ea_data')
+            number_of_distinct_rules = ea_data.get('allowed number of rules')
+            if nuni_rules.get("nuni=" + str(number_of_distinct_rules)) is None:
+                nuni_rules["nuni=" + str(number_of_distinct_rules)] = {}
+            nuni_rules["nuni=" + str(number_of_distinct_rules)][ea_data.get("R")] = data.get("full_size_rule_list")
+        """
+        project = Project()
+        project.test_rules(uni_rules, nuni_rules)
 
 
 

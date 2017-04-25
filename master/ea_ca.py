@@ -22,11 +22,35 @@ import datetime
 import random
 import multiprocessing
 
+###########
+# Workers #
+###########
 
-# Workers:
-def fitness_5bit_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd", time_transition="or",
-                        distractor_period=10, train_ex=32, test_ex=32, tests_per_ind=1, mapping_permutations=True,
-                        making_sure_threshold=999):
+#### Five bit ####
+def five_bit_runner(individual, reca_config):
+    reCA_problem = reCA.ReCAProblem(
+        p.open_data_interpreter("5bit",
+                                distractor_period=reca_config.get("distractor_period"),
+                                training_ex=reca_config.get("training_ex"),
+                                testing_ex=reca_config.get("testing_ex")))
+    reCA_config = reCA.ReCAConfig()
+    reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
+    reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme,
+                                          N=reCA_problem.input_size, R=reca_config.get("R"), C=reca_config.get("C"), I=reca_config.get("I"),
+                                          classifier=reca_config.get("classifier"),
+                                          time_transition=reca_config.get("time_transition"),
+                                          mapping_permutations=reca_config.get("do_mappings"))
+    reCA_system = reCA.ReCASystem()
+
+    reCA_system.set_problem(reCA_problem)
+    reCA_system.set_config(reCA_config)
+    reCA_system.initialize_rc()
+    reCA_system.tackle_ReCA_problem()
+
+    reCA_out = reCA_system.test_on_problem()
+    return reCA_out
+
+def fitness_5bit_worker(individual, reca_config, ea_config):
     """
         Method for running the develop_and_test with multiprocessing
         :param individual:
@@ -35,23 +59,8 @@ def fitness_5bit_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd"
         """
 
     fitness = []
-    for _ in range(tests_per_ind):
-        reCA_problem = reCA.ReCAProblem(
-            p.open_data_interpreter("5bit", distractor_period=distractor_period, training_ex=train_ex, testing_ex=test_ex))
-        reCA_config = reCA.ReCAConfig()
-        reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
-        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, N=reCA_problem.input_size, R=R, C=C, I=I,
-                                              classifier=classifier,
-                                              time_transition=time_transition,
-                                              mapping_permutations=mapping_permutations)
-        reCA_system = reCA.ReCASystem()
-
-        reCA_system.set_problem(reCA_problem)
-        reCA_system.set_config(reCA_config)
-        reCA_system.initialize_rc()
-        reCA_system.tackle_ReCA_problem()
-
-        reCA_out = reCA_system.test_on_problem()
+    for _ in range(ea_config.get("tests_per_individual")):
+        reCA_out = five_bit_runner(individual, reca_config)
         fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
 
 
@@ -59,27 +68,10 @@ def fitness_5bit_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd"
     fitness = int(np.mean(fitness))
 
     # Making sure tests
-    if fitness>making_sure_threshold:
+    if fitness>ea_config.get("retest_threshold"):
         fitness = []
-        making_sure_tests = 10
-        for _ in range(making_sure_tests):
-            reCA_problem = reCA.ReCAProblem(
-                p.open_data_interpreter("5bit", distractor_period=distractor_period, training_ex=train_ex,
-                                        testing_ex=test_ex))
-            reCA_config = reCA.ReCAConfig()
-            reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
-            reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, R=R, C=C, I=I,
-                                                  classifier=classifier,
-                                                  time_transition=time_transition,
-                                                  mapping_permutations=mapping_permutations)
-            reCA_system = reCA.ReCASystem()
-
-            reCA_system.set_problem(reCA_problem)
-            reCA_system.set_config(reCA_config)
-            reCA_system.initialize_rc()
-            reCA_system.tackle_ReCA_problem()
-
-            reCA_out = reCA_system.test_on_problem()
+        for _ in range(ea_config.get("retests_per_individual")):
+            reCA_out = five_bit_runner(individual, reca_config)
             fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
 
         fitness_std = int(np.std(fitness))
@@ -94,6 +86,8 @@ def fitness_5bit_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd"
 
     return individual
 
+
+#### Five bit and density ####
 def fitness_5bit_and_density_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd", time_transition="or",
                         distractor_period=10, train_ex=1000, test_ex=100, tests_per_ind=1,
                                     mapping_permutations=True):
@@ -162,6 +156,11 @@ def fitness_5bit_and_density_worker(individual, R=100, C=1, I=4, classifier="per
     individual.fitness_std = fitness_std
 
     return individual
+
+#### Japanese vowels ####
+def japanese_vowels_runner(individual, reca_config):
+    pass
+
 def jap_vows_fitness_test_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd", time_transition="or",
                         tests_per_ind=1):
     """
@@ -361,24 +360,30 @@ class NonUniCAIndividual(ind.Individual):
 
 
 class NonUniCAProblem(evoalg.EAProblem):
-    def __init__(self, ca_config=None, init_pop_size=40, allowed_number_of_rules=4, fitness_threshold=900, max_number_of_generations=2, test_per_ind=4):
+    def __init__(self, ca_config=None, ea_config=None):
         super().__init__()
-        self.max_number_of_generations = max_number_of_generations
+        self.reca_config = ca_config
+        self.ea_config = ea_config
+
+        # ReCA:
         self.N = ca_config.get("N")
         self.R = ca_config.get("R")
         self.C = ca_config.get("C")
         self.I = ca_config.get("I")
-        self.test_per_ind = test_per_ind
-        self.init_pop_size = init_pop_size
-        self.fitness_threshold_value = fitness_threshold
-        self.allowed_number_of_rules = allowed_number_of_rules
-        self.ca_size = self.N*self.C*self.R
-        self.name = "Non uniform CA"+"(" + str(self.N) + "*" + str(self.C) + "*" + str(self.R) + "): PopSize: " + str(init_pop_size) + " Max gens: " + str(max_number_of_generations)
+
+        # EA
+        self.max_number_of_generations = ea_config.get("max_gens")
+        self.test_per_ind = ea_config.get("tests_per_individual")
+        self.init_pop_size = ea_config.get("pop_size")
+        self.fitness_threshold_value = ea_config.get("fitness_threshold")
+        self.allowed_number_of_rules = ea_config.get("number_of_rules")
+        self.ca_size = self.N * self.C * self.R
+        self.name = "Non uniform CA"+"(" + str(self.N) + "*" + str(self.C) + "*" + str(self.R) + "): PopSize: " + str(self.init_pop_size) + " Max gens: " + str(self.max_number_of_generations)
 
 
     #staticmethod
     def test_fitness(self, individual):
-        raise NotImplementedError()
+        raise NotImplementedError("Domain-specific fitness evaluation function must be implemented")
 
     def calculate_pseudo_lambda(self, rule_set):
         ca_simulator = ca.ElemCAReservoir()
@@ -406,12 +411,11 @@ class NonUniCAProblem(evoalg.EAProblem):
         return self.name
 
 class NonUni5BitProblem(NonUniCAProblem):
-    def __init__(self, ca_config=None, init_pop_size=40, allowed_number_of_rules=4, fitness_threshold=900,
-                 max_number_of_generations=2, test_per_ind=4):
-        super().__init__(ca_config, init_pop_size, allowed_number_of_rules, fitness_threshold, max_number_of_generations, test_per_ind)
+    def __init__(self, ca_config=None, ea_config=None):
+        super().__init__(ca_config, ea_config)
 
     def test_fitness(self, individual):
-        return fitness_5bit_worker(individual, R=self.R, C=self.C, I=self.I, tests_per_ind=self.test_per_ind)
+        return fitness_5bit_worker(individual, self.reca_config, self.ea_config)
 
 class NonUni5BitAndDensityProblem(NonUniCAProblem):
     def __init__(self, ca_config=None, init_pop_size=40, allowed_number_of_rules=4, fitness_threshold=900,
@@ -423,19 +427,11 @@ class NonUni5BitAndDensityProblem(NonUniCAProblem):
 
 
 class NonUniCAJapVowsProblem(NonUniCAProblem):
-    def __init__(self, ca_config=None, init_pop_size=40, allowed_number_of_rules=4, fitness_threshold=900, max_number_of_generations=2, test_per_ind=4):
-        super().__init__(ca_config, init_pop_size, allowed_number_of_rules, fitness_threshold, max_number_of_generations, test_per_ind)
-        self.max_number_of_generations = max_number_of_generations
-        self.N = ca_config.get("N")
-        self.R = ca_config.get("R")
-        self.C = ca_config.get("C")
-        self.I = ca_config.get("I")
-        self.test_per_ind = test_per_ind
-        self.init_pop_size = init_pop_size
-        self.fitness_threshold_value = fitness_threshold
-        self.allowed_number_of_rules = allowed_number_of_rules
-        self.ca_size = self.N*self.C*self.R
-        self.name = "Non uniform JapVowls CA"+"(" + str(self.N) + "*" + str(self.C) + "*" + str(self.R) + "): PopSize: " + str(init_pop_size) + " Max gens: " + str(max_number_of_generations)
+    def __init__(self, ca_config=None, ea_config=None):
+        super().__init__(ca_config, ea_config)
+        self.name = "Non uniform JapVowls CA"+"(" +\
+                    str(self.N) + "*" + str(self.C) + "*" + str(self.R) + "): "+\
+                    "PopSize: " + str(self.init_pop_size)
 
 
     #staticmethod
