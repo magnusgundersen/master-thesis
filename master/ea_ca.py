@@ -26,7 +26,7 @@ import multiprocessing
 # Workers #
 ###########
 
-#### Five bit ####
+#### 5 bit ####
 def five_bit_runner(individual, reca_config):
     reCA_problem = reCA.ReCAProblem(
         p.open_data_interpreter("5bit",
@@ -86,11 +86,31 @@ def fitness_5bit_worker(individual, reca_config, ea_config):
 
     return individual
 
+#### 20 bit ####
+def tenty_bit_runner(individual, reca_config):
+    reCA_problem = reCA.ReCAProblem(
+        p.open_data_interpreter("20bit",
+                                distractor_period=reca_config.get("distractor_period"),
+                                training_ex=reca_config.get("training_ex"),
+                                testing_ex=reca_config.get("testing_ex")))
+    reCA_config = reCA.ReCAConfig()
+    reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
+    reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme,
+                                          N=reCA_problem.input_size, R=reca_config.get("R"), C=reca_config.get("C"), I=reca_config.get("I"),
+                                          classifier=reca_config.get("classifier"),
+                                          time_transition=reca_config.get("time_transition"),
+                                          mapping_permutations=reca_config.get("do_mappings"))
+    reCA_system = reCA.ReCASystem()
 
-#### Five bit and density ####
-def fitness_5bit_and_density_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd", time_transition="or",
-                        distractor_period=10, train_ex=1000, test_ex=100, tests_per_ind=1,
-                                    mapping_permutations=True):
+    reCA_system.set_problem(reCA_problem)
+    reCA_system.set_config(reCA_config)
+    reCA_system.initialize_rc()
+    reCA_system.tackle_ReCA_problem()
+
+    reCA_out = reCA_system.test_on_problem()
+    return reCA_out
+
+def fitness_20bit_worker(individual, reca_config, ea_config):
     """
         Method for running the develop_and_test with multiprocessing
         :param individual:
@@ -99,56 +119,85 @@ def fitness_5bit_and_density_worker(individual, R=100, C=1, I=4, classifier="per
         """
 
     fitness = []
-    for _ in range(tests_per_ind):
-        reCA_problem = reCA.ReCAProblem(
-            p.open_data_interpreter("5bit_density", distractor_period=distractor_period, training_ex=train_ex, testing_ex=test_ex))
-        reCA_config = reCA.ReCAConfig()
-        reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
-        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, N=reCA_problem.input_size, R=R, C=C, I=I,
-                                              classifier=classifier,
-                                              time_transition=time_transition,
-                                              mapping_permutations=mapping_permutations)
-        reCA_system = reCA.ReCASystem()
-
-        reCA_system.set_problem(reCA_problem)
-        reCA_system.set_config(reCA_config)
-        reCA_system.initialize_rc()
-        reCA_system.tackle_ReCA_problem()
-
-        reCA_out = reCA_system.test_on_problem()
+    for _ in range(ea_config.get("tests_per_individual")):
+        reCA_out = five_bit_runner(individual, reca_config)
         fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
 
 
     fitness_std = int(np.std(fitness))
     fitness = int(np.mean(fitness))
 
-    if fitness>999:
+    # Making sure tests
+    if fitness>ea_config.get("retest_threshold"):
         fitness = []
-        making_sure_tests = 10
-        for _ in range(making_sure_tests):
-            reCA_problem = reCA.ReCAProblem(
-                p.open_data_interpreter("5bit_density", distractor_period=distractor_period, training_ex=train_ex,
-                                        testing_ex=test_ex))
-            reCA_config = reCA.ReCAConfig()
-            reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
-            reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, R=R, C=C, I=I,
-                                                  classifier=classifier,
-                                                  time_transition=time_transition,
-                                                  mapping_permutations=mapping_permutations)
-            reCA_system = reCA.ReCASystem()
+        for _ in range(ea_config.get("retests_per_individual")):
+            reCA_out = five_bit_runner(individual, reca_config)
+            fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
 
-            reCA_system.set_problem(reCA_problem)
-            reCA_system.set_config(reCA_config)
-            reCA_system.initialize_rc()
-            reCA_system.tackle_ReCA_problem()
+        fitness_std = int(np.std(fitness))
+        fitness = int(np.mean(fitness))
+        print("result after retest ", fitness)
+        fitness = 970 if fitness < 968 else fitness
 
-            reCA_out = reCA_system.test_on_problem()
+    # fitness = fitness if (fitness<850) else fitness-fitness_std*(1000/fitness)
+    fitness = 1 if fitness == 0 else fitness  # avoid div by zero
+    individual.fitness = fitness
+    individual.fitness_std = fitness_std
+
+    return individual
+
+#### Five bit and density ####
+def five_bit_and_density_runner(individual, reca_config):
+    reCA_problem = reCA.ReCAProblem(
+        p.open_data_interpreter("5bit_density",
+                                distractor_period=reca_config.get("distractor_period"),
+                                training_ex=reca_config.get("training_ex"),
+                                testing_ex=reca_config.get("testing_ex")))
+    reCA_config = reCA.ReCAConfig()
+    reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
+    reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme,
+                                          N=reCA_problem.input_size, R=reca_config.get("R"), C=reca_config.get("C"), I=reca_config.get("I"),
+                                          classifier=reca_config.get("classifier"),
+                                          time_transition=reca_config.get("time_transition"),
+                                          mapping_permutations=reca_config.get("do_mappings"))
+    reCA_system = reCA.ReCASystem()
+
+    reCA_system.set_problem(reCA_problem)
+    reCA_system.set_config(reCA_config)
+    reCA_system.initialize_rc()
+    reCA_system.tackle_ReCA_problem()
+
+    reCA_out = reCA_system.test_on_problem()
+    return reCA_out
+
+def fitness_5bit_and_density_worker(individual, reca_config, ea_config):
+    """
+        Method for running the develop_and_test with multiprocessing
+        :param individual:
+        :param problem:
+        :return:
+        """
+
+    fitness = []
+    for _ in range(ea_config.get("tests_per_individual")):
+        reCA_out = five_bit_and_density_runner(individual, reca_config)
+        fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
+
+
+    fitness_std = int(np.std(fitness))
+    fitness = int(np.mean(fitness))
+
+    # Making sure tests
+    if fitness>ea_config.get("retest_threshold"):
+        fitness = []
+        for _ in range(ea_config.get("retests_per_individual")):
+            reCA_out = five_bit_and_density_runner(individual, reca_config)
             fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
 
         fitness_std = int(np.std(fitness))
         fitness = int(np.mean(fitness))
         print("result after making sure: ", fitness)
-        fitness = 999 if fitness<1000 else fitness
+        fitness = 970 if fitness < 968 else fitness
 
     # fitness = fitness if (fitness<850) else fitness-fitness_std*(1000/fitness)
     fitness = 1 if fitness == 0 else fitness  # avoid div by zero
@@ -159,10 +208,30 @@ def fitness_5bit_and_density_worker(individual, R=100, C=1, I=4, classifier="per
 
 #### Japanese vowels ####
 def japanese_vowels_runner(individual, reca_config):
-    pass
+    reCA_problem = reCA.ReCAProblem(
+        p.open_data_interpreter("japanese_vowels", training_ex=reca_config.get("training_ex"),
+                                testing_ex=reca_config.get("testing_ex")))
+    reCA_config = reCA.ReCAConfig()
+    reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
+    reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme,
+                                          N=reCA_problem.input_size,
+                                          R=reca_config.get("R"),
+                                          C=reca_config.get("C"),
+                                          I=reca_config.get("I"),
+                                          classifier=reca_config.get("classifier"),
+                                          time_transition=reca_config.get("time_transition"),
+                                          mapping_permutations=reca_config.get("do_mappings"))
+    reCA_system = reCA.ReCASystem()
 
-def jap_vows_fitness_test_worker(individual, R=100, C=1, I=4, classifier="perceptron_sgd", time_transition="or",
-                        tests_per_ind=1):
+    reCA_system.set_problem(reCA_problem)
+    reCA_system.set_config(reCA_config)
+    reCA_system.initialize_rc()
+    reCA_system.tackle_ReCA_problem()
+
+    reCA_out = reCA_system.test_on_problem()
+    return  reCA_out
+
+def jap_vows_fitness_test_worker(individual, reca_config, ea_config):
     """
         Method for running the develop_and_test with multiprocessing
         :param individual:
@@ -171,54 +240,24 @@ def jap_vows_fitness_test_worker(individual, R=100, C=1, I=4, classifier="percep
         """
 
     fitness = []
-    for _ in range(tests_per_ind):
-        reCA_problem = reCA.ReCAProblem(
-            p.open_data_interpreter("japanese_vowels", testing_ex=100))
-        reCA_config = reCA.ReCAConfig()
-        reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
-        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, R=R, C=C, I=I,
-                                              classifier=classifier,
-                                              time_transition=time_transition,
-                                              mapping_permutations=True)
-        reCA_system = reCA.ReCASystem()
-
-        reCA_system.set_problem(reCA_problem)
-        reCA_system.set_config(reCA_config)
-        reCA_system.initialize_rc()
-        reCA_system.tackle_ReCA_problem()
-
-        reCA_out = reCA_system.test_on_problem()
+    reca_config["testing_ex"] = 100
+    for _ in range(ea_config.get("tests_per_individual")):
+        reCA_out = japanese_vowels_runner(individual, reca_config)
         fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
 
 
     fitness_std = int(np.std(fitness))
     fitness = int(np.mean(fitness))
 
-    if fitness == 1000:
-        print("Making sure tests")
-        making_sure_tests = 4
+    if fitness>ea_config.get("retest_threshold"):
         fitness = []
-        for _ in range(making_sure_tests):
-            reCA_problem = reCA.ReCAProblem(
-                p.open_data_interpreter("japanese_vowels"))
-            reCA_config = reCA.ReCAConfig()
-            reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
-            reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme, R=R, C=C, I=I,
-                                                  classifier=classifier,
-                                                  time_transition=time_transition,
-                                                  mapping_permutations=True)
-            reCA_system = reCA.ReCASystem()
-
-            reCA_system.set_problem(reCA_problem)
-            reCA_system.set_config(reCA_config)
-            reCA_system.initialize_rc()
-            reCA_system.tackle_ReCA_problem()
-
-            reCA_out = reCA_system.test_on_problem()
+        reca_config["testing_ex"] = 370  # Test on all vowels
+        for _ in range(ea_config.get("retests_per_individual")):
+            reCA_out = japanese_vowels_runner(individual, reca_config)
             fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
         fitness_std = int(np.std(fitness))
         fitness = int(np.mean(fitness))
-        print("results: ", fitness)
+        print("Retest results: ", fitness)
 
     fitness = 1 if fitness == 0 else fitness  # avoid div by zero
     individual.fitness = fitness
@@ -226,8 +265,67 @@ def jap_vows_fitness_test_worker(individual, R=100, C=1, I=4, classifier="percep
 
     return individual
 
+#### Five bit and density ####
+def synthetic_seq_to_seq_runner(individual, reca_config):
+    reCA_problem = reCA.ReCAProblem(
+        p.open_data_interpreter("seq_to_seq_synth"))
+    reCA_config = reCA.ReCAConfig()
+    reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
+    reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme,
+                                          N=reCA_problem.input_size, R=reca_config.get("R"), C=reca_config.get("C"), I=reca_config.get("I"),
+                                          classifier=reca_config.get("classifier"),
+                                          time_transition=reca_config.get("time_transition"),
+                                          mapping_permutations=reca_config.get("do_mappings"))
+    reCA_system = reCA.ReCASystem()
 
-# Classes:
+    reCA_system.set_problem(reCA_problem)
+    reCA_system.set_config(reCA_config)
+    reCA_system.initialize_rc()
+    reCA_system.tackle_ReCA_problem()
+
+    reCA_out = reCA_system.test_on_problem()
+    return reCA_out
+
+def fitness_synthetic_seq_to_seq_worker(individual, reca_config, ea_config):
+    """
+        Method for running the develop_and_test with multiprocessing
+        :param individual:
+        :param problem:
+        :return:
+        """
+
+    fitness = []
+    for _ in range(ea_config.get("tests_per_individual")):
+        reCA_out = five_bit_runner(individual, reca_config)
+        fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
+
+
+    fitness_std = int(np.std(fitness))
+    fitness = int(np.mean(fitness))
+
+    # Making sure tests
+    if fitness>ea_config.get("retest_threshold"):
+        fitness = []
+        for _ in range(ea_config.get("retests_per_individual")):
+            reCA_out = five_bit_runner(individual, reca_config)
+            fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
+
+        fitness_std = int(np.std(fitness))
+        fitness = int(np.mean(fitness))
+        print("result after making sure: ", fitness)
+        fitness = 970 if fitness < 968 else fitness
+
+    # fitness = fitness if (fitness<850) else fitness-fitness_std*(1000/fitness)
+    fitness = 1 if fitness == 0 else fitness  # avoid div by zero
+    individual.fitness = fitness
+    individual.fitness_std = fitness_std
+
+    return individual
+
+
+###########
+# Classes #
+###########
 class NonUniCAGenotype(ind.Genotype):
     def __init__(self, parent_genotype_one, parent_genotype_two, allowed_number_of_rules=4):
         self.rule_scheme = []
@@ -417,13 +515,20 @@ class NonUni5BitProblem(NonUniCAProblem):
     def test_fitness(self, individual):
         return fitness_5bit_worker(individual, self.reca_config, self.ea_config)
 
-class NonUni5BitAndDensityProblem(NonUniCAProblem):
-    def __init__(self, ca_config=None, init_pop_size=40, allowed_number_of_rules=4, fitness_threshold=900,
-                 max_number_of_generations=2, test_per_ind=4):
-        super().__init__(ca_config, init_pop_size, allowed_number_of_rules, fitness_threshold, max_number_of_generations, test_per_ind)
+
+class NonUni20BitProblem(NonUniCAProblem):
+    def __init__(self, ca_config=None, ea_config=None):
+        super().__init__(ca_config, ea_config)
 
     def test_fitness(self, individual):
-        return fitness_5bit_and_density_worker(individual, R=self.R, C=self.C, I=self.I, tests_per_ind=self.test_per_ind)
+        return fitness_20bit_worker(individual, self.reca_config, self.ea_config)
+
+class NonUni5BitandDensityProblem(NonUniCAProblem):
+    def __init__(self, ca_config=None, ea_config=None):
+        super().__init__(ca_config, ea_config)
+
+    def test_fitness(self, individual):
+        return fitness_5bit_and_density_worker(individual, self.reca_config, self.ea_config)
 
 
 class NonUniCAJapVowsProblem(NonUniCAProblem):
@@ -436,7 +541,7 @@ class NonUniCAJapVowsProblem(NonUniCAProblem):
 
     #staticmethod
     def test_fitness(self, individual):
-        return jap_vows_fitness_test_worker(individual, R=self.R, C=self.C, I=self.I)
+        return jap_vows_fitness_test_worker(individual, self.reca_config, self.ea_config)
 
     def calculate_pseudo_lambda(self, rule_set):
         ca_simulator = ca.ElemCAReservoir()
@@ -463,7 +568,12 @@ class NonUniCAJapVowsProblem(NonUniCAProblem):
     def __str__(self):
         return self.name
 
+class NonUniSeqToSeqProblem(NonUniCAProblem):
+    def __init__(self, ca_config=None, ea_config=None):
+        super().__init__(ca_config, ea_config)
 
+    def test_fitness(self, individual):
+        return fitness_synthetic_seq_to_seq_worker(individual, self.reca_config, self.ea_config)
 
 
 
