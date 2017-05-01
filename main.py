@@ -33,6 +33,7 @@ def main(argv):
 
     #before = time.time()
     #p.five_bit_task()
+    p.twenty_bit_task()
 
 
     #### Evolve ####
@@ -48,9 +49,8 @@ def main(argv):
     #print(project.test_all_rules())
     #print(p.europarl_translation_task())
     #p.sequence_to_sequence_synth_task()
-    #print(p.twenty_bit_task())
     #print(p.classifier_testing())
-    p.test_all_rules()
+    #p.test_all_rules()
 
 
 if __name__ == "__main__":

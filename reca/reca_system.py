@@ -375,6 +375,10 @@ class ReCAConfig(rc_if.ExternalRCConfig):
             self.time_transition = time_trans.XORTimeTransition()
         elif time_transition == "or":
             self.time_transition = time_trans.ORTimeTransition()
+        elif time_transition == "and":
+            self.time_transition = time_trans.ANDTimeTransition()
+        elif time_transition == "nand":
+            self.time_transition = time_trans.NANDTimeTransition()
     def set_uniform_config(self, ca_rule=105, R=4, C=3, I=12, classifier="linear-svm",
                                     encoding="random_mapping", time_transition="random_permutation"):
         # sets up elementary CA:

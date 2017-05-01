@@ -10,8 +10,8 @@ def visualize(list_of_states):
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.pcolormesh(list_of_states, cmap="Greys")
     ax.set_xlim(0, width)
-    ax.set_ylim(0, gens + 1)
-    ax.set_title("CA simulation")
+    ax.set_ylim(gens + 1, 0)
+    #ax.set_title("CA simulation")
     #ax.set_axis_off()
     ax.set_aspect("equal")
 

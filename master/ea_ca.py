@@ -119,8 +119,9 @@ def fitness_20bit_worker(individual, reca_config, ea_config):
         """
 
     fitness = []
+    reca_config["testing_ex"] = 40
     for _ in range(ea_config.get("tests_per_individual")):
-        reCA_out = five_bit_runner(individual, reca_config)
+        reCA_out = tenty_bit_runner(individual, reca_config)
         fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
 
 
@@ -129,15 +130,16 @@ def fitness_20bit_worker(individual, reca_config, ea_config):
 
     # Making sure tests
     if fitness>ea_config.get("retest_threshold"):
+        reca_config["testing_ex"] = 100
         fitness = []
         for _ in range(ea_config.get("retests_per_individual")):
-            reCA_out = five_bit_runner(individual, reca_config)
+            reCA_out = tenty_bit_runner(individual, reca_config)
             fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
 
         fitness_std = int(np.std(fitness))
         fitness = int(np.mean(fitness))
         print("result after retest ", fitness)
-        fitness = 970 if fitness < 968 else fitness
+        #fitness = 999 if fitness < 999 else fitness
 
     # fitness = fitness if (fitness<850) else fitness-fitness_std*(1000/fitness)
     fitness = 1 if fitness == 0 else fitness  # avoid div by zero
