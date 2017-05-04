@@ -24,23 +24,28 @@ class RandomMappingEncoder(rcif.RCEncoder):
         """
         list_of_mappings = []
         self.unencoded_input_length = input_length
-        num_list = [x for x in range(self.unencoded_input_length*self.C)]  # list of number to be shuffled
-        num_list2 = num_list[:]  # copy list to have a ref to the original
 
-        if self.C>1 and self.permutations == False: #
-            num_list = [x for x in range(self.unencoded_input_length)]  # list of number to be shuffled
-            num_list2 = num_list[:]  # copy list to have a ref to the original
-            pass
+        if self.C==1:
+            num_list = [x for x in range(input_length)]
+            if self.permutations:
+                permuted_list = num_list[:]
+                for _ in range(self.R):
+                    random.shuffle(permuted_list)
+                    list_of_mappings.append(permuted_list)
 
+            else:
+                list_of_mappings = [num_list for _ in range(self.R)]
 
-        if self.permutations:
-            for _ in range(self.R):
-                random.shuffle(num_list2)  # New random mapping for each R.
-                list_of_mappings.append(
-                    num_list2[:self.unencoded_input_length])  # Only to the size of the input, and let there be C padding
-        else:
-            num_list = [x*self.C for x in num_list]
-            list_of_mappings = [num_list for _ in range(self.R)]
+        else:  # C>1
+            if self.permutations:
+                num_list = [x for x in range(self.unencoded_input_length*self.C)]  # list of number to be shuffled
+                permuted_list = num_list[:]  # copy list to have a ref to the original
+                for _ in range(self.R):
+                    random.shuffle(permuted_list)
+                    list_of_mappings.append(permuted_list[:input_length])
+            else:
+                num_list = [x*self.C for x in range(input_length)]
+                list_of_mappings = [num_list for _ in range(self.R)]
 
         self.mappings = list_of_mappings
 
@@ -61,11 +66,6 @@ class RandomMappingEncoder(rcif.RCEncoder):
                 temp_enc_list[self.mappings[i][j]] = _input[j]
 
             encoded_input.append(temp_enc_list)
-        #print(self.P)
-
-        #if self.parallel_size_policy == "unbounded":
-        #    for _ in range(self.P-1):
-        #        encoded_input += encoded_input
         return encoded_input
 
 
