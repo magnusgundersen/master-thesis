@@ -809,7 +809,7 @@ class FiveBitAndDensityBuilder:
         self.no_training_ex = training_ex
         self.no_testing_ex = testing_ex
 
-        self.density_signals = 1  # Must be an odd number
+        self.density_signals = 3  # Must be an odd number
 
 
     def generate_density_dataset(self):

@@ -33,14 +33,14 @@ def main(argv):
 
     #before = time.time()
     #p.five_bit_task()
-    p.twenty_bit_task()
+    #.twenty_bit_task()
 
 
     #### Evolve ####
-    #p.evolve_ca_five_bit()
+    p.evolve_ca_five_bit()
     #p.evolve_ca_twenty_bit()
-    #p.evolve_ca_jap_vowels()
     #p.evolve_ca_five_bit_and_density()
+    #p.evolve_ca_jap_vowels()
 
 
     #p.five_bit_density_task()
