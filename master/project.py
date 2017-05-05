@@ -52,8 +52,8 @@ def open_data_interpreter(type_of_interpreter, **kwargs):
 
     elif type_of_interpreter == "5bit_density":
         distractor_period = kwargs.get("distractor_period") if kwargs.get('distractor_period') is not None else 10
-        training_ex = kwargs.get("training_ex") if kwargs.get('training_ex') is not None else 32
-        testing_ex = kwargs.get("testing_ex") if kwargs.get('testing_ex') is not None else 32
+        training_ex = kwargs.get("training_ex") if kwargs.get('training_ex') is not None else 100
+        testing_ex = kwargs.get("testing_ex") if kwargs.get('testing_ex') is not None else 40
         return data_int.FiveBitAndDensityBuilder(distractor_period, training_ex=training_ex, testing_ex=testing_ex)
 
     elif type_of_interpreter == "seq_to_seq_synth":
@@ -88,7 +88,7 @@ def random_mapping_worker(data_interpreter, ca_config, reca_rule):
     #reCA_rule_scheme = reCA.ReCAruleConfig(uniform_rule=rule)
     reCA_config.set_random_mapping_config(ca_rule_scheme=reca_rule,N=reCA_problem.input_size, R=ca_config.get("R"), C=ca_config.get("C"), I=ca_config.get("I"),
                                           classifier=ca_config.get("classifier"), time_transition=ca_config.get("time_transition"),
-                                          mapping_permutations=ca_config.get("do_mappings"))
+                                          mapping_permutations=ca_config.get("permute_mappings"))
     reCA_system = reCA.ReCASystem()
     reCA_system.set_problem(reCA_problem)
     reCA_system.set_config(reCA_config)
@@ -118,7 +118,7 @@ class Project:
     # Single run problems #
     #######################
     def five_bit_task(self):
-        data_interpreter = open_data_interpreter("5bit", distractor_period=10, training_ex=32, testing_ex=32)
+        data_interpreter = open_data_interpreter("5bit", distractor_period=200, training_ex=1, testing_ex=1)
         reCA_problem = reCA.ReCAProblem(data_interpreter)
         reCA_config = reCA.ReCAConfig()
 
@@ -133,13 +133,13 @@ class Project:
         #rule_list = [89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122]
 
 
-        with open(file_location+ "/../experiment_data/rules/NuniRule5068_f=984.ind", "rb") as f:
+        with open(file_location+ "/../experiment_data/rules/NuniRule6513_f=984.ind", "rb") as f:
             evolved_ind = pickle.load(f)
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
-        #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
-        reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
-        reCA_config.set_random_mapping_config(reCA_rule, R=4, C=1, I=20, mapping_permutations=False,
-                                              classifier="perceptron_sgd", time_transition="random_permutation")
+        reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+        #reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
+        reCA_config.set_random_mapping_config(reCA_rule, R=80, C=1, I=2, mapping_permutations=True,
+                                              classifier="perceptron_sgd", time_transition="or")
         #reCA_config.set_non_uniform_config(reCA_rule, R=8, C=5, I=8, classifier="perceptron_sgd")
         #reCA_config.set_uniform_margem_config(rule=[141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18], R_i=2, R=76, I=8, classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
@@ -388,18 +388,18 @@ class Project:
         visual.visualize_example_run(outputs)
 
     def five_bit_density_task(self):
-        data_interpreter = open_data_interpreter("5bit_density", distractor_period=10, training_ex=400, testing_ex=100)
+        data_interpreter = open_data_interpreter("5bit_density", distractor_period=10, training_ex=100, testing_ex=100)
         reCA_problem = reCA.ReCAProblem(data_interpreter)
         reCA_config = reCA.ReCAConfig()
 
-        with open(file_location + "/../experiment_data/rules/NuniRule2007_f=1000.ind", "rb") as f:
-            evolved_ind = pickle.load(f)
+        #with open(file_location + "/../experiment_data/rules/NuniRule2007_f=1000.ind", "rb") as f:
+        #    evolved_ind = pickle.load(f)
 
-        reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+        #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
 
-        reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
+        reCA_rule = reCA.ReCAruleConfig(uniform_rule=113)
 
-        reCA_config.set_random_mapping_config(reCA_rule, N=reCA_problem.input_size, R=28, C=6, I=4, classifier="perceptron_sgd",
+        reCA_config.set_random_mapping_config(reCA_rule, N=reCA_problem.input_size, R=8, C=8, I=2, classifier="perceptron_sgd",
                                               time_transition="random_permutation", mapping_permutations=True
                                                               )
         # reCA_config.set_non_uniform_config(reCA_rule, R=8, C=5, I=8, classifier="perceptron_sgd")
@@ -559,7 +559,7 @@ class Project:
         N = 4
         time_transition = "random_permutation"
         classifier = "perceptron_sgd"
-        do_mappings = False
+        permute_mappings = False
         number_of_rules_list = [4]  # Maximum number of distinct rules
 
         # EA params
@@ -580,7 +580,7 @@ class Project:
                     "R": R,
                     "I": I,
                     "C": C,
-                    "do_mappings": do_mappings,
+                    "permute_mappings": permute_mappings,
                     "time_transition": time_transition,
                     "classifier": classifier,
 
@@ -617,7 +617,7 @@ class Project:
         N = 7
         time_transition = "random_permutation"
         classifier = "perceptron_sgd"
-        do_mappings = True  # If the mappings should be permuted
+        permute_mappings = True  # If the mappings should be permuted
         number_of_rules = 12  # Maximum number of distinct rules
 
         # EA params
@@ -635,7 +635,7 @@ class Project:
             "R": R,
             "I": I,
             "C": C,
-            "do_mappings": do_mappings,
+            "permute_mappings": permute_mappings,
             "time_transition": time_transition,
             "classifier": classifier,
 
@@ -661,7 +661,7 @@ class Project:
         N = 14*4
         time_transition = "random_permutation"
         classifier = "perceptron_sgd"
-        do_mappings = True  # If the mapping should be permuted
+        permute_mappings = True  # If the mapping should be permuted
         number_of_rules = 6  # Maximum number of distinct rules
 
         # EA params
@@ -679,7 +679,7 @@ class Project:
             "R": R,
             "I": I,
             "C": C,
-            "do_mappings": do_mappings,
+            "permute_mappings": permute_mappings,
             "time_transition": time_transition,
             "classifier": classifier,
 
@@ -699,17 +699,17 @@ class Project:
 
     def evolve_ca_five_bit_and_density(self):
         # ReCA params
-        C = 1
-        R = 800
+        C = 12
+        R = 12
         I = 2
-        N = 4+1 # Five bit signals + majority signals
-        time_transition = "or"
+        N = 4+3 # Five bit signals + majority signals
+        time_transition = "random_permutation"
         classifier = "perceptron_sgd"
-        do_mappings = False  # If the mappings should be permuted
-        number_of_rules = 10  # Maximum number of distinct rules
+        permute_mappings = False  # If the mappings should be permuted
+        number_of_rules = 6  # Maximum number of distinct rules
 
         # EA params
-        pop_size = 7 * 1   # Adapt to number of cores
+        pop_size = 7 * 2   # Adapt to number of cores
         max_no_generations = 10000
         tests_per_individual = 2
         fitness_threshold_value = 1000
@@ -723,7 +723,7 @@ class Project:
             "R": R,
             "I": I,
             "C": C,
-            "do_mappings": do_mappings,
+            "permute_mappings": permute_mappings,
             "time_transition": time_transition,
             "classifier": classifier,
 
@@ -782,204 +782,194 @@ class Project:
     # Testing and batching #
     ########################
 
-    def test_all_rules(self):
-        uni_rules = []
-        #uni_rules = [89, 149, 151, 57, 133, 196, 101, 120, 20, 122]
-        #uni_rules = [170, 85, 240, 15]
-        uni_rules = [i for i in range(256)]
-
-
-        with open(file_location + "/../experiment_data/rules/NuniRule9088_f=1000.ind", "rb") as f:
-            evolved_ind = pickle.load(f)
-        #nuni_rules = [evolved_ind]
-        nuni_rules = []
-
-        project = Project()
-        project.test_rules(uni_rules, nuni_rules)
 
     def mass_test_five_bit_task(self):
         """
         Runs a mass testing on the five bit task with the provided rules
         :return:
         """
-        uniform_rules = []
-        non_uniform_rules = []  # Must be individuals
+        uniform_rules = [105, 150, 90]
+        uniform_rules = [x for x in range(256)]
+        non_uniform_rules = []  # Must be name of .ind objects in the "/rules" folder
 
         threads = 8
+        total_test_per_rule = threads*5
+
+        testing_config = {
+            "threads": threads,
+            "total_tests_per_rule": total_test_per_rule,
+            "uni_rules": uniform_rules,
+            "nuni_rules": non_uniform_rules,
+            "data_interpreter": open_data_interpreter("5bit", distractor_period=10, training_ex=32, testing_ex=32)
+        }
+
+        reca_config = {
+            "N": 4,
+            "R": 4,
+            "I": 2,
+            "C": 4,
+            "permute_mappings": True,  # True, False or None. None means True for Uni and False for Nuni
+            "time_transition": "random_permutation",
+            "classifier": "perceptron_sgd",
+        }
+        self.test_rules(testing_config, reca_config)
+
+    def mass_test_twenty_bit_task(self):
+        """
+        Runs a mass testing on the five bit task with the provided rules
+        :return:
+        """
+        uniform_rules = [105, 150, 90]
+        uniform_rules = [x for x in range(256)]
+        non_uniform_rules = []  # Must be name of .ind objects in the "/rules" folder
+
+        threads = 8
+        total_test_per_rule = threads*5
+
+        testing_config = {
+            "threads": threads,
+            "total_tests_per_rule": total_test_per_rule,
+            "uni_rules": uniform_rules,
+            "nuni_rules": non_uniform_rules,
+            "data_interpreter": open_data_interpreter("20bit", distractor_period=10, training_ex=120, testing_ex=100)
+        }
 
         reca_config = {
             "N": 7,
             "R": 4,
-            "I": 4,
+            "I": 2,
             "C": 4,
-            "permute_mappings?": True,
+            "permute_mappings": True,  # True, False or None. None means True for Uni and False for Nuni
             "time_transition": "random_permutation",
             "classifier": "perceptron_sgd",
         }
+        self.test_rules(testing_config, reca_config)
 
-        with multiprocessing.Pool(threads) as p:
-            results = p.starmap(run_five_bit,
-                                [(data_interpreter, rci_value, "perceptron_sgd", reCA_rule, mappings) for _ in
-                                 range(number_of_tests)])
+    def mass_test_5bit_density_task(self):
+        """
+        Runs a mass testing on the five bit task with the provided rules
+        :return:
+        """
+        uniform_rules = [105, 150, 90]
+        uniform_rules = [x for x in range(256)]
+        non_uniform_rules = []  # Must be name of .ind objects in the "/rules" folder
 
-        r_dict["R=" + str(rci_value[0])] = results
-        r_list.append(int(np.mean(results)))
-
-        pass
-
-
-
-    def test_rules(self, uni_rules, non_uni_rules, task="5 bit"):
-        Rs = [4]
-        C = 4
-        I = 2
-
-        RCI_values_r_change = [(x, C, I) for x in Rs]
-        print("testing rules")
-        RCI_values = RCI_values_r_change
-        # RCI_values = [(1,1,1)]
-        # distractor_periods = [10, 50, 100, 200]
-        # distractor_periods = [10, 25, 50]
         threads = 7
-        number_of_tests = threads * 1
+        total_test_per_rule = threads*1
+
+        testing_config = {
+            "threads": threads,
+            "total_tests_per_rule": total_test_per_rule,
+            "uni_rules": uniform_rules,
+            "nuni_rules": non_uniform_rules,
+            "data_interpreter": open_data_interpreter("5bit_density", distractor_period=10, training_ex=100, testing_ex=40)
+        }
+
+        reca_config = {
+            "N": 7, # 5bit-signals + density signals
+            "R": 8,
+            "I": 2,
+            "C": 16,
+            "permute_mappings": None,  # True, False or None. None means True for Uni and False for Nuni
+            "time_transition": "random_permutation",
+            "classifier": "perceptron_sgd",
+        }
+        self.test_rules(testing_config, reca_config)
+
+    def mass_test_japanese_vowels_task(self):
+        """
+        Runs a mass testing on the five bit task with the provided rules
+        :return:
+        """
+        uniform_rules = [105, 150, 90]
+        uniform_rules = [x for x in range(256)]
+        non_uniform_rules = []  # Must be name of .ind objects in the "/rules" folder
+
+        threads = 7
+        total_test_per_rule = threads*1
+
+        testing_config = {
+            "threads": threads,
+            "total_tests_per_rule": total_test_per_rule,
+            "uni_rules": uniform_rules,
+            "nuni_rules": non_uniform_rules,
+            "data_interpreter": open_data_interpreter("japanese_vowels", training_ex=270, testing_ex=370)
+        }
+
+        reca_config = {
+            "N": 14*4, # 14 input signals + binarization scheme
+            "R": 8,
+            "I": 2,
+            "C": 4,
+            "permute_mappings": None,  # True, False or None. None means True for Uni and False for Nuni
+            "time_transition": "random_permutation",
+            "classifier": "perceptron_sgd",
+        }
+        self.test_rules(testing_config, reca_config)
+    #testing worker#
+    def test_rules(self, testing_config, reca_config):
+
+        threads = testing_config.get("threads")
+        number_of_tests = testing_config.get("total_tests_per_rule")
+
+        run_results = {}
+        for rule in testing_config.get("uni_rules"):
+            if testing_config.get("permute_mappings") is None:
+                testing_config["permute_mappings"]=True
+
+            data_interpreter = testing_config.get("data_interpreter")
+            reCA_rule = reCA.ReCAruleConfig(uniform_rule=rule)
+            with multiprocessing.Pool(threads) as p:
+                results = p.starmap(random_mapping_worker,
+                                    [(data_interpreter, reca_config, reCA_rule) for _ in
+                                     range(number_of_tests)])
 
 
-        plotconfigs = {}
-        for rule in uni_rules:
-            mappings = True
-            r_dict = {}
-            r_list = []
-            for rci_value in RCI_values:
-                if task =="5 bit":
-                    reCA_rule = reCA.ReCAruleConfig(uniform_rule=rule)
-                    data_interpreter = open_data_interpreter("5bit", distractor_period=10)
-                    with multiprocessing.Pool(threads) as p:
-                        results = p.starmap(run_five_bit,
-                                            [(data_interpreter, rci_value, "perceptron_sgd", reCA_rule, mappings) for _ in
-                                             range(number_of_tests)])
-
-                    r_dict["R=" + str(rci_value[0])] = results
-                    r_list.append(int(np.mean(results)))
-
-                elif task== "20 bit":
-                    reca_config = {
-                        "N": 7,
-                        "R": rci_value[0],
-                        "I": rci_value[2],
-                        "C": rci_value[1],
-                        "do_mappings": True,
-                        "time_transition": "random_permutation",
-                        "classifier": "perceptron_sgd",
-                    }
-
-                    reCA_rule = reCA.ReCAruleConfig(uniform_rule=rule)
-                    data_interpreter = open_data_interpreter("20bit", distractor_period=280)
-                    with multiprocessing.Pool(threads) as p:
-                        results = p.starmap(random_mapping_worker,
-                                            [(data_interpreter, reca_config, reCA_rule) for _
-                                             in
-                                             range(number_of_tests)])
-
-                    r_dict["R=" + str(rci_value[0])] = results
-                    r_list.append(int(np.mean(results)))
-
-                elif task == "5 bit density":
-                    reca_config = {
-                        "N": 7,
-                        "R": rci_value[0],
-                        "I": rci_value[2],
-                        "C": rci_value[1],
-                        "do_mappings": True,
-                        "time_transition": "random_permutation",
-                        "classifier": "perceptron_sgd",
-                    }
-
-                    reCA_rule = reCA.ReCAruleConfig(uniform_rule=rule)
-                    data_interpreter = open_data_interpreter("5bit_density", distractor_period=10)
-                    with multiprocessing.Pool(threads) as p:
-                        results = p.starmap(random_mapping_worker,
-                                            [(data_interpreter, reca_config, reCA_rule) for _
-                                             in
-                                             range(number_of_tests)])
-
-                    r_dict["R=" + str(rci_value[0])] = results
-                    r_list.append(int(np.mean(results)))
-                print("Testing rule: "+ str(rule) + " " + str(int(np.mean(results))))
+            print("Done testing rule: "+ str(rule) +
+                  " --mean: " + str(int(np.mean(results)))+ "+-" + str(int(np.std(results))))
+            run_results[rule] = int(np.mean(results))
             with open(file_location + "/../experiment_data/rule_testing/rule_" + str(rule) + "_allinfo_JSON.json",
                       "w") as outfile:
-                json.dump(r_dict, outfile)
+                json.dump(results, outfile)
 
-            plotconfigs["Rule " + str(rule)] = r_list
-        for rule in non_uni_rules:
-            mappings= False
-            r_dict = {}
-            r_list = []
-            for rci_value in RCI_values:
-                if task=="5 bit":
-                    data_interpreter = open_data_interpreter("5bit", distractor_period=10)
-                    reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=rule)
-                    with multiprocessing.Pool(threads) as p:
-                        results = p.starmap(run_five_bit,
-                                            [(data_interpreter, rci_value, "perceptron_sgd", reCA_rule, mappings) for _ in
-                                             range(number_of_tests)])
 
-                    r_dict["R=" + str(rci_value[0])] = results
-                    r_list.append(int(np.mean(results)))
+        for rule in testing_config.get("nuni_rules"):
 
-                elif task == "20 bit":
-                    reca_config = {
-                        "N": 7,
-                        "R": rci_value[0],
-                        "I": rci_value[2],
-                        "C": rci_value[1],
-                        "do_mappings": True,
-                        "time_transition": "random_permutation",
-                        "classifier": "perceptron_sgd",
-                    }
+            # Open the non uniform rule
+            try:
+                with open(file_location + "/../experiment_data/rules/"+str(rule), "rb") as f:
+                    evolved_ind = pickle.load(f)
+            except:
+                print("Could not open non uni rule: " + str(rule))
+                print("continuing")
+                continue
 
-                    reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=rule)
-                    data_interpreter = open_data_interpreter("20bit", distractor_period=280)
-                    with multiprocessing.Pool(threads) as p:
-                        results = p.starmap(random_mapping_worker,
-                                            [(data_interpreter, reca_config, reCA_rule) for _
-                                             in
-                                             range(number_of_tests)])
+            if testing_config.get("permute_mappings") is None:
+                testing_config["permute_mappings"] = False
 
-                    r_dict["R=" + str(rci_value[0])] = results
-                    r_list.append(int(np.mean(results)))
-                elif task == "5 bit density":
-                    reca_config = {
-                        "N": 7,
-                        "R": rci_value[0],
-                        "I": rci_value[2],
-                        "C": rci_value[1],
-                        "do_mappings": True,
-                        "time_transition": "random_permutation",
-                        "classifier": "perceptron_sgd",
-                    }
+            data_interpreter = testing_config.get("data_interpreter")
+            reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+            with multiprocessing.Pool(threads) as p:
+                results = p.starmap(random_mapping_worker,
+                                    [(data_interpreter, reca_config, reCA_rule) for _ in
+                                     range(number_of_tests)])
 
-                    reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=rule)
-                    data_interpreter = open_data_interpreter("5bit_density", distractor_period=10)
-                    with multiprocessing.Pool(threads) as p:
-                        results = p.starmap(random_mapping_worker,
-                                            [(data_interpreter, reca_config, reCA_rule) for _
-                                             in
-                                             range(number_of_tests)])
-
-                    r_dict["R=" + str(rci_value[0])] = results
-                    r_list.append(int(np.mean(results)))
+            print("Done testing rule: " + str(rule) +
+                  " --mean: " + str(int(np.mean(results))) + "+-" + str(int(np.std(results))))
+            run_results[rule] = int(np.mean(results))
             with open(file_location + "/../experiment_data/rule_testing/rule_" + str(rule) + "_allinfo_JSON.json",
                       "w") as outfile:
-                json.dump(r_dict, outfile)
-            plotconfigs["Rule " + str(rule)] = r_list
+                json.dump(results, outfile)
 
-        #print(plotconfigs)
-        for w in sorted(plotconfigs, key=plotconfigs.get, reverse=True):
-            print(w, plotconfigs[w])
+
+
+        for w in sorted(run_results, key=run_results.get, reverse=True):
+            print(w, run_results[w])
         with open(file_location + "/../experiment_data/rule_testing/full_plotconfig.json", "w") as outfile:
-            json.dump(plotconfigs, outfile)
+            json.dump(run_results, outfile)
 
-        visual.create_graph_from_jsonconfig(file_location + "/../experiment_data/rule_testing/full_plotconfig.json", Rs)
+
+
 
 
 

@@ -16,6 +16,8 @@ import math
 
 file_location = os.path.dirname(os.path.realpath(__file__))
 
+
+
 class TranslationBuilder:
     def __init__(self):
         """

@@ -32,14 +32,14 @@ def main(argv):
 
 
     #before = time.time()
-    p.five_bit_task()
+    #p.five_bit_task()
     #.twenty_bit_task()
 
 
     #### Evolve ####
     #p.evolve_ca_five_bit()
     #p.evolve_ca_twenty_bit()
-    #p.evolve_ca_five_bit_and_density()
+    p.evolve_ca_five_bit_and_density()
     #p.evolve_ca_jap_vowels()
 
 
@@ -52,6 +52,9 @@ def main(argv):
     #print(p.classifier_testing())
     #p.test_all_rules()
 
+    #### mass testing ####
+    #p.mass_test_five_bit_task()
+    #p.mass_test_5bit_density_task()
 
 if __name__ == "__main__":
     main(sys.argv[1:])
