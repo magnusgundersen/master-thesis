@@ -564,12 +564,12 @@ class Project:
 
         # EA params
         pop_size = 7*2  # Adapt to number of cores
-        max_no_generations = 10000
-        tests_per_individual = 2
+        max_no_generations = 1000
+        tests_per_individual = 4
         fitness_threshold_value = 1000
         retest_threshold = 999
         retests_per_individual = 10
-        continue_from_checkpoint = True
+        continue_from_checkpoint = False
 
         print_est = False
         before = time.time()
@@ -702,7 +702,7 @@ class Project:
         C = 12
         R = 12
         I = 2
-        N = 4+3 # Five bit signals + majority signals
+        N = 4+3  # Five bit signals + majority signals
         time_transition = "random_permutation"
         classifier = "perceptron_sgd"
         permute_mappings = False  # If the mappings should be permuted
