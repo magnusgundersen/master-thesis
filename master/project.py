@@ -118,7 +118,7 @@ class Project:
     # Single run problems #
     #######################
     def five_bit_task(self):
-        data_interpreter = open_data_interpreter("5bit", distractor_period=200, training_ex=1, testing_ex=1)
+        data_interpreter = open_data_interpreter("5bit", distractor_period=20, training_ex=32, testing_ex=32)
         reCA_problem = reCA.ReCAProblem(data_interpreter)
         reCA_config = reCA.ReCAConfig()
 
@@ -133,14 +133,13 @@ class Project:
         #rule_list = [89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122]
 
 
-        with open(file_location+ "/../experiment_data/rules/NuniRule6513_f=984.ind", "rb") as f:
+        with open(file_location+ "/../experiment_data/rules/NuniRule7317_f=1000.ind", "rb") as f:
             evolved_ind = pickle.load(f)
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
-        reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
-        #reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
-        reCA_config.set_random_mapping_config(reCA_rule, R=80, C=1, I=2, mapping_permutations=True,
-                                              classifier="perceptron_sgd", time_transition="or")
-        #reCA_config.set_non_uniform_config(reCA_rule, R=8, C=5, I=8, classifier="perceptron_sgd")
+        #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+        reCA_rule = reCA.ReCAruleConfig(uniform_rule=113)
+        reCA_config.set_random_mapping_config(reCA_rule, R=1, C=400, I=50, mapping_permutations=False,
+                                              classifier="perceptron_sgd", time_transition="random_permutation")
         #reCA_config.set_uniform_margem_config(rule=[141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18], R_i=2, R=76, I=8, classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
 
@@ -152,7 +151,6 @@ class Project:
         reCA_out = reCA_system.test_on_problem()
 
         # PRINTOUT:
-        print(str(reCA_out.total_correct) + " of " + str(len(reCA_out.all_test_examples)))
         print("--example--")
         example_run = reCA_out.all_predictions[0]
         example_test = reCA_out.all_test_examples[0]
@@ -163,7 +161,8 @@ class Project:
             correct = example_test[1][i]
             _input = "".join([str(x) for x in example_test[0][i]])
             print("Input: " + _input + "  Correct: " + str(correct) + "  Predicted:" + str(prediction))
-
+        print("============================")
+        print(str(reCA_out.total_correct) + " of " + str(len(reCA_out.all_test_examples)))
         # Visualize:
         outputs = reCA_system.get_example_run()
         visual.visualize_example_run(outputs)

@@ -7,6 +7,7 @@ import pprint
 import xml.etree.ElementTree as ET
 import scipy.sparse as sprs
 import scipy.io as sci_io
+import itertools
 import json
 import codecs
 #from speech import Speech, SpeakerStatistics, SpeakerStatisticsCollection
@@ -472,7 +473,7 @@ class TwentyBitBuilder:
 
 
 class JapaneseVowelsBuilder:
-    def __init__(self, training_ex=270, testing_ex=370, resolution=4, binarization_scheme="quantize"):
+    def __init__(self, training_ex=270, testing_ex=370, resolution=6, binarization_scheme="quantize"):
         self.no_training_ex = training_ex
         self.no_testing_ex = testing_ex
 
@@ -574,7 +575,7 @@ class JapaneseVowelsBuilder:
         return _input, _output
 
     def _binarize(self, input_float, resolution, levels):
-        levels.append(8)
+        levels.append(8) # Top level
         grey_coding = {
             2: [
                 [0,0],
@@ -612,12 +613,17 @@ class JapaneseVowelsBuilder:
             ],
         }
 
+        bin_values = list(map(list, itertools.product([0, 1], repeat=resolution)))
+        grey_values = [self.binary_to_grey_converter(bin_value) for bin_value in bin_values]
+
+
+
         try:
             input_float = float(input_float)
         except:
             raise ValueError("error on binarzation")
 
-        binarization = grey_coding.get(resolution)
+        binarization = grey_values
         if binarization is None:
             raise ValueError
 
@@ -697,7 +703,7 @@ class JapaneseVowelsBuilder:
 
         quantization_steps = 2**self.resolution
         levels = self.analyze_and_extract_quantization_levels(quantization_steps, training_data)
-        print(levels)
+        #print(levels)
         training_dataset, testing_dataset = self.binarize_data(training_data, testing_data, levels)
         #print(training_dataset)
         #pickle.dump(training_dataset, file_location+"/japanese_vowels/"+filename)
@@ -799,6 +805,15 @@ class JapaneseVowelsBuilder:
                 testing_dataset.append((_inputs, np.array(string_outputs)))
 
         return training_dataset, testing_dataset
+
+    @staticmethod
+    def binary_to_grey_converter(binary_number):
+        binary_number = "".join([str(x) for x in binary_number])
+        grey = binary_number[0]
+        for i in range(1, len(binary_number)): grey += str( int(binary_number[i-1] != binary_number[i]))
+        grey = [int(x) for x in grey]
+        return grey
+
 
 
 class FiveBitAndDensityBuilder:
@@ -992,6 +1007,7 @@ class SyntheticSequenceToSequenceBuilder:
 
             data_set.append((np.array(_inputs, dtype="uint8"), np.array(_outputs)))
         return data_set
+
 class SequenceSquareRootBuilder:
     def __init__(self, no_training_ex=1500, no_testing_ex=30):
         self.input_signals = 13
@@ -1054,6 +1070,7 @@ if __name__ == "__main__":
     #jap_vows.create_persistence_data()
     #jap_vows.read_test_and_train_files()
     print(len(jap_vows.get_testing_data()))
+    pass
     #seq_to_seq = SequenceSquareRootBuilder()
     #print(seq_to_seq.get_training_data())
 #cifarB = CIFARBuilder()
