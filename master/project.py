@@ -118,7 +118,7 @@ class Project:
     # Single run problems #
     #######################
     def five_bit_task(self):
-        data_interpreter = open_data_interpreter("5bit", distractor_period=20, training_ex=32, testing_ex=32)
+        data_interpreter = open_data_interpreter("5bit", distractor_period=10, training_ex=1, testing_ex=1)
         reCA_problem = reCA.ReCAProblem(data_interpreter)
         reCA_config = reCA.ReCAConfig()
 
@@ -132,13 +132,15 @@ class Project:
             rule_list.extend([rule for _ in range(size//no_rules)])
         #rule_list = [89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122]
 
-
-        with open(file_location+ "/../experiment_data/rules/NuniRule7317_f=1000.ind", "rb") as f:
+        ind_location = file_location+ "/../experiment_data/rules/NuniRule7317_f=1000.ind"
+        ind_location = file_location+"/../experiment_data/rules/5_bit_evolved_rules/" + "run7.ind"
+        with open(ind_location, "rb") as f:
             evolved_ind = pickle.load(f)
+
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
-        #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
-        reCA_rule = reCA.ReCAruleConfig(uniform_rule=113)
-        reCA_config.set_random_mapping_config(reCA_rule, R=1, C=400, I=50, mapping_permutations=False,
+        reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+        #reCA_rule = reCA.ReCAruleConfig(uniform_rule=113)
+        reCA_config.set_random_mapping_config(reCA_rule, R=4, C=4, I=2, mapping_permutations=False,
                                               classifier="perceptron_sgd", time_transition="random_permutation")
         #reCA_config.set_uniform_margem_config(rule=[141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18], R_i=2, R=76, I=8, classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
@@ -181,8 +183,8 @@ class Project:
         #reCA_rule = reCA.ReCAruleConfig(uniform_rule=85)
         reCA_config = reCA.ReCAConfig()
         #reCA_config.set_non_uniform_config(reCA_rule_scheme)
-        reCA_config.set_random_mapping_config(reCA_rule, N=reCA_problem.input_size, R=12, C=16, I=2, classifier="perceptron_sgd", time_transition="random_permutation")
-        #reCA_config.set_uniform_margem_config(reCA_rule, N=reCA_problem.input_size, R=(20*(10+10+10)), R_i=2, I=20, classifier="perceptron_sgd", time_transition="xor")
+        #reCA_config.set_random_mapping_config(reCA_rule, N=reCA_problem.input_size, R=12, C=16, I=2, classifier="perceptron_sgd", time_transition="random_permutation")
+        reCA_config.set_uniform_margem_config(reCA_rule, N=reCA_problem.input_size, R=1, R_i=2, I=1, classifier="perceptron_sgd", time_transition="xor")
         reCA_system = reCA.ReCASystem()
 
 
@@ -568,7 +570,7 @@ class Project:
         fitness_threshold_value = 1000
         retest_threshold = 999
         retests_per_individual = 10
-        continue_from_checkpoint = False
+        continue_from_checkpoint = True
 
         print_est = False
         before = time.time()
@@ -610,24 +612,24 @@ class Project:
 
     def evolve_ca_twenty_bit(self):
         # ReCA params
-        C = 16
-        R = 12
+        C = 24
+        R = 8
         I = 2
         N = 7
         time_transition = "random_permutation"
         classifier = "perceptron_sgd"
-        permute_mappings = True  # If the mappings should be permuted
-        number_of_rules = 12  # Maximum number of distinct rules
+        permute_mappings = False  # If the mappings should be permuted
+        number_of_rules = 8  # Maximum number of distinct rules
 
         # EA params
         pop_size = 7 * 2  # Adapt to number of cores
         max_no_generations = 10000
-        tests_per_individual = 2
+        tests_per_individual = 4
         fitness_threshold_value = 1000
         retest_threshold = 999
-        retests_per_individual = 6
+        retests_per_individual = 10
 
-        continue_from_checkpoint = True
+        continue_from_checkpoint = False
 
         reca_config = {
             "N": N,
@@ -654,18 +656,18 @@ class Project:
 
     def evolve_ca_jap_vowels(self):
         # ReCA params
-        C = 16
-        R = 12
+        C = 24
+        R = 6
         I = 2
-        N = 14*4
+        N = 14*6
         time_transition = "random_permutation"
         classifier = "perceptron_sgd"
-        permute_mappings = True  # If the mapping should be permuted
+        permute_mappings = False  # If the mapping should be permuted
         number_of_rules = 6  # Maximum number of distinct rules
 
         # EA params
         pop_size = 7 * 2  # Adapt to number of cores
-        max_no_generations = 10000
+        max_no_generations = 1000
         tests_per_individual = 1
         fitness_threshold_value = 1000
         retest_threshold = 999
@@ -775,8 +777,21 @@ class Project:
             json.dump(non_uni_rule_serialize, outfile, sort_keys = True, indent = 4)
         with open(file_location + "/../experiment_data/rules/" + str(best_individual) + ".ind", "wb") as outfile:
             pickle.dump(best_individual, outfile)
+
+        self.make_ea_report(ea_output, run_name)
         visual.make_fitnessgraph(ea_output, run_name)
 
+    def make_ea_report(self, ea_output, run_name):
+        best_fitness_per_gen = [ind.fitness for ind in ea_output.best_individuals_per_gen]
+        mean_fitness_list = ea_output.mean_fitness_per_gen
+        std_fitness_list = ea_output.std_per_gen
+        serialized_data = {
+            "best_fitness": best_fitness_per_gen,
+            "mean_fitness": mean_fitness_list,
+            "std_fitness ": std_fitness_list,
+        }
+        with open(file_location + "/../experiment_data/ea_runs/" + run_name + "JSON_report.json", "w") as outfile:
+            json.dump(serialized_data, outfile, sort_keys = True, indent = 4)
     ########################
     # Testing and batching #
     ########################
@@ -787,12 +802,13 @@ class Project:
         Runs a mass testing on the five bit task with the provided rules
         :return:
         """
-        uniform_rules = [105, 150, 90]
+        #uniform_rules = [105, 150, 90]
         uniform_rules = [x for x in range(256)]
-        non_uniform_rules = []  # Must be name of .ind objects in the "/rules" folder
+        #uniform_rules= []
+        non_uniform_rules = ["run"+str(i) for i in range(1, 11)]  # Must be name of .ind objects in the "/rules" folder
 
         threads = 8
-        total_test_per_rule = threads*5
+        total_test_per_rule = threads*15
 
         testing_config = {
             "threads": threads,
@@ -807,7 +823,7 @@ class Project:
             "R": 4,
             "I": 2,
             "C": 4,
-            "permute_mappings": True,  # True, False or None. None means True for Uni and False for Nuni
+            "permute_mappings": None,  # True, False or None. None means True for Uni and False for Nuni
             "time_transition": "random_permutation",
             "classifier": "perceptron_sgd",
         }
@@ -936,7 +952,7 @@ class Project:
 
             # Open the non uniform rule
             try:
-                with open(file_location + "/../experiment_data/rules/"+str(rule), "rb") as f:
+                with open(file_location + "/../experiment_data/rules/5_bit_evolved_rules/"+str(rule)+".ind", "rb") as f:
                     evolved_ind = pickle.load(f)
             except:
                 print("Could not open non uni rule: " + str(rule))
@@ -966,6 +982,11 @@ class Project:
             print(w, run_results[w])
         with open(file_location + "/../experiment_data/rule_testing/full_plotconfig.json", "w") as outfile:
             json.dump(run_results, outfile)
+
+
+    #########
+    # Misc. #
+    #########
 
 
 

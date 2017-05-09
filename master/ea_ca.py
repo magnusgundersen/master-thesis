@@ -139,7 +139,7 @@ def fitness_20bit_worker(individual, reca_config, ea_config):
         fitness_std = int(np.std(fitness))
         fitness = int(np.mean(fitness))
         print("result after retest ", fitness)
-        fitness = 1000 if fitness > 800 else fitness
+        #fitness = 1000 if fitness > 800 else fitness
 
     # fitness = fitness if (fitness<850) else fitness-fitness_std*(1000/fitness)
     fitness = 1 if fitness == 0 else fitness  # avoid div by zero
@@ -242,7 +242,7 @@ def jap_vows_fitness_test_worker(individual, reca_config, ea_config):
         """
 
     fitness = []
-    reca_config["testing_ex"] = 100
+    reca_config["testing_ex"] = 370
     for _ in range(ea_config.get("tests_per_individual")):
         reCA_out = japanese_vowels_runner(individual, reca_config)
         fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
