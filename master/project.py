@@ -4,6 +4,7 @@ Functionality and experiments.
 """
 __author__ = 'magnus'
 from reca import reca_system as reCA
+from reservoir import ca as ca
 from gui import ca_basic_visualizer as bviz
 import master.ea_ca as ea_ca
 import ea.evoalg as evoalg
@@ -987,6 +988,31 @@ class Project:
     #########
     # Misc. #
     #########
+
+    def run_ca_simulation(self):
+        rule = reCA.ReCAruleConfig(uniform_rule=110)
+        rules = [reCA.ReCAruleConfig(uniform_rule=i) for i in range(256)]
+        width = 64
+        iterations = 64
+        one_black = [0 for _ in range(width)]
+        one_black[len(one_black)//2] = 1
+        random_initial = [random.choice([0,1]) for _ in range(width)]
+
+
+        #print(simulated_ca)
+        for i in range(256):
+            rule = reCA.ReCAruleConfig(uniform_rule=i)
+            ca_simulator = ca.ElemCAReservoir(width)
+            ca_simulator.set_rule_config(rule)
+
+            one_black_sim = ca_simulator.run_simulation(one_black, iterations)
+            bviz.visualize(one_black_sim,name="rule_"+str(i)+"_one_black", save_states=True, show=False, axis_label_off=True)
+
+            random_initial_sim = ca_simulator.run_simulation(random_initial, iterations)
+            bviz.visualize(random_initial_sim, name="rule_"+str(i)+"_random_initial", save_states=True,axis_label_off=True,  show=False)
+
+
+
 
 
 

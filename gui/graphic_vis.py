@@ -82,6 +82,9 @@ def visualize_example_run(run_config):
         whole_output.extend([[0 for _ in range(width)]])
     bvis.visualize(whole_output)
 
+def visualize_ca_run(ca_states):
+    bvis.visualize(ca_states)
+
 
 def make_fitnessgraph(ea_output, name):
     fitness_list = [ind.fitness for ind in ea_output.best_individuals_per_gen]
