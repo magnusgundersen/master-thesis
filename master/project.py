@@ -611,18 +611,18 @@ class Project:
 
     def evolve_ca_twenty_bit(self):
         # ReCA params
-        C = 1
-        R = 1
-        I = 0
+        C = 16
+        R = 6
+        I = 2
         N = 7
         time_transition = "random_permutation"
         classifier = "perceptron_sgd"
         permute_mappings = False  # If the mappings should be permuted
-        number_of_rules = 2  # Maximum number of distinct rules
+        number_of_rules = 6  # Maximum number of distinct rules
 
         # EA params
-        pop_size = 3 * 1  # Adapt to number of cores
-        max_no_generations = 2
+        pop_size = 7 * 2  # Adapt to number of cores
+        max_no_generations = 150
         tests_per_individual = 4
         fitness_threshold_value = 1000
         retest_threshold = 999
