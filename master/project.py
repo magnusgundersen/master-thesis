@@ -929,6 +929,7 @@ class Project:
         number_of_tests = testing_config.get("total_tests_per_rule")
 
         run_results = {}
+
         for rule in testing_config.get("uni_rules"):
             if testing_config.get("permute_mappings") is None:
                 testing_config["permute_mappings"]=True
@@ -944,9 +945,12 @@ class Project:
             print("Done testing rule: "+ str(rule) +
                   " --mean: " + str(int(np.mean(results)))+ "+-" + str(int(np.std(results))))
             run_results[rule] = int(np.mean(results))
-            with open(file_location + "/../experiment_data/rule_testing/rule_" + str(rule) + "_allinfo_JSON.json",
-                      "w") as outfile:
-                json.dump(results, outfile)
+            try:
+                with open(file_location + "/../experiment_data/rule_testing/rule_" + str(rule) + "_allinfo_JSON.json",
+                          "w") as outfile:
+                    json.dump(results, outfile)
+            except:
+                continue
 
 
         for rule in testing_config.get("nuni_rules"):
@@ -981,8 +985,11 @@ class Project:
 
         for w in sorted(run_results, key=run_results.get, reverse=True):
             print(w, run_results[w])
-        with open(file_location + "/../experiment_data/rule_testing/full_plotconfig.json", "w") as outfile:
-            json.dump(run_results, outfile)
+        try:
+            with open(file_location + "/../experiment_data/rule_testing/full_plotconfig.json", "w") as outfile:
+                json.dump(run_results, outfile)
+        except:
+            pass
 
 
     #########
