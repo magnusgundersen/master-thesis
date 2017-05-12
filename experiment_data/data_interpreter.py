@@ -558,7 +558,8 @@ class JapaneseVowelsBuilder:
         _input = []
         number_of_speakers = 9
         _output = []
-        eos_signal = [0]*12*self.resolution + [1]
+        eos_resolution_padded = [0]*(self.resolution-1)+[1]
+        eos_signal = [0]*12*self.resolution + eos_resolution_padded
         wait_signal = [0]*number_of_speakers + [1]
         label_signal = [0]*(speaker_number) + [1] + [0]*((number_of_speakers-1)-speaker_number) + [0]
 
@@ -566,7 +567,7 @@ class JapaneseVowelsBuilder:
 
         for time_step in utterance:
 
-            binary_version = [self._binarize(float_number, self.resolution, levels) for float_number in time_step[:-1]] + [[0]] # Not EOS
+            binary_version = [self._binarize(float_number, self.resolution, levels) for float_number in time_step[:-1]] + [self.resolution*[0]] # Not EOS
             binary_version = list(np.concatenate(binary_version))
             _input.append(binary_version)
             _output.append(wait_signal)

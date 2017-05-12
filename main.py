@@ -40,9 +40,10 @@ def main(argv):
 
     #### Evolve ####
     #p.evolve_ca_five_bit()
-    #p.evolve_ca_twenty_bit()
+    for i in range(10):
+        p.evolve_ca_twenty_bit()
     #p.evolve_ca_five_bit_and_density()
-    p.evolve_ca_jap_vowels()
+    #p.evolve_ca_jap_vowels()
 
 
     #p.five_bit_density_task()
@@ -58,7 +59,7 @@ def main(argv):
     #p.mass_test_5bit_density_task()
 
     #### Misc ####
-    p.run_ca_simulation()
+    #p.run_ca_simulation()
 
 if __name__ == "__main__":
     main(sys.argv[1:])

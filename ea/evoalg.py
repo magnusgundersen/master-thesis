@@ -17,7 +17,7 @@ parallel = True
 if parallel:
     cpu_count = multiprocessing.cpu_count()
     if cpu_count < 20:
-        threads_to_be_used = 7  # 4 not cloging the machine
+        threads_to_be_used = 3  # 4 not cloging the machine
     else:
         threads_to_be_used = 20
 
@@ -97,15 +97,15 @@ class EA:
             self.save_ea_state(current_generation, parent_selector, adult_selector, generation_number, ea_output)
 
             best_ind = ea_output.best_individual
-
+        self.save_ea_state(current_generation, parent_selector, adult_selector, generation_number, ea_output, name=str(problem))
         print("\n", end="")
         return ea_output
 
     @staticmethod
-    def save_ea_state(current_generation, parent_selector, adult_selector, generation_number, ea_output):
+    def save_ea_state(current_generation, parent_selector, adult_selector, generation_number, ea_output, name="state"):
         file_location = os.path.dirname(os.path.realpath(__file__))+"/../experiment_data/ea_runs/"
-        persistance_file = file_location + "state.ea"
-        backup_file = file_location + "state_old.ea"
+        persistance_file = file_location + name+".ea"
+        backup_file = file_location + name+"_old.ea"
         saved_state = {}
         saved_state["current_generation"] = current_generation
         saved_state["parent_selector"] = parent_selector

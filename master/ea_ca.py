@@ -212,7 +212,7 @@ def fitness_5bit_and_density_worker(individual, reca_config, ea_config):
 def japanese_vowels_runner(individual, reca_config):
     reCA_problem = reCA.ReCAProblem(
         p.open_data_interpreter("japanese_vowels", training_ex=reca_config.get("training_ex"),
-                                testing_ex=reca_config.get("testing_ex")))
+                                testing_ex=reca_config.get("testing_ex"), binarization_resolution=reca_config.get("B")))
     reCA_config = reCA.ReCAConfig()
     reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
     reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme,
@@ -521,6 +521,9 @@ class NonUni5BitProblem(NonUniCAProblem):
 class NonUni20BitProblem(NonUniCAProblem):
     def __init__(self, ca_config=None, ea_config=None):
         super().__init__(ca_config, ea_config)
+        ts = time.time()
+        hours = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d_%H_%M_%S')
+        self.name="20bit_problem_"+hours
 
     def test_fitness(self, individual):
         return fitness_20bit_worker(individual, self.reca_config, self.ea_config)

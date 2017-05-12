@@ -49,7 +49,8 @@ def open_data_interpreter(type_of_interpreter, **kwargs):
     elif type_of_interpreter == "japanese_vowels":
         training_ex = kwargs.get("training_ex") if kwargs.get('training_ex') is not None else 270
         testing_ex = kwargs.get("testing_ex") if kwargs.get('testing_ex') is not None else 370
-        return data_int.JapaneseVowelsBuilder(training_ex=training_ex, testing_ex=testing_ex)
+        resolution = kwargs.get("binarization_resolution") if kwargs.get("binarization_resolution") is not None else 4
+        return data_int.JapaneseVowelsBuilder(training_ex=training_ex, testing_ex=testing_ex, resolution=resolution)
 
     elif type_of_interpreter == "5bit_density":
         distractor_period = kwargs.get("distractor_period") if kwargs.get('distractor_period') is not None else 10
@@ -176,15 +177,15 @@ class Project:
         :return:
         """
         before = time.time()
-        data_interpreter = open_data_interpreter("20bit", distractor_period=10, training_ex=1, testing_ex=1)
+        data_interpreter = open_data_interpreter("20bit", distractor_period=10, training_ex=120, testing_ex=100)
         reCA_problem = reCA.ReCAProblem(data_interpreter)
-        with open(file_location + "/../experiment_data/rules/NuniRule3609_f=998.ind", "rb") as f:
-            evolved_ind = pickle.load(f)
-        reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
-        #reCA_rule = reCA.ReCAruleConfig(uniform_rule=85)
+        #with open(file_location + "/../experiment_data/rules/NuniRule3609_f=998.ind", "rb") as f:
+        #    evolved_ind = pickle.load(f)
+        #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+        reCA_rule = reCA.ReCAruleConfig(uniform_rule=85)
         reCA_config = reCA.ReCAConfig()
         #reCA_config.set_non_uniform_config(reCA_rule_scheme)
-        reCA_config.set_random_mapping_config(reCA_rule, N=reCA_problem.input_size, R=8, C=24, I=2, classifier="perceptron_sgd", time_transition="random_permutation", mapping_permutations=False)
+        reCA_config.set_random_mapping_config(reCA_rule, N=reCA_problem.input_size, R=1, C=60, I=2, classifier="perceptron_sgd", time_transition="random_permutation", mapping_permutations=False)
         #reCA_config.set_uniform_margem_config(reCA_rule, N=reCA_problem.input_size, R=8, R_i=2, I=1, classifier="perceptron_sgd", time_transition="xor")
         reCA_system = reCA.ReCASystem()
 
@@ -214,10 +215,7 @@ class Project:
         visual.visualize_example_run(outputs)
 
     def japanese_vowels(self):
-
-        # Currently only german is implemented
-        #translation_data = self.open_temporal_data("en-de.data")
-        data_interpreter = open_data_interpreter("japanese_vowels")
+        data_interpreter = open_data_interpreter("japanese_vowels", binarization_resolution=5)
 
         # reca_prob
         reCA_problem = reCA.ReCAProblem(data_interpreter)
@@ -231,8 +229,8 @@ class Project:
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
         reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
         #reCA_config.set_uniform_margem_config(rule_scheme=reCA_rule, N=reCA_problem.input_size, R=(reCA_problem.input_size*2)+29*4, R_i=2, I=4)
-        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=8, C=32, I=2, classifier="perceptron_sgd",
-                                              mapping_permutations=True, time_transition="random_permutation")
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=1, C=2, I=1, classifier="perceptron_sgd",
+                                              mapping_permutations=False, time_transition="random_permutation")
         #reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=64, C=1, I=4, time_transition="xor", classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
 
@@ -565,7 +563,7 @@ class Project:
         number_of_rules_list = [4]  # Maximum number of distinct rules
 
         # EA params
-        pop_size = 7*2  # Adapt to number of cores
+        pop_size = 7*1  # Adapt to number of cores
         max_no_generations = 1000
         tests_per_individual = 4
         fitness_threshold_value = 1000
@@ -613,18 +611,18 @@ class Project:
 
     def evolve_ca_twenty_bit(self):
         # ReCA params
-        C = 24
-        R = 8
-        I = 2
+        C = 1
+        R = 1
+        I = 0
         N = 7
         time_transition = "random_permutation"
         classifier = "perceptron_sgd"
         permute_mappings = False  # If the mappings should be permuted
-        number_of_rules = 8  # Maximum number of distinct rules
+        number_of_rules = 2  # Maximum number of distinct rules
 
         # EA params
-        pop_size = 7 * 2  # Adapt to number of cores
-        max_no_generations = 10000
+        pop_size = 3 * 1  # Adapt to number of cores
+        max_no_generations = 2
         tests_per_individual = 4
         fitness_threshold_value = 1000
         retest_threshold = 999
@@ -659,22 +657,23 @@ class Project:
         # ReCA params
         C = 2
         R = 1
-        I = 2
-        N = (12*8)+2
+        I = 1
+        B = 2
+        N = (13*B)
         time_transition = "random_permutation"
         classifier = "perceptron_sgd"
         permute_mappings = False  # If the mapping should be permuted
-        number_of_rules = 8  # Maximum number of distinct rules
+        number_of_rules = 13  # Maximum number of distinct rules
 
         # EA params
-        pop_size = 7 * 2  # Adapt to number of cores
+        pop_size = 3 * 2  # Adapt to number of cores
         max_no_generations = 1000
-        tests_per_individual = 2
+        tests_per_individual = 1
         fitness_threshold_value = 1000
         retest_threshold = 999
         retests_per_individual = 1
 
-        continue_from_checkpoint = True
+        continue_from_checkpoint = False
 
         reca_config = {
             "N": N,
@@ -684,6 +683,7 @@ class Project:
             "permute_mappings": permute_mappings,
             "time_transition": time_transition,
             "classifier": classifier,
+            "B": B,
 
         }
 
