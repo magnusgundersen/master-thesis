@@ -757,7 +757,7 @@ class Project:
         # pickle.dump(ea_output, open("ea.pkl", "wb"))
         run_name = "earun_R" + str(ca_config.get("R")) + "C" + str(ca_config.get("C")) + "I" + str(ca_config.get("I")) + \
                    "_rules" + str(ea_prob.allowed_number_of_rules) + "_popsize" + str(ea_prob.init_pop_size) + \
-                   "_gens" + str(ea_prob.max_number_of_generations)
+                   "_gens" + str(ea_prob.max_number_of_generations)+"_"+str(ea_prob.name)
 
         pickle.dump(ea_output, open(file_location + "/../experiment_data/ea_runs/" + run_name + ".ea_output", "wb"))
         best_individual = ea_output.best_individual
