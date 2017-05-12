@@ -95,6 +95,7 @@ class ReCASystem:
                     #print("WRONG: " + str(output) + str( "  ") + str(outputs[pointer]))
                     all_correct = False
                 pointer += 1
+
             reCA_output.all_predictions.append(predictions)
 
             if all_correct:

@@ -386,6 +386,7 @@ class FiveBitBuilder:
         self.dist_period = dist_period
         self.no_training_ex = training_ex
         self.no_testing_ex = testing_ex
+        self.spec_example = 3
 
     def get_training_data(self):
         dataset = []
@@ -402,7 +403,9 @@ class FiveBitBuilder:
                     _input, _output = line.split(" ")
                     training_inputs.append([int(number) for number in _input])
                     training_ouputs.append(_output[0:-1])  # class is text
-        dataset = dataset[:self.no_training_ex]
+        #random.shuffle(dataset)
+        #dataset = dataset[:self.no_training_ex]
+        dataset = dataset[self.spec_example:self.spec_example+1]
         return dataset
 
 
@@ -422,7 +425,8 @@ class FiveBitBuilder:
                     training_inputs.append([int(number) for number in _input])
                     training_ouputs.append(_output[0:-1])  # class is text
 
-        dataset = dataset[(32-self.no_testing_ex):]
+        #dataset = dataset[(32-self.no_testing_ex):]
+        dataset = dataset[self.spec_example:self.spec_example+1]
         return dataset
 
 
@@ -473,7 +477,7 @@ class TwentyBitBuilder:
 
 
 class JapaneseVowelsBuilder:
-    def __init__(self, training_ex=270, testing_ex=370, resolution=6, binarization_scheme="quantize"):
+    def __init__(self, training_ex=270, testing_ex=370, resolution=8, binarization_scheme="quantize"):
         self.no_training_ex = training_ex
         self.no_testing_ex = testing_ex
 

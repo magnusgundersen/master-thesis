@@ -176,16 +176,16 @@ class Project:
         :return:
         """
         before = time.time()
-        data_interpreter = open_data_interpreter("20bit", distractor_period=10, training_ex=120, testing_ex=100)
+        data_interpreter = open_data_interpreter("20bit", distractor_period=10, training_ex=1, testing_ex=1)
         reCA_problem = reCA.ReCAProblem(data_interpreter)
-        with open(file_location + "/../experiment_data/rules/NuniRule9088_f=1000.ind", "rb") as f:
+        with open(file_location + "/../experiment_data/rules/NuniRule3609_f=998.ind", "rb") as f:
             evolved_ind = pickle.load(f)
         reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
         #reCA_rule = reCA.ReCAruleConfig(uniform_rule=85)
         reCA_config = reCA.ReCAConfig()
         #reCA_config.set_non_uniform_config(reCA_rule_scheme)
-        #reCA_config.set_random_mapping_config(reCA_rule, N=reCA_problem.input_size, R=12, C=16, I=2, classifier="perceptron_sgd", time_transition="random_permutation")
-        reCA_config.set_uniform_margem_config(reCA_rule, N=reCA_problem.input_size, R=1, R_i=2, I=1, classifier="perceptron_sgd", time_transition="xor")
+        reCA_config.set_random_mapping_config(reCA_rule, N=reCA_problem.input_size, R=8, C=24, I=2, classifier="perceptron_sgd", time_transition="random_permutation", mapping_permutations=False)
+        #reCA_config.set_uniform_margem_config(reCA_rule, N=reCA_problem.input_size, R=8, R_i=2, I=1, classifier="perceptron_sgd", time_transition="xor")
         reCA_system = reCA.ReCASystem()
 
 
@@ -225,14 +225,14 @@ class Project:
         #reCA_config.set_single_reservoir_config(ca_rule=90, R=2, C=3, I=16, classifier="linear-svm",
         #                                        encoding="random_mapping",
         #                                        time_transition="random_permutation")
-        with open(file_location+ "/../experiment_data/rules/NuniRule6422_f=910.ind", "rb") as f:
-            evolved_ind = pickle.load(f)
+        #with open(file_location+ "/../experiment_data/rules/NuniRule6422_f=910.ind", "rb") as f:
+        #    evolved_ind = pickle.load(f)
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
-        reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+        #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
         reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
         #reCA_config.set_uniform_margem_config(rule_scheme=reCA_rule, N=reCA_problem.input_size, R=(reCA_problem.input_size*2)+29*4, R_i=2, I=4)
-        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=40, C=1, I=20, classifier="perceptron_sgd",
-                                              mapping_permutations=True, time_transition="or")
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=8, C=32, I=2, classifier="perceptron_sgd",
+                                              mapping_permutations=True, time_transition="random_permutation")
         #reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=64, C=1, I=4, time_transition="xor", classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
 
@@ -657,24 +657,24 @@ class Project:
 
     def evolve_ca_jap_vowels(self):
         # ReCA params
-        C = 24
-        R = 6
+        C = 2
+        R = 1
         I = 2
-        N = 14*6
+        N = (12*8)+2
         time_transition = "random_permutation"
         classifier = "perceptron_sgd"
         permute_mappings = False  # If the mapping should be permuted
-        number_of_rules = 6  # Maximum number of distinct rules
+        number_of_rules = 8  # Maximum number of distinct rules
 
         # EA params
         pop_size = 7 * 2  # Adapt to number of cores
         max_no_generations = 1000
-        tests_per_individual = 1
+        tests_per_individual = 2
         fitness_threshold_value = 1000
         retest_threshold = 999
         retests_per_individual = 1
 
-        continue_from_checkpoint = False
+        continue_from_checkpoint = True
 
         reca_config = {
             "N": N,
@@ -992,15 +992,15 @@ class Project:
     def run_ca_simulation(self):
         rule = reCA.ReCAruleConfig(uniform_rule=110)
         rules = [reCA.ReCAruleConfig(uniform_rule=i) for i in range(256)]
-        width = 64
-        iterations = 64
+        width = 32
+        iterations = 32
         one_black = [0 for _ in range(width)]
         one_black[len(one_black)//2] = 1
         random_initial = [random.choice([0,1]) for _ in range(width)]
 
 
         #print(simulated_ca)
-        for i in range(256):
+        for i in range(163, 256):
             rule = reCA.ReCAruleConfig(uniform_rule=i)
             ca_simulator = ca.ElemCAReservoir(width)
             ca_simulator.set_rule_config(rule)

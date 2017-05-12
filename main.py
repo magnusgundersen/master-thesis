@@ -35,17 +35,17 @@ def main(argv):
 
     #p.five_bit_task()
     #p.twenty_bit_task()
+    #p.japanese_vowels()
 
 
     #### Evolve ####
     #p.evolve_ca_five_bit()
     #p.evolve_ca_twenty_bit()
     #p.evolve_ca_five_bit_and_density()
-    #p.evolve_ca_jap_vowels()
+    p.evolve_ca_jap_vowels()
 
 
     #p.five_bit_density_task()
-    #p.japanese_vowels()
     #p.square_root_sequence_task()
     #print(project.test_all_rules())
     #print(p.europarl_translation_task())

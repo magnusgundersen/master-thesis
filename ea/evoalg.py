@@ -112,12 +112,15 @@ class EA:
         saved_state["adult_selector"] = adult_selector
         saved_state["generation_number"] = generation_number
         saved_state["ea_output"] = ea_output
-        if os.path.isfile(persistance_file):
-            if os.path.isfile(backup_file):
-                os.remove(backup_file)
-            os.rename(persistance_file, file_location+"state_old.ea")
+        try:
+            if os.path.isfile(persistance_file):
+                if os.path.isfile(backup_file):
+                    os.remove(backup_file)
+                os.rename(persistance_file, file_location+"state_old.ea")
 
-        pickle.dump(saved_state, open(persistance_file, 'wb'))
+            pickle.dump(saved_state, open(persistance_file, 'wb'))
+        except:
+            print("State dump failed. Continuing..")
 
     @staticmethod
     def load_ea_state(file_name="state.ea"):

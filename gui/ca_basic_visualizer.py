@@ -7,7 +7,7 @@ def visualize(list_of_states, save_states=False, name="ca", show=True, axis_labe
     width = len(list_of_states[0])
     gens = len(list_of_states)
 
-    fig, ax = plt.subplots(figsize=(10, 10))
+    fig, ax = plt.subplots()
     ax.pcolormesh(list_of_states, cmap="Greys")
     ax.set_xlim(0, width)
     ax.set_ylim(0, gens)
@@ -19,7 +19,7 @@ def visualize(list_of_states, save_states=False, name="ca", show=True, axis_labe
 
     ax.set_aspect("equal")
     if save_states:
-        plt.savefig("experiment_data/rule_visuals/"+name, bbox_inches='tight')
+        plt.savefig("experiment_data/rule_visuals/"+name, bbox_inches='tight', dpi=600)
     if show:
         plt.show()
 
