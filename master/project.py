@@ -120,7 +120,7 @@ class Project:
     # Single run problems #
     #######################
     def five_bit_task(self):
-        data_interpreter = open_data_interpreter("5bit", distractor_period=10, training_ex=1, testing_ex=1)
+        data_interpreter = open_data_interpreter("5bit", distractor_period=10, training_ex=32, testing_ex=32)
         reCA_problem = reCA.ReCAProblem(data_interpreter)
         reCA_config = reCA.ReCAConfig()
 
@@ -134,15 +134,15 @@ class Project:
             rule_list.extend([rule for _ in range(size//no_rules)])
         #rule_list = [89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122]
 
-        ind_location = file_location+ "/../experiment_data/rules/NuniRule7317_f=1000.ind"
-        ind_location = file_location+"/../experiment_data/rules/5_bit_evolved_rules/" + "run7.ind"
+        ind_location = file_location+ "/../experiment_data/rules/NuniRule3392_f=1000.ind"
+        #ind_location = file_location+"/../experiment_data/rules/5_bit_evolved_rules/" + "run7.ind"
         with open(ind_location, "rb") as f:
             evolved_ind = pickle.load(f)
 
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
         reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
         #reCA_rule = reCA.ReCAruleConfig(uniform_rule=113)
-        reCA_config.set_random_mapping_config(reCA_rule, R=4, C=4, I=2, mapping_permutations=False,
+        reCA_config.set_random_mapping_config(reCA_rule, R=4, C=8, I=2, mapping_permutations=False,
                                               classifier="perceptron_sgd", time_transition="random_permutation")
         #reCA_config.set_uniform_margem_config(rule=[141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18], R_i=2, R=76, I=8, classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
@@ -878,12 +878,12 @@ class Project:
             "total_tests_per_rule": total_test_per_rule,
             "uni_rules": uniform_rules,
             "nuni_rules": non_uniform_rules,
-            "data_interpreter": open_data_interpreter("5bit_density", distractor_period=10, training_ex=100, testing_ex=40)
+            "data_interpreter": open_data_interpreter("5bit_density", distractor_period=10, training_ex=120, testing_ex=100)
         }
 
         reca_config = {
             "N": 7, # 5bit-signals + density signals
-            "R": 8,
+            "R": 6,
             "I": 2,
             "C": 16,
             "permute_mappings": None,  # True, False or None. None means True for Uni and False for Nuni

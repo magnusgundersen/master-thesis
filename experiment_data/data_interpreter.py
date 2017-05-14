@@ -404,8 +404,8 @@ class FiveBitBuilder:
                     training_inputs.append([int(number) for number in _input])
                     training_ouputs.append(_output[0:-1])  # class is text
         #random.shuffle(dataset)
-        #dataset = dataset[:self.no_training_ex]
-        dataset = dataset[self.spec_example:self.spec_example+1]
+        dataset = dataset[:self.no_training_ex]
+        #dataset = dataset[self.spec_example:self.spec_example+1]
         return dataset
 
 
@@ -425,8 +425,8 @@ class FiveBitBuilder:
                     training_inputs.append([int(number) for number in _input])
                     training_ouputs.append(_output[0:-1])  # class is text
 
-        #dataset = dataset[(32-self.no_testing_ex):]
-        dataset = dataset[self.spec_example:self.spec_example+1]
+        dataset = dataset[(32-self.no_testing_ex):]
+        #dataset = dataset[self.spec_example:self.spec_example+1]
         return dataset
 
 
