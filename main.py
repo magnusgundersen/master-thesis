@@ -42,7 +42,13 @@ def main(argv):
     #p.evolve_ca_five_bit()
     #for i in range(10):
     #    p.evolve_ca_twenty_bit()
-    #p.evolve_ca_five_bit_and_density()
+    #
+    for i in range(10):
+        try:
+            p.evolve_ca_five_bit_and_density()
+        except:
+            print("Evolve 5bit dens. failed. Continuing..")
+            continue
     #p.evolve_ca_jap_vowels()
 
 
@@ -56,7 +62,7 @@ def main(argv):
 
     #### mass testing ####
     #p.mass_test_five_bit_task()
-    p.mass_test_5bit_density_task()
+    #p.mass_test_5bit_density_task()
     #p.mass_test_twenty_bit_task()
 
     #### Misc ####

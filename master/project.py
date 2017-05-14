@@ -712,8 +712,8 @@ class Project:
 
         # EA params
         pop_size = 7 * 2   # Adapt to number of cores
-        max_no_generations = 10000
-        tests_per_individual = 2
+        max_no_generations = 150
+        tests_per_individual = 4
         fitness_threshold_value = 1000
         retest_threshold = 999
         retests_per_individual = 10
@@ -768,7 +768,6 @@ class Project:
         pickle.dump(ea_output, open(file_location + "/../experiment_data/ea_runs/" + run_name + ".ea_output", "wb"))
         best_individual = ea_output.best_individual
         best_individ_scheme = best_individual.phenotype.non_uniform_config
-        print(best_individual.serialize())
         non_uni_rule_serialize = {}
         non_uni_rule_serialize["full_size_rule_list"] = best_individ_scheme
         non_uni_rule_serialize["raw rule"] = best_individual.genotype.rule_scheme
