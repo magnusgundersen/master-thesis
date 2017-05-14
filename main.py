@@ -56,8 +56,8 @@ def main(argv):
 
     #### mass testing ####
     #p.mass_test_five_bit_task()
-    #p.mass_test_5bit_density_task()
-    p.mass_test_twenty_bit_task()
+    p.mass_test_5bit_density_task()
+    #p.mass_test_twenty_bit_task()
 
     #### Misc ####
     #p.run_ca_simulation()
