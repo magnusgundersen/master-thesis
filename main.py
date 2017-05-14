@@ -40,8 +40,8 @@ def main(argv):
 
     #### Evolve ####
     #p.evolve_ca_five_bit()
-    #p.evolve_ca_twenty_bit()
-
+    #for i in range(10):
+    #    p.evolve_ca_twenty_bit()
     #p.evolve_ca_five_bit_and_density()
     #p.evolve_ca_jap_vowels()
 
@@ -56,7 +56,8 @@ def main(argv):
 
     #### mass testing ####
     #p.mass_test_five_bit_task()
-    p.mass_test_5bit_density_task()
+    #p.mass_test_5bit_density_task()
+    p.mass_test_twenty_bit_task()
 
     #### Misc ####
     #p.run_ca_simulation()
