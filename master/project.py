@@ -701,8 +701,8 @@ class Project:
 
     def evolve_ca_five_bit_and_density(self):
         # ReCA params
-        C = 12
-        R = 12
+        C = 16
+        R = 6
         I = 2
         N = 4+3  # Five bit signals + majority signals
         time_transition = "random_permutation"
@@ -728,6 +728,12 @@ class Project:
             "permute_mappings": permute_mappings,
             "time_transition": time_transition,
             "classifier": classifier,
+
+            "distractor_period":10,
+            "training_ex": 120,
+            "testing_ex":100,
+
+
 
         }
 
@@ -870,8 +876,8 @@ class Project:
         uniform_rules = [x for x in range(256)]
         non_uniform_rules = []  # Must be name of .ind objects in the "/rules" folder
 
-        threads = 7
-        total_test_per_rule = threads*1
+        threads = 15
+        total_test_per_rule = threads*8
 
         testing_config = {
             "threads": threads,
@@ -950,6 +956,7 @@ class Project:
                           "w") as outfile:
                     json.dump(results, outfile)
             except:
+                print("Could not save rule-config: " + str(rule))
                 continue
 
 
