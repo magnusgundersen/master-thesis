@@ -531,6 +531,9 @@ class NonUni20BitProblem(NonUniCAProblem):
 class NonUni5BitandDensityProblem(NonUniCAProblem):
     def __init__(self, ca_config=None, ea_config=None):
         super().__init__(ca_config, ea_config)
+        ts = time.time()
+        hours = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d_%H_%M_%S')
+        self.name = "5bit_and_density_problem_" + hours
 
     def test_fitness(self, individual):
         return fitness_5bit_and_density_worker(individual, self.reca_config, self.ea_config)
