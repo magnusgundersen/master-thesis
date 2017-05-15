@@ -477,7 +477,7 @@ class TwentyBitBuilder:
 
 
 class JapaneseVowelsBuilder:
-    def __init__(self, training_ex=270, testing_ex=370, resolution=8, binarization_scheme="quantize"):
+    def __init__(self, training_ex=270, testing_ex=370, resolution=4, binarization_scheme="quantize"):
         self.no_training_ex = training_ex
         self.no_testing_ex = testing_ex
 
@@ -786,7 +786,7 @@ class JapaneseVowelsBuilder:
                 for _output in _outputs:
                     string_result = ""
                     for char in _output:
-                        string_result+= str(char)
+                        string_result += str(char)
                     string_outputs.append(string_result)
                 training_dataset.append((_inputs, np.array(string_outputs)))
 

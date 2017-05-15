@@ -179,13 +179,16 @@ class Project:
         before = time.time()
         data_interpreter = open_data_interpreter("20bit", distractor_period=10, training_ex=120, testing_ex=100)
         reCA_problem = reCA.ReCAProblem(data_interpreter)
-        #with open(file_location + "/../experiment_data/rules/NuniRule3609_f=998.ind", "rb") as f:
-        #    evolved_ind = pickle.load(f)
-        #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
-        reCA_rule = reCA.ReCAruleConfig(uniform_rule=85)
+
+        #ind_location = file_location + "/../experiment_data/rules/NuniRule3392_f=1000.ind"
+        ind_location = file_location+"/../experiment_data/rules/20_bit_evolved_rules/" + "4.ind"
+        with open(ind_location, "rb") as f:
+            evolved_ind = pickle.load(f)
+        reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+        #reCA_rule = reCA.ReCAruleConfig(uniform_rule=85)
         reCA_config = reCA.ReCAConfig()
         #reCA_config.set_non_uniform_config(reCA_rule_scheme)
-        reCA_config.set_random_mapping_config(reCA_rule, N=reCA_problem.input_size, R=1, C=60, I=2, classifier="perceptron_sgd", time_transition="random_permutation", mapping_permutations=False)
+        reCA_config.set_random_mapping_config(reCA_rule, N=reCA_problem.input_size, R=6, C=16, I=2, classifier="perceptron_sgd", time_transition="random_permutation", mapping_permutations=False)
         #reCA_config.set_uniform_margem_config(reCA_rule, N=reCA_problem.input_size, R=8, R_i=2, I=1, classifier="perceptron_sgd", time_transition="xor")
         reCA_system = reCA.ReCASystem()
 
@@ -215,7 +218,7 @@ class Project:
         visual.visualize_example_run(outputs)
 
     def japanese_vowels(self):
-        data_interpreter = open_data_interpreter("japanese_vowels", binarization_resolution=5)
+        data_interpreter = open_data_interpreter("japanese_vowels", binarization_resolution=4)
 
         # reca_prob
         reCA_problem = reCA.ReCAProblem(data_interpreter)
@@ -655,10 +658,10 @@ class Project:
 
     def evolve_ca_jap_vowels(self):
         # ReCA params
-        C = 2
+        C = 20
         R = 1
-        I = 1
-        B = 2
+        I = 2
+        B = 4
         N = (13*B)
         time_transition = "random_permutation"
         classifier = "perceptron_sgd"
@@ -666,9 +669,9 @@ class Project:
         number_of_rules = 13  # Maximum number of distinct rules
 
         # EA params
-        pop_size = 3 * 2  # Adapt to number of cores
-        max_no_generations = 1000
-        tests_per_individual = 1
+        pop_size = 21  # Adapt to number of cores
+        max_no_generations = 150
+        tests_per_individual = 2
         fitness_threshold_value = 1000
         retest_threshold = 999
         retests_per_individual = 1
@@ -841,11 +844,11 @@ class Project:
         :return:
         """
         uniform_rules = [105, 150, 90]
-        uniform_rules = [x for x in range(256)]
-        non_uniform_rules = []  # Must be name of .ind objects in the "/rules" folder
+        uniform_rules = []
+        non_uniform_rules = [str(i) for i in range(1,11)]  # Must be name of .ind objects in the "/rules" folder
 
-        threads = 8
-        total_test_per_rule = threads*5
+        threads = 6
+        total_test_per_rule = 120
 
         testing_config = {
             "threads": threads,
@@ -857,10 +860,10 @@ class Project:
 
         reca_config = {
             "N": 7,
-            "R": 4,
+            "R": 6,
             "I": 2,
-            "C": 4,
-            "permute_mappings": True,  # True, False or None. None means True for Uni and False for Nuni
+            "C": 16,
+            "permute_mappings": None,  # True, False or None. None means True for Uni and False for Nuni
             "time_transition": "random_permutation",
             "classifier": "perceptron_sgd",
         }
@@ -906,7 +909,7 @@ class Project:
         uniform_rules = [x for x in range(256)]
         non_uniform_rules = []  # Must be name of .ind objects in the "/rules" folder
 
-        threads = 7
+        threads = 6
         total_test_per_rule = threads*1
 
         testing_config = {
@@ -914,14 +917,14 @@ class Project:
             "total_tests_per_rule": total_test_per_rule,
             "uni_rules": uniform_rules,
             "nuni_rules": non_uniform_rules,
-            "data_interpreter": open_data_interpreter("japanese_vowels", training_ex=270, testing_ex=370)
+            "data_interpreter": open_data_interpreter("japanese_vowels", binarization_resolution=4, training_ex=270, testing_ex=370)
         }
 
         reca_config = {
-            "N": 14*4, # 14 input signals + binarization scheme
-            "R": 8,
+            "N": (13*4), # 14 input signals + binarization scheme
+            "R": 2,
             "I": 2,
-            "C": 4,
+            "C": 20,
             "permute_mappings": None,  # True, False or None. None means True for Uni and False for Nuni
             "time_transition": "random_permutation",
             "classifier": "perceptron_sgd",
@@ -963,7 +966,7 @@ class Project:
 
             # Open the non uniform rule
             try:
-                with open(file_location + "/../experiment_data/rules/5_bit_evolved_rules/"+str(rule)+".ind", "rb") as f:
+                with open(file_location + "/../experiment_data/rules/20_bit_evolved_rules/"+str(rule)+".ind", "rb") as f:
                     evolved_ind = pickle.load(f)
             except:
                 print("Could not open non uni rule: " + str(rule))

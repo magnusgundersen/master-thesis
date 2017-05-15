@@ -45,11 +45,10 @@ def main(argv):
     #
     for i in range(10):
         try:
-            p.evolve_ca_five_bit_and_density()
+            p.evolve_ca_jap_vowels()
         except:
-            print("Evolve 5bit dens. failed. Continuing..")
+            print("Evolve jap vowls failed. Continuing..")
             continue
-    #p.evolve_ca_jap_vowels()
 
 
     #p.five_bit_density_task()
@@ -64,6 +63,7 @@ def main(argv):
     #p.mass_test_five_bit_task()
     #p.mass_test_5bit_density_task()
     #p.mass_test_twenty_bit_task()
+    #p.mass_test_japanese_vowels_task()
 
     #### Misc ####
     #p.run_ca_simulation()
