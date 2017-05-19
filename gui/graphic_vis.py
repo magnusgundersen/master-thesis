@@ -80,7 +80,7 @@ def visualize_example_run(run_config):
 
         whole_output.extend(new_output)
         whole_output.extend([[0 for _ in range(width)]])
-    bvis.visualize(whole_output, save_states=True, name="20_bit_run_4")
+    bvis.visualize(whole_output, save_states=True, name="dual_prob_run_5")
 
 def visualize_ca_run(ca_states):
     bvis.visualize(ca_states)

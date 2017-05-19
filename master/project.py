@@ -29,6 +29,7 @@ import gui.graphic_vis as visual
 # Global variables
 file_location = os.path.dirname(os.path.realpath(__file__))
 
+
 # Workers:
 def open_data_interpreter(type_of_interpreter, **kwargs):
     if type_of_interpreter == "europarl":
@@ -63,6 +64,7 @@ def open_data_interpreter(type_of_interpreter, **kwargs):
 
     elif type_of_interpreter == "sqrt_seq":
         return data_int.SequenceSquareRootBuilder()
+
 
 def run_five_bit(data_interpreter, rci_value, classifier, reca_rule, do_mappings):
     #data_interpreter = open_data_interpreter(type_of_interpreter="5bit", distractor_period=200)
@@ -218,7 +220,7 @@ class Project:
         visual.visualize_example_run(outputs)
 
     def japanese_vowels(self):
-        data_interpreter = open_data_interpreter("japanese_vowels", binarization_resolution=4)
+        data_interpreter = open_data_interpreter("japanese_vowels", binarization_resolution=8)
 
         # reca_prob
         reCA_problem = reCA.ReCAProblem(data_interpreter)
@@ -232,7 +234,7 @@ class Project:
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
         reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
         #reCA_config.set_uniform_margem_config(rule_scheme=reCA_rule, N=reCA_problem.input_size, R=(reCA_problem.input_size*2)+29*4, R_i=2, I=4)
-        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=1, C=2, I=1, classifier="perceptron_sgd",
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=1, C=10, I=2, classifier="perceptron_sgd",
                                               mapping_permutations=False, time_transition="random_permutation")
         #reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=64, C=1, I=4, time_transition="xor", classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
@@ -391,19 +393,21 @@ class Project:
         visual.visualize_example_run(outputs)
 
     def five_bit_density_task(self):
-        data_interpreter = open_data_interpreter("5bit_density", distractor_period=10, training_ex=100, testing_ex=100)
+        data_interpreter = open_data_interpreter("5bit_density", distractor_period=10, training_ex=120, testing_ex=100)
         reCA_problem = reCA.ReCAProblem(data_interpreter)
         reCA_config = reCA.ReCAConfig()
 
-        #with open(file_location + "/../experiment_data/rules/NuniRule2007_f=1000.ind", "rb") as f:
-        #    evolved_ind = pickle.load(f)
+        # ind_location = file_location + "/../experiment_data/rules/NuniRule3392_f=1000.ind"
+        ind_location = file_location + "/../experiment_data/rules/dual_prob_evolved_runs/" + "5.ind"
+        with open(ind_location, "rb") as f:
+            evolved_ind = pickle.load(f)
 
-        #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+        reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
 
-        reCA_rule = reCA.ReCAruleConfig(uniform_rule=113)
+        #reCA_rule = reCA.ReCAruleConfig(uniform_rule=113)
 
-        reCA_config.set_random_mapping_config(reCA_rule, N=reCA_problem.input_size, R=8, C=8, I=2, classifier="perceptron_sgd",
-                                              time_transition="random_permutation", mapping_permutations=True
+        reCA_config.set_random_mapping_config(reCA_rule, N=reCA_problem.input_size, R=6, C=16, I=2, classifier="perceptron_sgd",
+                                              time_transition="random_permutation", mapping_permutations=False
                                                               )
         # reCA_config.set_non_uniform_config(reCA_rule, R=8, C=5, I=8, classifier="perceptron_sgd")
         # reCA_config.set_uniform_margem_config(rule=[141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18], R_i=2, R=76, I=8, classifier="perceptron_sgd")
@@ -658,20 +662,20 @@ class Project:
 
     def evolve_ca_jap_vowels(self):
         # ReCA params
-        C = 20
-        R = 1
-        I = 2
+        C = 12
+        R = 8
+        I = 1
         B = 4
         N = (13*B)
         time_transition = "random_permutation"
         classifier = "perceptron_sgd"
         permute_mappings = False  # If the mapping should be permuted
-        number_of_rules = 13  # Maximum number of distinct rules
+        number_of_rules = 8  # Maximum number of distinct rules
 
         # EA params
-        pop_size = 21  # Adapt to number of cores
+        pop_size = 14  # Adapt to number of cores
         max_no_generations = 150
-        tests_per_individual = 2
+        tests_per_individual = 1
         fitness_threshold_value = 1000
         retest_threshold = 999
         retests_per_individual = 1
@@ -814,9 +818,9 @@ class Project:
         #uniform_rules = [105, 150, 90]
         uniform_rules = [x for x in range(256)]
         #uniform_rules= []
-        non_uniform_rules = ["run"+str(i) for i in range(1, 11)]  # Must be name of .ind objects in the "/rules" folder
-
-        threads = 8
+        #non_uniform_rules = ["run"+str(i) for i in range(1, 11)]  # Must be name of .ind objects in the "/rules" folder
+        non_uniform_rules = []
+        threads = 6
         total_test_per_rule = threads*15
 
         testing_config = {
@@ -876,10 +880,11 @@ class Project:
         """
         uniform_rules = [105, 150, 90]
         uniform_rules = [x for x in range(256)]
-        non_uniform_rules = []  # Must be name of .ind objects in the "/rules" folder
+        uniform_rules = []
+        non_uniform_rules = [str(i) for i in range(1, 11)]  # Must be name of .ind objects in the "/rules" folder
 
-        threads = 15
-        total_test_per_rule = threads*8
+        threads = 8
+        total_test_per_rule = threads*15
 
         testing_config = {
             "threads": threads,
@@ -909,8 +914,8 @@ class Project:
         uniform_rules = [x for x in range(256)]
         non_uniform_rules = []  # Must be name of .ind objects in the "/rules" folder
 
-        threads = 6
-        total_test_per_rule = threads*1
+        threads = 8
+        total_test_per_rule = threads*15
 
         testing_config = {
             "threads": threads,
@@ -922,7 +927,7 @@ class Project:
 
         reca_config = {
             "N": (13*4), # 14 input signals + binarization scheme
-            "R": 2,
+            "R": 1,
             "I": 2,
             "C": 20,
             "permute_mappings": None,  # True, False or None. None means True for Uni and False for Nuni
@@ -1008,24 +1013,35 @@ class Project:
     def run_ca_simulation(self):
         rule = reCA.ReCAruleConfig(uniform_rule=110)
         rules = [reCA.ReCAruleConfig(uniform_rule=i) for i in range(256)]
-        width = 32
-        iterations = 32
+        width = 31
+        non_uniform = [11 for _ in range(width//4)] + [110 for _ in range(width//4)] +\
+                      [90 for _ in range(width//4)] + [85 for _ in range(width//4)]
+        #non_uniform = [random.randint(0, 255) for _ in range(width)]
+        iterations = 90
+        #rule = reCA.ReCAruleConfig(non_uniform_list=non_uniform)
+
         one_black = [0 for _ in range(width)]
         one_black[len(one_black)//2] = 1
+        #one_black[20] = 1
         random_initial = [random.choice([0,1]) for _ in range(width)]
 
+        ca_simulator = ca.ElemCAReservoir(width)
+        ca_simulator.set_rule_config(rule)  #
 
+        random_initial_sim = ca_simulator.run_simulation(one_black, iterations)
+        bviz.visualize(random_initial_sim, name="quasi_non_uniform_four_rules_11_110_90_85", save_states=False,
+                       axis_label_off=True, show=True)
         #print(simulated_ca)
-        for i in range(163, 256):
-            rule = reCA.ReCAruleConfig(uniform_rule=i)
-            ca_simulator = ca.ElemCAReservoir(width)
-            ca_simulator.set_rule_config(rule)
-
-            one_black_sim = ca_simulator.run_simulation(one_black, iterations)
-            bviz.visualize(one_black_sim,name="rule_"+str(i)+"_one_black", save_states=True, show=False, axis_label_off=True)
-
-            random_initial_sim = ca_simulator.run_simulation(random_initial, iterations)
-            bviz.visualize(random_initial_sim, name="rule_"+str(i)+"_random_initial", save_states=True,axis_label_off=True,  show=False)
+        #for i in range(163, 256):
+        #    rule = reCA.ReCAruleConfig(uniform_rule=i)
+        #    ca_simulator = ca.ElemCAReservoir(width)
+        #    ca_simulator.set_rule_config(rule)#
+        #
+        #    one_black_sim = ca_simulator.run_simulation(one_black, iterations)
+        #    bviz.visualize(one_black_sim,name="rule_"+str(i)+"_one_black", save_states=True, show=False, axis_label_off=True)
+        #
+        #    random_initial_sim = ca_simulator.run_simulation(random_initial, iterations)
+        #    bviz.visualize(random_initial_sim, name="rule_"+str(i)+"_random_initial", save_states=True,axis_label_off=True,  show=False)
 
 
 

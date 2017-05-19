@@ -46,6 +46,7 @@ def main(argv):
     for i in range(10):
         try:
             p.evolve_ca_jap_vowels()
+
         except:
             print("Evolve jap vowls failed. Continuing..")
             continue
@@ -66,7 +67,7 @@ def main(argv):
     #p.mass_test_japanese_vowels_task()
 
     #### Misc ####
-    #p.run_ca_simulation()
+    p.run_ca_simulation()
 
 if __name__ == "__main__":
     main(sys.argv[1:])

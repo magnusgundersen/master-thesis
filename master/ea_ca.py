@@ -542,10 +542,9 @@ class NonUni5BitandDensityProblem(NonUniCAProblem):
 class NonUniCAJapVowsProblem(NonUniCAProblem):
     def __init__(self, ca_config=None, ea_config=None):
         super().__init__(ca_config, ea_config)
-        self.name = "Non uniform JapVowls CA"+"(" +\
-                    str(self.N) + "*" + str(self.C) + "*" + str(self.R) + "): "+\
-                    "PopSize: " + str(self.init_pop_size)
-
+        ts = time.time()
+        hours = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d_%H_%M_%S')
+        self.name = "Non_uniform_JapVowls_CA_"+hours
 
     #staticmethod
     def test_fitness(self, individual):
