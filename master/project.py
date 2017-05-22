@@ -456,7 +456,7 @@ class Project:
 
         #
         #reCA_config.set_uniform_margem_config(rule_scheme=reCA_rule, N=54, R=10, R_i=1, I=2)
-        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=12, C=6, I=4,
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=12, C=12, I=2,
                                               classifier="perceptron_sgd")
         # reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=64, C=1, I=4, time_transition="xor", classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
@@ -756,6 +756,56 @@ class Project:
         ea_problem = ea_ca.NonUni5BitandDensityProblem(reca_config, ea_config)
         self.evolve_non_uniform_ca(reca_config, ea_problem, continue_from_checkpoint)
 
+
+    def evolve_synthetic_seq_to_seq(self):
+        # ReCA params
+        C = 14
+        R = 8
+        I = 2
+        N = 7
+        time_transition = "random_permutation"
+        classifier = "perceptron_sgd"
+        permute_mappings = False  # If the mappings should be permuted
+        number_of_rules = 8  # Maximum number of distinct rules
+
+        # EA params
+        pop_size = 7 * 2   # Adapt to number of cores
+        max_no_generations = 150
+        tests_per_individual = 4
+        fitness_threshold_value = 1000
+        retest_threshold = 999
+        retests_per_individual = 10
+
+        continue_from_checkpoint = False
+
+        reca_config = {
+            "N": N,
+            "R": R,
+            "I": I,
+            "C": C,
+            "permute_mappings": permute_mappings,
+            "time_transition": time_transition,
+            "classifier": classifier,
+
+            "training_ex": 120,
+            "testing_ex":100,
+
+
+
+        }
+
+        ea_config = {
+            "number_of_rules": number_of_rules,
+            "pop_size": pop_size,
+            "max_gens": max_no_generations,
+            "fitness_threshold": fitness_threshold_value,
+            "tests_per_individual": tests_per_individual,
+            "retest_threshold": retest_threshold,
+            "retests_per_individual": retests_per_individual,
+        }
+        ea_problem = ea_ca.NonUniSeqToSeqProblem(reca_config, ea_config)
+        self.evolve_non_uniform_ca(reca_config, ea_problem, continue_from_checkpoint)
+
     def evolve_non_uniform_ca(self, ca_config, ea_prob, continue_from_ckp=False):
 
         #nonUniCAprob = ea_ca.NonUniCAProblem(ca_config, fitness_threshold=fitness_threshold_value, init_pop_size=pop_size,
@@ -914,8 +964,8 @@ class Project:
         uniform_rules = [x for x in range(256)]
         non_uniform_rules = []  # Must be name of .ind objects in the "/rules" folder
 
-        threads = 8
-        total_test_per_rule = threads*15
+        threads = 7
+        total_test_per_rule = 120 #  threads*15
 
         testing_config = {
             "threads": threads,
@@ -927,9 +977,9 @@ class Project:
 
         reca_config = {
             "N": (13*4), # 14 input signals + binarization scheme
-            "R": 1,
-            "I": 2,
-            "C": 20,
+            "R": 8,
+            "I": 1,
+            "C": 12,
             "permute_mappings": None,  # True, False or None. None means True for Uni and False for Nuni
             "time_transition": "random_permutation",
             "classifier": "perceptron_sgd",

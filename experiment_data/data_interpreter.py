@@ -945,9 +945,9 @@ class FiveBitAndDensityBuilder:
         return five_bit_and_density_data
 
 class SyntheticSequenceToSequenceBuilder:
-    def __init__(self, no_training_ex=1000, no_testing_ex=10):
-        self.input_signals = 3
-        self.input_length = 3
+    def __init__(self, no_training_ex=120, no_testing_ex=100):
+        self.input_signals = 5
+        self.input_length = 5
         self.no_training_ex = no_training_ex
         self.no_testing_ex = no_testing_ex
 

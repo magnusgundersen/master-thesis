@@ -157,9 +157,10 @@ class ReCASystem:
                 for predicted_output in predicted_outputs:
                     predictions.append(predicted_output)
                 reCA_output.all_predictions.append(predictions)
+                number_of_correct += 1
 
 
-        reCA_output.total_correct = 12
+        reCA_output.total_correct = number_of_correct
         return reCA_output
     def test_on_problem(self, test_set_size=0):
         """

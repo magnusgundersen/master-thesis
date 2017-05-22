@@ -298,7 +298,7 @@ def fitness_synthetic_seq_to_seq_worker(individual, reca_config, ea_config):
 
     fitness = []
     for _ in range(ea_config.get("tests_per_individual")):
-        reCA_out = five_bit_runner(individual, reca_config)
+        reCA_out = synthetic_seq_to_seq_runner(individual, reca_config)
         fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
 
 
