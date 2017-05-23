@@ -267,7 +267,7 @@ def jap_vows_fitness_test_worker(individual, reca_config, ea_config):
 
     return individual
 
-#### Five bit and density ####
+#### Synthetic seq to seq ####
 def synthetic_seq_to_seq_runner(individual, reca_config):
     reCA_problem = reCA.ReCAProblem(
         p.open_data_interpreter("seq_to_seq_synth"))
@@ -309,13 +309,71 @@ def fitness_synthetic_seq_to_seq_worker(individual, reca_config, ea_config):
     if fitness>ea_config.get("retest_threshold"):
         fitness = []
         for _ in range(ea_config.get("retests_per_individual")):
-            reCA_out = five_bit_runner(individual, reca_config)
+            reCA_out = synthetic_seq_to_seq_runner(individual, reca_config)
             fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
 
         fitness_std = int(np.std(fitness))
         fitness = int(np.mean(fitness))
         print("result after making sure: ", fitness)
         fitness = 970 if fitness < 968 else fitness
+
+    # fitness = fitness if (fitness<850) else fitness-fitness_std*(1000/fitness)
+    fitness = 1 if fitness == 0 else fitness  # avoid div by zero
+    individual.fitness = fitness
+    individual.fitness_std = fitness_std
+
+    return individual
+
+
+#### fitness_sqrt_seq ####
+
+def sqrt_seq_runner(individual, reca_config):
+    reCA_problem = reCA.ReCAProblem(
+        p.open_data_interpreter("sqrt_seq"))
+    reCA_config = reCA.ReCAConfig()
+    reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
+    reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme,
+                                          N=reCA_problem.input_size, R=reca_config.get("R"), C=reca_config.get("C"), I=reca_config.get("I"),
+                                          classifier=reca_config.get("classifier"),
+                                          time_transition=reca_config.get("time_transition"),
+                                          mapping_permutations=reca_config.get("do_mappings"))
+    reCA_system = reCA.ReCASystem()
+
+    reCA_system.set_problem(reCA_problem)
+    reCA_system.set_config(reCA_config)
+    reCA_system.initialize_rc()
+    reCA_system.tackle_ReCA_problem()
+
+    reCA_out = reCA_system.test_on_problem()
+    return reCA_out
+
+def fitness_sqrt_seq_worker(individual, reca_config, ea_config):
+    """
+        Method for running the develop_and_test with multiprocessing
+        :param individual:
+        :param problem:
+        :return:
+        """
+
+    fitness = []
+    for _ in range(ea_config.get("tests_per_individual")):
+        reCA_out = sqrt_seq_runner(individual, reca_config)
+        fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
+
+
+    fitness_std = int(np.std(fitness))
+    fitness = int(np.mean(fitness))
+
+    # Making sure tests
+    if fitness>ea_config.get("retest_threshold"):
+        fitness = []
+        for _ in range(ea_config.get("retests_per_individual")):
+            reCA_out = sqrt_seq_runner(individual, reca_config)
+            fitness.append(int((reCA_out.total_correct / len(reCA_out.all_test_examples)) * 1000))
+
+        fitness_std = int(np.std(fitness))
+        fitness = int(np.mean(fitness))
+        print("result after making sure: ", fitness)
 
     # fitness = fitness if (fitness<850) else fitness-fitness_std*(1000/fitness)
     fitness = 1 if fitness == 0 else fitness  # avoid div by zero
@@ -582,6 +640,16 @@ class NonUniSeqToSeqProblem(NonUniCAProblem):
     def test_fitness(self, individual):
         return fitness_synthetic_seq_to_seq_worker(individual, self.reca_config, self.ea_config)
 
+
+class NonUniSqrtSeq(NonUniCAProblem):
+    def __init__(self, ca_config=None, ea_config=None):
+        super().__init__(ca_config, ea_config)
+        ts = time.time()
+        hours = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d_%H_%M_%S')
+        self.name = "Sqrt_seq_problem_" + hours
+
+    def test_fitness(self, individual):
+        return fitness_sqrt_seq_worker(individual, self.reca_config, self.ea_config)
 
 
 

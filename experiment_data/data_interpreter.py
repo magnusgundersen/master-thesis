@@ -1014,9 +1014,9 @@ class SyntheticSequenceToSequenceBuilder:
         return data_set
 
 class SequenceSquareRootBuilder:
-    def __init__(self, no_training_ex=1500, no_testing_ex=30):
-        self.input_signals = 13
-        self.input_length_interval = (3, 7)
+    def __init__(self, no_training_ex=120, no_testing_ex=100, input_signals=17, input_length_interval=(17, 23)):
+        self.input_signals = input_signals
+        self.input_length_interval = input_length_interval
         self.no_training_ex = no_training_ex
         self.no_testing_ex = no_testing_ex
 

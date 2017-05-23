@@ -63,7 +63,9 @@ def open_data_interpreter(type_of_interpreter, **kwargs):
         return data_int.SyntheticSequenceToSequenceBuilder()
 
     elif type_of_interpreter == "sqrt_seq":
-        return data_int.SequenceSquareRootBuilder()
+        training_ex = kwargs.get("training_ex") if kwargs.get('training_ex') is not None else 100
+        testing_ex = kwargs.get("testing_ex") if kwargs.get('testing_ex') is not None else 40
+        return data_int.SequenceSquareRootBuilder(no_training_ex=training_ex, no_testing_ex=testing_ex)
 
 
 def run_five_bit(data_interpreter, rci_value, classifier, reca_rule, do_mappings):
@@ -220,7 +222,7 @@ class Project:
         visual.visualize_example_run(outputs)
 
     def japanese_vowels(self):
-        data_interpreter = open_data_interpreter("japanese_vowels", binarization_resolution=8)
+        data_interpreter = open_data_interpreter("japanese_vowels", binarization_resolution=4)
 
         # reca_prob
         reCA_problem = reCA.ReCAProblem(data_interpreter)
@@ -228,13 +230,13 @@ class Project:
         #reCA_config.set_single_reservoir_config(ca_rule=90, R=2, C=3, I=16, classifier="linear-svm",
         #                                        encoding="random_mapping",
         #                                        time_transition="random_permutation")
-        #with open(file_location+ "/../experiment_data/rules/NuniRule6422_f=910.ind", "rb") as f:
-        #    evolved_ind = pickle.load(f)
+        with open(file_location+ "/../experiment_data/rules/jap_vowls_evolved_runs/2.ind", "rb") as f:
+            evolved_ind = pickle.load(f)
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
-        #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
-        reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
+        reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+        #reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
         #reCA_config.set_uniform_margem_config(rule_scheme=reCA_rule, N=reCA_problem.input_size, R=(reCA_problem.input_size*2)+29*4, R_i=2, I=4)
-        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=1, C=10, I=2, classifier="perceptron_sgd",
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=8, C=12, I=1, classifier="linear-svm",
                                               mapping_permutations=False, time_transition="random_permutation")
         #reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=64, C=1, I=4, time_transition="xor", classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
@@ -507,16 +509,15 @@ class Project:
         # reCA_config.set_single_reservoir_config(ca_rule=90, R=2, C=3, I=16, classifier="linear-svm",
         #                                        encoding="random_mapping",
         #                                        time_transition="random_permutation")
-        #with open(file_location + "/../experiment_data/rules/NuniRule6061_f=968.ind", "rb") as f:
-        #    evolved_ind = pickle.load(f)
-        #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
-        #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
-        reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
+        with open(file_location + "/../experiment_data/rules/NuniRule7838_f=837.ind", "rb") as f:
+            evolved_ind = pickle.load(f)
+        reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+        #reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
 
         #
         #reCA_config.set_uniform_margem_config(rule_scheme=reCA_rule, N=54, R=10, R_i=1, I=2)
-        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=20, C=1, I=2,
-                                              classifier="perceptron_sgd", time_transition="or")
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=6, C=10, I=2,
+                                              classifier="perceptron_sgd", time_transition="random_permutation", mapping_permutations=False)
         # reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=64, C=1, I=4, time_transition="xor", classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
 
@@ -776,7 +777,7 @@ class Project:
         retest_threshold = 999
         retests_per_individual = 10
 
-        continue_from_checkpoint = False
+        continue_from_checkpoint = True
 
         reca_config = {
             "N": N,
@@ -806,6 +807,53 @@ class Project:
         ea_problem = ea_ca.NonUniSeqToSeqProblem(reca_config, ea_config)
         self.evolve_non_uniform_ca(reca_config, ea_problem, continue_from_checkpoint)
 
+
+    def evolve_sqrt_seq(self):
+        # ReCA params
+        C = 4
+        R = 4
+        I = 2
+        N = 17+1
+        time_transition = "random_permutation"
+        classifier = "perceptron_sgd"
+        permute_mappings = False  # If the mappings should be permuted
+        number_of_rules = 4  # Maximum number of distinct rules
+
+        # EA params
+        pop_size = 7 * 2  # Adapt to number of cores
+        max_no_generations = 150
+        tests_per_individual = 2
+        fitness_threshold_value = 1000
+        retest_threshold = 999
+        retests_per_individual = 10
+
+        continue_from_checkpoint = False
+
+        reca_config = {
+            "N": N,
+            "R": R,
+            "I": I,
+            "C": C,
+            "permute_mappings": permute_mappings,
+            "time_transition": time_transition,
+            "classifier": classifier,
+
+            "training_ex": 1000,
+            "testing_ex": 100,
+
+        }
+
+        ea_config = {
+            "number_of_rules": number_of_rules,
+            "pop_size": pop_size,
+            "max_gens": max_no_generations,
+            "fitness_threshold": fitness_threshold_value,
+            "tests_per_individual": tests_per_individual,
+            "retest_threshold": retest_threshold,
+            "retests_per_individual": retests_per_individual,
+        }
+        ea_problem = ea_ca.NonUniSqrtSeq(reca_config, ea_config)
+        self.evolve_non_uniform_ca(reca_config, ea_problem, continue_from_checkpoint)
     def evolve_non_uniform_ca(self, ca_config, ea_prob, continue_from_ckp=False):
 
         #nonUniCAprob = ea_ca.NonUniCAProblem(ca_config, fitness_threshold=fitness_threshold_value, init_pop_size=pop_size,
@@ -929,7 +977,7 @@ class Project:
         :return:
         """
         uniform_rules = [105, 150, 90]
-        uniform_rules = [x for x in range(256)]
+        uniform_rules = [(256-x) for x in range(256)]
         uniform_rules = []
         non_uniform_rules = [str(i) for i in range(1, 11)]  # Must be name of .ind objects in the "/rules" folder
 
@@ -961,11 +1009,11 @@ class Project:
         :return:
         """
         uniform_rules = [105, 150, 90]
-        uniform_rules = [x for x in range(256)]
-        non_uniform_rules = []  # Must be name of .ind objects in the "/rules" folder
+        #uniform_rules = [x for x in range(256)]
+        non_uniform_rules = [x for x in range(1, n11)]  # Must be name of .ind objects in the "/rules/jap_vowelsetc" folder
 
-        threads = 7
-        total_test_per_rule = 120 #  threads*15
+        threads = 3
+        total_test_per_rule = 3 #  threads*15
 
         testing_config = {
             "threads": threads,
@@ -1021,7 +1069,7 @@ class Project:
 
             # Open the non uniform rule
             try:
-                with open(file_location + "/../experiment_data/rules/20_bit_evolved_rules/"+str(rule)+".ind", "rb") as f:
+                with open(file_location + "/../experiment_data/rules/jap_vowls_evolved_runs/"+str(rule)+".ind", "rb") as f:
                     evolved_ind = pickle.load(f)
             except:
                 print("Could not open non uni rule: " + str(rule))

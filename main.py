@@ -41,12 +41,15 @@ def main(argv):
     #### Evolve ####
     #p.evolve_ca_five_bit()
     #p.evolve_synthetic_seq_to_seq()
+    #p.evolve_sqrt_seq()
+    #p.evolve_sqrt_seq()
     #for i in range(10):
     #    p.evolve_ca_twenty_bit()
     #
     #for i in range(10):
     #    try:
-    #        p.evolve_ca_jap_vowels()
+    #        #p.evolve_ca_jap_vowels()
+    #        p.evolve_sqrt_seq()
     #
     #    except:
     #        print("Evolve jap vowls failed. Continuing..")
