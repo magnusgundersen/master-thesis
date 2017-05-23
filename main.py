@@ -46,11 +46,11 @@ def main(argv):
     #for i in range(10):
     #    p.evolve_ca_twenty_bit()
     #
-    #for i in range(10):
+    #for i in range(14):
     #    try:
     #        #p.evolve_ca_jap_vowels()
     #        p.evolve_sqrt_seq()
-    #
+
     #    except:
     #        print("Evolve jap vowls failed. Continuing..")
     #        continue
@@ -68,7 +68,8 @@ def main(argv):
     #p.mass_test_five_bit_task()
     #p.mass_test_5bit_density_task()
     #p.mass_test_twenty_bit_task()
-    p.mass_test_japanese_vowels_task()
+    #p.mass_test_japanese_vowels_task()
+    p.mass_test_sqrt_seq_task()
 
     #### Misc ####
     #p.run_ca_simulation()

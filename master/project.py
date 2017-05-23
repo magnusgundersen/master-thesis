@@ -810,19 +810,19 @@ class Project:
 
     def evolve_sqrt_seq(self):
         # ReCA params
-        C = 4
-        R = 4
+        C = 8
+        R = 6
         I = 2
         N = 17+1
         time_transition = "random_permutation"
         classifier = "perceptron_sgd"
         permute_mappings = False  # If the mappings should be permuted
-        number_of_rules = 4  # Maximum number of distinct rules
+        number_of_rules = 6  # Maximum number of distinct rules
 
         # EA params
         pop_size = 7 * 2  # Adapt to number of cores
         max_no_generations = 150
-        tests_per_individual = 2
+        tests_per_individual = 4
         fitness_threshold_value = 1000
         retest_threshold = 999
         retests_per_individual = 10
@@ -838,7 +838,7 @@ class Project:
             "time_transition": time_transition,
             "classifier": classifier,
 
-            "training_ex": 1000,
+            "training_ex": 400,
             "testing_ex": 100,
 
         }
@@ -1010,7 +1010,7 @@ class Project:
         """
         uniform_rules = [105, 150, 90]
         #uniform_rules = [x for x in range(256)]
-        non_uniform_rules = [x for x in range(1, n11)]  # Must be name of .ind objects in the "/rules/jap_vowelsetc" folder
+        non_uniform_rules = [x for x in range(1, 11)]  # Must be name of .ind objects in the "/rules/jap_vowelsetc" folder
 
         threads = 3
         total_test_per_rule = 3 #  threads*15
@@ -1028,6 +1028,36 @@ class Project:
             "R": 8,
             "I": 1,
             "C": 12,
+            "permute_mappings": None,  # True, False or None. None means True for Uni and False for Nuni
+            "time_transition": "random_permutation",
+            "classifier": "perceptron_sgd",
+        }
+        self.test_rules(testing_config, reca_config)
+    def mass_test_sqrt_seq_task(self):
+        """
+        Runs a mass testing on the sqrt seq task.
+        :return:
+        """
+        uniform_rules = [105, 150, 90]
+        uniform_rules = [x for x in range(256)]
+        non_uniform_rules = []  # Must be name of .ind objects in the "/rules/jap_vowelsetc" folder
+
+        threads = 12
+        total_test_per_rule = 120 #  threads*15
+
+        testing_config = {
+            "threads": threads,
+            "total_tests_per_rule": total_test_per_rule,
+            "uni_rules": uniform_rules,
+            "nuni_rules": non_uniform_rules,
+            "data_interpreter": open_data_interpreter("sqrt_seq",training_ex=400, testing_ex=100)
+        }
+
+        reca_config = {
+            "N": (17+1), # 14 input signals + binarization scheme
+            "R": 6,
+            "I": 2,
+            "C": 8,
             "permute_mappings": None,  # True, False or None. None means True for Uni and False for Nuni
             "time_transition": "random_permutation",
             "classifier": "perceptron_sgd",
@@ -1140,6 +1170,7 @@ class Project:
         #
         #    random_initial_sim = ca_simulator.run_simulation(random_initial, iterations)
         #    bviz.visualize(random_initial_sim, name="rule_"+str(i)+"_random_initial", save_states=True,axis_label_off=True,  show=False)
+
 
 
 
