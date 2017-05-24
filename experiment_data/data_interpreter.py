@@ -1014,7 +1014,7 @@ class SyntheticSequenceToSequenceBuilder:
         return data_set
 
 class SequenceSquareRootBuilder:
-    def __init__(self, no_training_ex=120, no_testing_ex=100, input_signals=17, input_length_interval=(17, 23)):
+    def __init__(self, no_training_ex=120, no_testing_ex=100, input_signals=11, input_length_interval=(17, 23)):
         self.input_signals = input_signals
         self.input_length_interval = input_length_interval
         self.no_training_ex = no_training_ex
@@ -1065,6 +1065,47 @@ class SequenceSquareRootBuilder:
         for i in range(self.no_testing_ex):
             data_set.append(self.create_example())
         return data_set
+class ReCASim:
+    def get_training_data(self):
+        data = \
+            [
+            [
+                [
+
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1],
+            [0, 0, 1],
+            [0, 0, 1],],[
+            "001",
+            "001",
+            "010",
+            "100",
+                "001",
+            ]
+        ]
+        ]
+        return data
+    def get_testing_data(self):
+        data = \
+            [
+            [
+                [
+
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1],
+            [0, 0, 1],
+            [0, 0, 1]],[
+            "001",
+            "001",
+            "010",
+            "100",
+                "001",
+            ]
+        ]
+        ]
+        return data
 if __name__ == "__main__":
     #translator = TranslationBuilder()
     #translator.get_training_data()

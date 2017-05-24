@@ -67,6 +67,9 @@ def open_data_interpreter(type_of_interpreter, **kwargs):
         testing_ex = kwargs.get("testing_ex") if kwargs.get('testing_ex') is not None else 40
         return data_int.SequenceSquareRootBuilder(no_training_ex=training_ex, no_testing_ex=testing_ex)
 
+    elif type_of_interpreter == "reca_sim":
+        return data_int.ReCASim()
+
 
 def run_five_bit(data_interpreter, rci_value, classifier, reca_rule, do_mappings):
     #data_interpreter = open_data_interpreter(type_of_interpreter="5bit", distractor_period=200)
@@ -222,7 +225,7 @@ class Project:
         visual.visualize_example_run(outputs)
 
     def japanese_vowels(self):
-        data_interpreter = open_data_interpreter("japanese_vowels", binarization_resolution=4)
+        data_interpreter = open_data_interpreter("japanese_vowels", binarization_resolution=1)
 
         # reca_prob
         reCA_problem = reCA.ReCAProblem(data_interpreter)
@@ -230,13 +233,13 @@ class Project:
         #reCA_config.set_single_reservoir_config(ca_rule=90, R=2, C=3, I=16, classifier="linear-svm",
         #                                        encoding="random_mapping",
         #                                        time_transition="random_permutation")
-        with open(file_location+ "/../experiment_data/rules/jap_vowls_evolved_runs/2.ind", "rb") as f:
+        with open(file_location+ "/../experiment_data/rules/jap_vowls_evolved_runs/8.ind", "rb") as f:
             evolved_ind = pickle.load(f)
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
         reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
         #reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
         #reCA_config.set_uniform_margem_config(rule_scheme=reCA_rule, N=reCA_problem.input_size, R=(reCA_problem.input_size*2)+29*4, R_i=2, I=4)
-        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=8, C=12, I=1, classifier="linear-svm",
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=8, C=12, I=1, classifier="perceptron_sgd",
                                               mapping_permutations=False, time_transition="random_permutation")
         #reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=64, C=1, I=4, time_transition="xor", classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
@@ -501,7 +504,7 @@ class Project:
     def square_root_sequence_task(self):
         # Currently only german is implemented
         #translation_data = self.open_temporal_data("en-de.data")
-        data_interpreter = open_data_interpreter("sqrt_seq")
+        data_interpreter = open_data_interpreter("sqrt_seq", training_ex=500, testing_ex=100)
 
         # reca_prob
         reCA_problem = reCA.ReCAProblem(data_interpreter)
@@ -511,13 +514,13 @@ class Project:
         #                                        time_transition="random_permutation")
         with open(file_location + "/../experiment_data/rules/NuniRule7838_f=837.ind", "rb") as f:
             evolved_ind = pickle.load(f)
-        reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
-        #reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
+        #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+        reCA_rule = reCA.ReCAruleConfig(uniform_rule=85)
 
         #
         #reCA_config.set_uniform_margem_config(rule_scheme=reCA_rule, N=54, R=10, R_i=1, I=2)
-        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=6, C=10, I=2,
-                                              classifier="perceptron_sgd", time_transition="random_permutation", mapping_permutations=False)
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=reCA_problem.input_size, R=6, C=18, I=2,
+                                              classifier="perceptron_sgd", time_transition="random_permutation", mapping_permutations=True)
         # reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=64, C=1, I=4, time_transition="xor", classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
 
@@ -810,10 +813,10 @@ class Project:
 
     def evolve_sqrt_seq(self):
         # ReCA params
-        C = 8
+        C = 12
         R = 6
         I = 2
-        N = 17+1
+        N = 11+1
         time_transition = "random_permutation"
         classifier = "perceptron_sgd"
         permute_mappings = False  # If the mappings should be permuted
@@ -838,7 +841,7 @@ class Project:
             "time_transition": time_transition,
             "classifier": classifier,
 
-            "training_ex": 400,
+            "training_ex": 600,
             "testing_ex": 100,
 
         }
@@ -1170,6 +1173,55 @@ class Project:
         #
         #    random_initial_sim = ca_simulator.run_simulation(random_initial, iterations)
         #    bviz.visualize(random_initial_sim, name="rule_"+str(i)+"_random_initial", save_states=True,axis_label_off=True,  show=False)
+
+    def run_reca_sample_simulation(self):
+        data_interpreter = open_data_interpreter("reca_sim", distractor_period=10, training_ex=32, testing_ex=32)
+        reCA_problem = reCA.ReCAProblem(data_interpreter)
+        reCA_config = reCA.ReCAConfig()
+
+        size = 5 * 2 * 40
+        rule_list = []
+        avail_rules = [85, 90]
+        no_rules = len(avail_rules)
+        for i in range(no_rules):
+            # rule = random.randint(0,255)
+            rule = avail_rules[i]
+            rule_list.extend([rule for _ in range(size // no_rules)])
+        # rule_list = [89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 89, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 149, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 133, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 120, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122, 122]
+
+
+
+        #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
+        #reCA_rule = reCA.ReCAruleConfig(no)
+        reCA_rule = reCA.ReCAruleConfig(uniform_rule=110)
+        reCA_config.set_random_mapping_config(reCA_rule,N=reCA_problem.input_size, R=2, C=20, I=6, mapping_permutations=False,
+                                              classifier="perceptron_sgd", time_transition="random_permutation")
+        # reCA_config.set_uniform_margem_config(rule=[141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18], R_i=2, R=76, I=8, classifier="perceptron_sgd")
+        reCA_system = reCA.ReCASystem()
+
+        reCA_system.set_problem(reCA_problem)
+        reCA_system.set_config(reCA_config)
+        reCA_system.initialize_rc()
+        reCA_system.tackle_ReCA_problem()
+
+        reCA_out = reCA_system.test_on_problem()
+
+        # PRINTOUT:
+        print("--example--")
+        example_run = reCA_out.all_predictions[0]
+        example_test = reCA_out.all_test_examples[0]
+
+        for i in range(len(example_run)):
+            time_step = example_run[i]
+            prediction = time_step[0]
+            correct = example_test[1][i]
+            _input = "".join([str(x) for x in example_test[0][i]])
+            print("Input: " + _input + "  Correct: " + str(correct) + "  Predicted:" + str(prediction))
+        print("============================")
+        print(str(reCA_out.total_correct) + " of " + str(len(reCA_out.all_test_examples)))
+        # Visualize:
+        outputs = reCA_system.get_example_run()
+        visual.visualize_example_run(outputs)
 
 
 
