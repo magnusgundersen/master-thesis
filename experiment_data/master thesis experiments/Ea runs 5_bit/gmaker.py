@@ -4,7 +4,7 @@ import pickle
 import json
 import matplotlib.pyplot as plt
 import tabulate as tabulate
-
+import numpy as np
 all_items = os.listdir()
 folders = []
 for folder in all_items:
@@ -45,9 +45,9 @@ max_generations = max([len(fitness_list) for fitness_list in plot_data])
 fig = plt.figure() # figsize=(30, 24)
 
 ax1 = fig.add_subplot(1, 1, 1)
-ax1.set_ylim([0, 1250])
-ax1.set_xlim([0, max_generations+3])
-ax1.set_title("5-bit EA") # , size=32
+ax1.set_ylim([0, 1000])
+ax1.set_xlim([0, max_generations])
+#ax1.set_title("5-bit EA") # , size=32
 name = "full graph"
 plot_colors = ["r", "g", "b", "y", "m", "k", "c"]
 plot_colors = ["#023FA5","#7D87B9","#BEC1D4",
@@ -74,7 +74,26 @@ plot_colors= [
 
 #plot_colors = ["black"]
 #plot_colors = ["(1,2,2)"]
+plot_colors = ["#93ccea"]*10 + ["black"]
+#plot_colors = ["(1,2,2)"]
+
+names += ["mean"]
+
+mean_data = []
+#plot_colors = ["black"]
+#plot_colors = ["(1,2,2)"]
 i = 0
+
+for j in range(1000):
+    one_gen_fitnesses = []
+    for ea_run in plot_data:
+        try:
+            one_gen_fitnesses.append(ea_run[j])
+        except:
+            one_gen_fitnesses.append(1000)
+    mean_data.append(np.mean(one_gen_fitnesses))
+
+plot_data.append(mean_data)
 
 for data in plot_data:  # For nice legend   plot_data
     plots = []
@@ -84,14 +103,14 @@ for data in plot_data:  # For nice legend   plot_data
 
     #ax1.plot(range(generations), data, plot_colors[i % len(plot_colors)] + '--')  plot_colors[i % len(plot_colors)] + 's'
 
-    plt.xlabel("Generations") # , size=32
+    plt.xlabel("Generation") # , size=32
     plt.xticks((range(0,generations_to_include+1, max_generations//10))) # , size=32
-    plt.ylabel("Permille(1/1000) correct") # , size=32
+    plt.ylabel("Fitness") # , size=32
     plt.yticks((range(0, 1000 + 1, 100))) # , size=32
     plt.grid(linestyle='-.', linewidth=0.1)
-    legend = ax1.legend(loc='upper left', shadow=True, prop={'size': 12}, ncol=5)
-    frame = legend.get_frame()
-    frame.set_facecolor('0.90')
+    #legend = ax1.legend(loc='upper left', shadow=True, prop={'size': 12}, ncol=5)
+    #frame = legend.get_frame()
+    #frame.set_facecolor('0.90')
     # Save the full figure...
     file_location = os.path.dirname(os.path.realpath(__file__))
     #fig.savefig(file_location + name+".pdf", format="pdf", bbox_inches='tight')

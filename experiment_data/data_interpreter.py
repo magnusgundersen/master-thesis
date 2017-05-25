@@ -55,11 +55,11 @@ class TranslationBuilder:
         for i in range(len(ger_lines)):
             ger_line = ger_lines[i]
             eng_line = eng_lines[i]
-            if 20 < len(ger_line) < 25:
+            if 17 < len(ger_line) < 23:
                 short_ger_lines.append(ger_line)
                 short_eng_lines.append(eng_line)
 
-                if len(short_ger_lines) == 20000: break
+                if len(short_ger_lines) == 30000: break
 
         for i in range(len(short_eng_lines)):
             _inputs, _outputs = self.create_bin_data(short_eng_lines[i], self.english_allowed, short_ger_lines[i], self.german_allowed)
@@ -83,11 +83,11 @@ class TranslationBuilder:
         for i in range(len(ger_lines)):
             ger_line = ger_lines[i]
             eng_line = eng_lines[i]
-            if 20 < len(ger_line) < 25:
+            if 17 < len(ger_line) < 23:
                 short_ger_lines.append(ger_line)
                 short_eng_lines.append(eng_line)
 
-                if len(short_ger_lines) == 20000: break
+                if len(short_ger_lines) == 30000: break
 
         for i in range(len(short_eng_lines)):
             _inputs, _outputs = self.create_bin_data(short_eng_lines[i], self.english_allowed, short_ger_lines[i],
