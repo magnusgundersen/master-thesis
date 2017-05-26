@@ -820,7 +820,7 @@ class Project:
 
     def evolve_sqrt_seq(self):
         # ReCA params
-        C = 6
+        C = 12
         R = 6
         I = 2
         N = 5+1
@@ -832,7 +832,7 @@ class Project:
         # EA params
         pop_size = 7 * 1  # Adapt to number of cores
         max_no_generations = 150
-        tests_per_individual = 1
+        tests_per_individual = 2
         fitness_threshold_value = 1000
         retest_threshold = 999
         retests_per_individual = 10
@@ -893,11 +893,13 @@ class Project:
                    "allowed number of rules": ea_prob.allowed_number_of_rules,
                    }
         non_uni_rule_serialize["ea_data"] = ea_data
-
-        with open(file_location + "/../experiment_data/rules/" + run_name + "JSON.json", "w") as outfile:
-            json.dump(non_uni_rule_serialize, outfile, sort_keys = True, indent = 4)
-        with open(file_location + "/../experiment_data/rules/" + str(best_individual) + ".ind", "wb") as outfile:
-            pickle.dump(best_individual, outfile)
+        try:
+            with open(file_location + "/../experiment_data/rules/" + run_name + "JSON.json", "w") as outfile:
+                json.dump(non_uni_rule_serialize, outfile, sort_keys = True, indent = 4)
+            with open(file_location + "/../experiment_data/rules/" + str(best_individual) + ".ind", "wb") as outfile:
+                pickle.dump(best_individual, outfile)
+        except:
+            print("failed rule dumping")
 
         self.make_ea_report(ea_output, run_name)
         visual.make_fitnessgraph(ea_output, run_name)
@@ -911,8 +913,11 @@ class Project:
             "mean_fitness": mean_fitness_list,
             "std_fitness ": std_fitness_list,
         }
-        with open(file_location + "/../experiment_data/ea_runs/" + run_name + "JSON_report.json", "w") as outfile:
-            json.dump(serialized_data, outfile, sort_keys = True, indent = 4)
+        try:
+            with open(file_location + "/../experiment_data/ea_runs/" + run_name + "JSON_report.json", "w") as outfile:
+                json.dump(serialized_data, outfile, sort_keys = True, indent = 4)
+        except:
+            print("Failed ea report dump")
     ########################
     # Testing and batching #
     ########################

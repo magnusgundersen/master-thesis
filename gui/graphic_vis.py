@@ -127,5 +127,8 @@ def make_fitnessgraph(ea_output, name):
         frame.set_facecolor('0.90')
         # Save the full figure...
         file_location = os.path.dirname(os.path.realpath(__file__))
-        fig.savefig(file_location + "/../experiment_data/ea_runs/" + name)
+        try:
+            fig.savefig(file_location + "/../experiment_data/ea_runs/" + name)
+        except:
+            print("Failed in saving fitnessplot")
         i += 1

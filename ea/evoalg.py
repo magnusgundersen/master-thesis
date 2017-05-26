@@ -19,7 +19,7 @@ if parallel:
     if cpu_count < 20:
         threads_to_be_used = 7  # 4 not cloging the machine
     else:
-        threads_to_be_used = 20
+        threads_to_be_used = 21
 
 
 # Workers:
