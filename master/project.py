@@ -372,6 +372,7 @@ class Project:
 
             print("Input: " + _input + "  Correct: " + str(correct) + "  Predicted:" + str(prediction))
 
+        run_text = ""
         print("Predicted sentence:" + data_interpreter.convert_from_bit_sequence_to_string(raw_predictions, "german"))
         pointer = 0
         print()
@@ -386,12 +387,18 @@ class Project:
             from_sentence = ["".join([str(char) for char in from_sentence]) for from_sentence in reCA_out.all_test_examples[pointer][0]]
             from_sentence = data_interpreter.convert_from_bit_sequence_to_string(from_sentence, "english")
 
-            print("From sentence: " + str(from_sentence))
-            print("To sentence  : " + str(correct_sentence))
-            print("Predicted    : " + str(sentence))
-            print("---")
+            #print("From sentence: " + str(from_sentence))
+            run_text += "From sentence: " + str(from_sentence) +"\n"
+            #print("To sentence  : " + str(correct_sentence))
+            run_text += "To sentence  : " + str(correct_sentence)+"\n"
+            #print("Predicted    : " + str(sentence))
+            run_text += "Predicted    : " + str(sentence)+"\n"
+            #print("---")
+            run_text += "---" + "\n"
             pointer += 1
-
+        print(run_text)
+        with open(file_location+"/../experiment_data/translation/run_predictions.txt", "w+") as f:
+            f.write(run_text)
 
         # Visualize:
         outputs = reCA_system.get_example_run()
@@ -813,19 +820,19 @@ class Project:
 
     def evolve_sqrt_seq(self):
         # ReCA params
-        C = 16
-        R = 8
+        C = 6
+        R = 6
         I = 2
-        N = 11+1
+        N = 5+1
         time_transition = "random_permutation"
         classifier = "perceptron_sgd"
         permute_mappings = False  # If the mappings should be permuted
         number_of_rules = R  # Maximum number of distinct rules
 
         # EA params
-        pop_size = 7 * 3  # Adapt to number of cores
+        pop_size = 7 * 1  # Adapt to number of cores
         max_no_generations = 150
-        tests_per_individual = 2
+        tests_per_individual = 1
         fitness_threshold_value = 1000
         retest_threshold = 999
         retests_per_individual = 10
@@ -841,7 +848,7 @@ class Project:
             "time_transition": time_transition,
             "classifier": classifier,
 
-            "training_ex": 400,
+            "training_ex": 1000,
             "testing_ex": 100,
 
         }

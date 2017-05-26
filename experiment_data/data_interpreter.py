@@ -59,7 +59,7 @@ class TranslationBuilder:
                 short_ger_lines.append(ger_line)
                 short_eng_lines.append(eng_line)
 
-                if len(short_ger_lines) == 30000: break
+                #if len(short_ger_lines) == 100: break
 
         for i in range(len(short_eng_lines)):
             _inputs, _outputs = self.create_bin_data(short_eng_lines[i], self.english_allowed, short_ger_lines[i], self.german_allowed)
@@ -87,7 +87,7 @@ class TranslationBuilder:
                 short_ger_lines.append(ger_line)
                 short_eng_lines.append(eng_line)
 
-                if len(short_ger_lines) == 30000: break
+                #if len(short_ger_lines) == 100: break
 
         for i in range(len(short_eng_lines)):
             _inputs, _outputs = self.create_bin_data(short_eng_lines[i], self.english_allowed, short_ger_lines[i],
@@ -1014,7 +1014,7 @@ class SyntheticSequenceToSequenceBuilder:
         return data_set
 
 class SequenceSquareRootBuilder:
-    def __init__(self, no_training_ex=120, no_testing_ex=100, input_signals=11, input_length_interval=(17, 23)):
+    def __init__(self, no_training_ex=120, no_testing_ex=100, input_signals=5, input_length_interval=(17, 23)):
         self.input_signals = input_signals
         self.input_length_interval = input_length_interval
         self.no_training_ex = no_training_ex

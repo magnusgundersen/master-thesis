@@ -49,7 +49,7 @@ def main(argv):
     for i in range(14):
         try:
             #p.evolve_ca_jap_vowels()
-            p.evolve_sqrt_seq()
+            #p.evolve_sqrt_seq()
             pass
 
         except:
@@ -60,7 +60,7 @@ def main(argv):
     #p.five_bit_density_task()
     #p.square_root_sequence_task()
     #print(project.test_all_rules())
-    #p.europarl_translation_task()
+    p.europarl_translation_task()
     #p.sequence_to_sequence_synth_task()
     #print(p.classifier_testing())
     #p.test_all_rules()
