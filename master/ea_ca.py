@@ -329,7 +329,8 @@ def fitness_synthetic_seq_to_seq_worker(individual, reca_config, ea_config):
 
 def sqrt_seq_runner(individual, reca_config):
     reCA_problem = reCA.ReCAProblem(
-        p.open_data_interpreter("sqrt_seq"))
+        p.open_data_interpreter("sqrt_seq", training_ex=reca_config.get("training_ex"),
+                                testing_ex=reca_config.get("testing_ex")))
     reCA_config = reCA.ReCAConfig()
     reCA_rule_scheme = reCA.ReCAruleConfig(non_uniform_list=individual.phenotype.non_uniform_config)
     reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule_scheme,

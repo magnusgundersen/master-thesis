@@ -813,19 +813,19 @@ class Project:
 
     def evolve_sqrt_seq(self):
         # ReCA params
-        C = 12
-        R = 6
+        C = 16
+        R = 8
         I = 2
         N = 11+1
         time_transition = "random_permutation"
         classifier = "perceptron_sgd"
         permute_mappings = False  # If the mappings should be permuted
-        number_of_rules = 6  # Maximum number of distinct rules
+        number_of_rules = R  # Maximum number of distinct rules
 
         # EA params
-        pop_size = 7 * 2  # Adapt to number of cores
+        pop_size = 7 * 3  # Adapt to number of cores
         max_no_generations = 150
-        tests_per_individual = 4
+        tests_per_individual = 2
         fitness_threshold_value = 1000
         retest_threshold = 999
         retests_per_individual = 10
@@ -841,7 +841,7 @@ class Project:
             "time_transition": time_transition,
             "classifier": classifier,
 
-            "training_ex": 600,
+            "training_ex": 400,
             "testing_ex": 100,
 
         }
