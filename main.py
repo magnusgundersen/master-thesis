@@ -60,7 +60,7 @@ def main(argv):
     #p.five_bit_density_task()
     #p.square_root_sequence_task()
     #print(project.test_all_rules())
-    #p.europarl_translation_task()
+    p.europarl_translation_task()
     #p.sequence_to_sequence_synth_task()
     #print(p.classifier_testing())
     #p.test_all_rules()
@@ -70,7 +70,7 @@ def main(argv):
     #p.mass_test_5bit_density_task()
     #p.mass_test_twenty_bit_task()
     #p.mass_test_japanese_vowels_task()
-    p.mass_test_sqrt_seq_task()
+    #p.mass_test_sqrt_seq_task()
 
     #### Misc ####
     #p.run_ca_simulation()

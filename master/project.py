@@ -329,15 +329,15 @@ class Project:
         # reCA_config.set_single_reservoir_config(ca_rule=90, R=2, C=3, I=16, classifier="linear-svm",
         #                                        encoding="random_mapping",
         #                                        time_transition="random_permutation")
-        #with open(file_location + "/../experiment_data/rules/NuniRule6061_f=968.ind", "rb") as f:
-        #    evolved_ind = pickle.load(f)
+        with open(file_location + "/../experiment_data/rules/sqrt_seq_evolved_runs/7.ind", "rb") as f:
+            evolved_ind = pickle.load(f)
         #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
-        #reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
-        reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
+        reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
+        #reCA_rule = reCA.ReCAruleConfig(uniform_rule=90)
 
         # English alphabet size: 54
         #reCA_config.set_uniform_margem_config(rule_scheme=reCA_rule, N=54, R=10, R_i=1, I=2)
-        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=54, R=4, C=8, I=2,
+        reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=54, R=6, C=12, I=2,
                                               classifier="perceptron_sgd")
         # reCA_config.set_random_mapping_config(ca_rule_scheme=reCA_rule, N=14*2, R=64, C=1, I=4, time_transition="xor", classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
@@ -521,7 +521,7 @@ class Project:
         #                                        time_transition="random_permutation")
 
         ind_location = file_location + "/../experiment_data/rules/NuniRule3392_f=1000.ind"
-        ind_location = file_location + "/../experiment_data/rules/sqrt_seq_evolved_runs/" + "6.ind"
+        ind_location = file_location + "/../experiment_data/rules/sqrt_seq_evolved_runs/" + "7.ind"
         with open(ind_location, "rb") as f:
             evolved_ind = pickle.load(f)
         reCA_rule = reCA.ReCAruleConfig(non_uniform_individual=evolved_ind)
