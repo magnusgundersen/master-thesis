@@ -77,7 +77,8 @@ class TranslationBuilder:
     def get_testing_data(self):
 
         data_set = []
-        eng_lines, ger_lines = (self.read_translation_files("de"))
+        eng_lines, ger_lines = self.read_translation_files("de")
+        print(len(eng_lines))
         short_ger_lines = []
         short_eng_lines = []
         for i in range(len(ger_lines)):

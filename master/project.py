@@ -937,7 +937,7 @@ class Project:
         #non_uniform_rules = ["run"+str(i) for i in range(1, 11)]  # Must be name of .ind objects in the "/rules" folder
         non_uniform_rules = []
         threads = 6
-        total_test_per_rule = threads*15
+        total_test_per_rule = threads*1
 
         testing_config = {
             "threads": threads,
@@ -1194,9 +1194,9 @@ class Project:
         reCA_problem = reCA.ReCAProblem(data_interpreter)
         reCA_config = reCA.ReCAConfig()
 
-        size = 5 * 2 * 40
+        size = 3 * 4 * 10
         rule_list = []
-        avail_rules = [85, 90]
+        avail_rules = [90, 16, 60, 110]
         no_rules = len(avail_rules)
         for i in range(no_rules):
             # rule = random.randint(0,255)
@@ -1206,10 +1206,10 @@ class Project:
 
 
 
-        #reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
+        reCA_rule = reCA.ReCAruleConfig(non_uniform_list=rule_list)
         #reCA_rule = reCA.ReCAruleConfig(no)
-        reCA_rule = reCA.ReCAruleConfig(uniform_rule=110)
-        reCA_config.set_random_mapping_config(reCA_rule,N=reCA_problem.input_size, R=2, C=20, I=6, mapping_permutations=False,
+        #reCA_rule = reCA.ReCAruleConfig(uniform_rule=110)
+        reCA_config.set_random_mapping_config(reCA_rule,N=reCA_problem.input_size, R=4, C=10, I=16, mapping_permutations=False,
                                               classifier="perceptron_sgd", time_transition="random_permutation")
         # reCA_config.set_uniform_margem_config(rule=[141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 210, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18], R_i=2, R=76, I=8, classifier="perceptron_sgd")
         reCA_system = reCA.ReCASystem()
